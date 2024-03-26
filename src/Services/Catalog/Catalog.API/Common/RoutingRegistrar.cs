@@ -1,5 +1,9 @@
 ﻿using Catalog.API.Features.Products.CreateProduct;
+using Catalog.API.Features.Products.DeleteProduct;
 using Catalog.API.Features.Products.GetProduct;
+using Catalog.API.Features.Products.GetProductByCategory;
+using Catalog.API.Features.Products.GetProductById;
+using Catalog.API.Features.Products.UpdateProduct;
 
 namespace Catalog.API.Common
 {
@@ -9,6 +13,10 @@ namespace Catalog.API.Common
         {
             app.MapCreateProductEndpoint();
             app.MapGetProductEndpoint();
+            app.MapGetProductByIdEndpoint();
+            app.MapGetProductByCategoryEndpoint();
+            app.MapUpdateProductEndpoint();
+            app.MapDeleteProductEndpoint();
         }
     }
 }

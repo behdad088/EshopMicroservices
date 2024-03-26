@@ -1,6 +1,7 @@
-﻿namespace Catalog.API.Features.Products.GetProduct;
+﻿namespace Catalog.API.Features.Products.GetProductById;
 
-public record GetProductResponse(PaginatedItems<ProductModule> Result);
+public record GetProductByIdResponse(
+    [property: JsonPropertyName("result")] ProductModule ProductModule);
 
 public record ProductModule(
     [property: JsonPropertyName("id")]

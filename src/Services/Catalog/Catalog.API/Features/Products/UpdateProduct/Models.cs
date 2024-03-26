@@ -1,6 +1,8 @@
-﻿namespace Catalog.API.Features.Products.CreateProduct;
+﻿using System.Text.Json.Serialization;
 
-public record CreateProductRequest(
+namespace Catalog.API.Features.Products.UpdateProduct;
+
+public record UpdateProductRequest(
     [property: JsonPropertyName("id")]
     Guid Id,
     [property: JsonPropertyName("name")]
@@ -14,7 +16,11 @@ public record CreateProductRequest(
     [property: JsonPropertyName("price")]
     decimal? Price);
 
-public record CreateProductResponse(
+public record UpdateProductResponse(
+    [property: JsonPropertyName("result")]
+    ProductModule Product);
+
+public record ProductModule(
     [property: JsonPropertyName("id")]
     Guid Id,
     [property: JsonPropertyName("name")]
