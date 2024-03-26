@@ -1,6 +1,7 @@
 using Catalog.API.Common;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);

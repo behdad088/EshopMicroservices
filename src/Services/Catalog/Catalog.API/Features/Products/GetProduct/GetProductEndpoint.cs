@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-
-namespace Catalog.API.Features.Products.GetProduct;
+﻿namespace Catalog.API.Features.Products.GetProduct;
 
 public static class GetProductEndpoint
 {
@@ -16,7 +14,7 @@ public static class GetProductEndpoint
     }
 
     public static async Task<Ok<GetProductResponse>> GetProducts(
-        [AsParameters] PaginationRequest paginationRequest, 
+        [AsParameters] PaginationRequest paginationRequest,
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductsQuery(paginationRequest));

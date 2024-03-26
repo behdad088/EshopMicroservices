@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-
-namespace Catalog.API.Features.Products.CreateProduct;
+﻿namespace Catalog.API.Features.Products.CreateProduct;
 
 public static class CreateProductEndpoint
 {
@@ -15,11 +13,11 @@ public static class CreateProductEndpoint
         return app;
     }
 
-    public static async Task<Created> CreateProduct(CreateProductRequest request, ISender sender)
+    public static async Task<Created<CreateProductResponse>> CreateProduct(CreateProductRequest request, ISender sender)
     {
         var command = request.Adapt<CreateProductCommand>();
         var result = await sender.Send(command);
         var response = result.Adapt<CreateProductResponse>();
-        return TypedResults.Created($"/api/v1/catalog/product/{response.Id}");
+        return TypedResults.Created($"/api/v1/catalog/products/{response.Id}", response);
     }
 }
