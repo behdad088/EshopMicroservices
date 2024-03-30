@@ -2,9 +2,10 @@
 global using BuildingBlocks.CQRS.Query;
 global using Catalog.API.Exceptions;
 global using Catalog.API.Models;
+global using FluentValidation;
 global using Mapster;
 global using Marten;
 global using MediatR;
 global using Microsoft.AspNetCore.Http.HttpResults;
-global using System.Text.Json.Serialization;
 global using Newtonsoft.Json;
+global using System.Text.Json.Serialization;

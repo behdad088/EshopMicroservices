@@ -1,15 +1,15 @@
 ﻿namespace Catalog.API.Features.Products.GetProduct;
 
-public static class GetProductEndpoint
+public static class GetProductsEndpoint
 {
     public static IEndpointRouteBuilder MapGetProductEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapGet("/products", GetProducts)
-            .WithName("GetProduct")
+            .WithName("GetProducts")
             .Produces<GetProductResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithSummary("Get Product")
-            .WithDescription("Get Product");
+            .WithSummary("Get Products")
+            .WithDescription("Get Products");
         return app;
     }
 

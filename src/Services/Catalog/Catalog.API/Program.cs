@@ -1,11 +1,8 @@
+using BuildingBlocks.CQRS.Extensions;
 using Catalog.API.Common;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddMediatR(config =>
-{
-    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
-});
+builder.Services.RegisterMediateR(typeof(Program).Assembly);
 
 builder.Services.AddMarten(options =>
 {

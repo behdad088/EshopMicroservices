@@ -15,7 +15,7 @@ public static class DeleteCategoryEndpoint
         return app;
     }
 
-    public static async Task<Ok<DeleteProductResponse>> UpdataeProduct(Guid id, ISender sender)
+    public static async Task<Ok<DeleteProductResponse>> UpdataeProduct(string? id, ISender sender)
     {
         var result = await sender.Send(new DeleteProductCommand(id));
         return TypedResults.Ok(new DeleteProductResponse(result.IsSuccess));

@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Catalog.API.Features.Products.UpdateProduct;
+﻿namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductRequest(
     [property: JsonPropertyName("id")]

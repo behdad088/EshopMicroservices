@@ -2,9 +2,19 @@
 
 public record GetProductByCategoryQuery(
     PaginationRequest PaginationRequest,
-    string Category) : IQuery<GetProductByCategoryResult>;
+    string? Category) : IQuery<GetProductByCategoryResult>;
 
 public record GetProductByCategoryResult(PaginatedItems<ProductModule> Product);
+
+public class GetProductByCategoryQueryValidator : AbstractValidator<GetProductByCategoryQuery>
+{
+    public GetProductByCategoryQueryValidator()
+    {
+        RuleFor(x => x.Category)
+            .NotEmpty()
+            .WithMessage("Category cannot be null");
+    }
+}
 
 internal class GetProductsByCategoryQueryHandler(
     IDocumentSession session,
