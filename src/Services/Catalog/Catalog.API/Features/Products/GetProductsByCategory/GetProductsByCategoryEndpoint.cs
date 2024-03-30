@@ -15,7 +15,7 @@ public static class GetProductsByCategoryEndpoint
 
     public static async Task<Ok<GetProductByCategoryResponse>> GetProductsByCategory(
         [AsParameters] PaginationRequest paginationRequest,
-        string category,
+        string? category,
         ISender sender)
     {
         var query = new GetProductByCategoryQuery(paginationRequest, category);

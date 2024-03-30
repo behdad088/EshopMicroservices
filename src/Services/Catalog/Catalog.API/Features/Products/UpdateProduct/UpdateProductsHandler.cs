@@ -1,7 +1,4 @@
-﻿
-using Newtonsoft.Json;
-
-namespace Catalog.API.Features.Products.UpdateProduct;
+﻿namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductCommand(
     Guid Id,
@@ -12,6 +9,34 @@ public record UpdateProductCommand(
     decimal? Price) : ICommand<UpdateProductResult>;
 
 public record UpdateProductResult(ProductModule Product);
+
+public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
+{
+    public UpdateProductCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Name is required")
+            .Length(2, 150).WithMessage("Name must be between 2 and 150 characters");
+
+
+        When(x => x.Category is not null,
+            () => RuleForEach(x => x.Category)
+            .NotEmpty()
+            .WithMessage("Category item cannot be null"));
+
+        RuleFor(x => x.ImageFile)
+            .NotEmpty()
+            .WithMessage("ImageFile cannot be null")
+            .When(x => x.ImageFile is not null);
+
+        RuleFor(x => x.Price)
+            .GreaterThan(0)
+            .WithMessage("Price must be greater than 0")
+            .When(x => x.Price is not null);
+    }
+}
 
 internal class UpdateProductsCommandHandler(
     IDocumentSession session,
@@ -26,11 +51,16 @@ internal class UpdateProductsCommandHandler(
         if (product is null)
             throw new ProductNotFoundException();
 
-        product.Name = command.Name;
-        product.Category = command.Category;
-        product.Description = command.Description;
-        product.ImageFile = command.ImageFile;
-        product.Price = command.Price;
+        if (!string.IsNullOrEmpty(command.Name))
+            product.Name = command.Name;
+        if (command.Category.Count != 0)
+            product.Category = command.Category;
+        if (!string.IsNullOrEmpty(command.Description))
+            product.Description = command.Description;
+        if (!string.IsNullOrEmpty(command.ImageFile))
+            product.ImageFile = command.ImageFile;
+
+        product.Price = command.Price ?? product.Price;
         session.Update(product);
         await session.SaveChangesAsync(cancellationToken);
 
