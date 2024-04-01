@@ -10,8 +10,10 @@ builder.Services.AddMarten(options =>
 {
     options.Connection(builder.Configuration.GetConnectionString("Database")!);
 }).UseLightweightSessions();
+builder.Services.AddHealthChecks(builder.Configuration);
 
 var app = builder.Build();
+app.MapDefaultHealthChecks();
 
 app.MapGroup("/api/v1/catalog")
     .WithTags("Catalog API")
