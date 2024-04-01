@@ -11,6 +11,7 @@ builder.Services.AddMarten(options =>
 {
     options.Connection(builder.Configuration.GetConnectionString("Database")!);
 }).UseLightweightSessions();
+builder.Services.AddHealthChecks(builder.Configuration);
 
 if (builder.Environment.IsDevelopment())
 {
@@ -18,6 +19,7 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+app.MapDefaultHealthChecks();
 
 app.MapGroup("/api/v1/catalog")
     .WithTags("Catalog API")

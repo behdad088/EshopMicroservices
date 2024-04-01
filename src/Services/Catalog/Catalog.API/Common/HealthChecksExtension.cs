@@ -1,0 +1,14 @@
+﻿namespace Catalog.API.Common;
+
+public static class HealthChecksExtension
+{
+    public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDefaultHealthChecks(configuration);
+
+        services.AddHealthChecks()
+            .AddNpgSql(configuration.GetConnectionString("Database")!, name: "postgres", tags: ["ready", "liveness"]);
+
+        return services;
+    }
+}
