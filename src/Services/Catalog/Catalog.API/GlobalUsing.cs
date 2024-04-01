@@ -9,3 +9,4 @@ global using MediatR;
 global using Microsoft.AspNetCore.Http.HttpResults;
 global using Newtonsoft.Json;
 global using System.Text.Json.Serialization;
+global using BuildingBlocks.Exceptions;
