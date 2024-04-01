@@ -78,8 +78,8 @@ public static class ExceptionHandlerMiddleware
             },
             _ => new ProblemDetails()
             {
-                Detail = error.Message,
-                Title = error.GetType().Name,
+                Detail = "InternalServerError",
+                Title = "Spmething unexpected happened.",
                 Status = StatusCodes.Status500InternalServerError
             }
         };
