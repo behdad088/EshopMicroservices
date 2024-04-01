@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS.Behaviours;
+﻿using BuildingBlocks.CQRS.Behaviors;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -12,8 +12,9 @@ public static class CqrsExtensions
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(assembly);
-            config.AddOpenBehavior(typeof(ValidationBehaviour<,>));
-            config.AddOpenBehavior(typeof(QueryValidationBehaviour<,>));
+            config.AddOpenBehavior(typeof(CommandValidationBehaviors<,>));
+            config.AddOpenBehavior(typeof(QueryValidationBehaviors<,>));
+            config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
 
         services.AddValidatorsFromAssembly(assembly);

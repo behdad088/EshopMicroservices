@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 
-namespace BuildingBlocks.CQRS.Behaviours;
+namespace BuildingBlocks.CQRS.Behaviors;
 
 /// <summary>
 /// This class will gets all the validatiors and run throw each one. 

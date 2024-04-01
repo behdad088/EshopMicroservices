@@ -3,10 +3,10 @@ using BuildingBlocks.CQRS.Query;
 using FluentValidation;
 using MediatR;
 
-namespace BuildingBlocks.CQRS.Behaviours;
+namespace BuildingBlocks.CQRS.Behaviors;
 
 
-public class ValidationBehaviour<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
+public class CommandValidationBehaviors<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : BaseValidator<TRequest, TResponse>(validators)
     where TRequest : ICommand<TResponse>
 
@@ -17,7 +17,7 @@ public class ValidationBehaviour<TRequest, TResponse>(IEnumerable<IValidator<TRe
     }
 }
 
-public class QueryValidationBehaviour<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
+public class QueryValidationBehaviors<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : BaseValidator<TRequest, TResponse>(validators)
     where TRequest : IQuery<TResponse>
 
