@@ -18,7 +18,7 @@ public static class GetProductsByCategoryEndpoint
         string? category,
         ISender sender)
     {
-        var query = new GetProductByCategoryQuery(paginationRequest, category);
+        var query = new GetProductByCategoryQuery(paginationRequest, category!);
         var queryResult = await sender.Send(query);
         return TypedResults.Ok(new GetProductByCategoryResponse(queryResult.Product));
     }

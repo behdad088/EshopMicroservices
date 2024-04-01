@@ -5,12 +5,10 @@ public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<Get
 public record GetProductsResult(PaginatedItems<ProductModule> Result);
 
 internal class GetProductQueryHandler(
-    IDocumentSession session,
-    ILogger<GetProductQueryHandler> logger) : IQueryHandler<GetProductsQuery, GetProductsResult>
+    IDocumentSession session) : IQueryHandler<GetProductsQuery, GetProductsResult>
 {
     public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Creating products with {@query}", GetLogStringValue(JsonConvert.SerializeObject(query)));
         var pageSize = query.PaginationRequest.PageSize;
         var pageIndex = query.PaginationRequest.PageIndex;
         var productsAsQueryable = session.Query<Product>().AsQueryable();
