@@ -85,6 +85,7 @@ public static class ExceptionHandlerMiddleware
         };
 
         result.Extensions.Add("traceId", context.TraceIdentifier);
+        context.Response.StatusCode = result.Status ?? StatusCodes.Status500InternalServerError;
         await context.Response.WriteAsJsonAsync(result);
     }
 }
