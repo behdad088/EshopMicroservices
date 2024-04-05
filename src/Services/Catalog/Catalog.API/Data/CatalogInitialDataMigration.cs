@@ -16,7 +16,7 @@ public class CatalogInitialDataMigration : IInitialData
         {
             logger.Information("Migrate postresql database started.");
             var policy = Policy.Handle<SocketException>()
-               .Or<NpgsqlException>()
+               .Or<Marten.Exceptions.MartenCommandException>()
                .WaitAndRetryAsync(retryCount: 7, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
                {
                    logger.Error(ex, "An error occurred while migrating the postresql database, failed trying after {TimeOut}s", $"{time.TotalSeconds:n1}");
@@ -32,7 +32,7 @@ public class CatalogInitialDataMigration : IInitialData
                 await session.SaveChangesAsync();
             });
         }
-        catch (NpgsqlException ex)
+        catch (Marten.Exceptions.MartenCommandException ex)
         {
             logger.Error(ex, "An error occurred while migrating the postresql database.");
         }
