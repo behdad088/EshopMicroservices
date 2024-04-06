@@ -2,9 +2,11 @@ using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
 using Catalog.API.Common;
 using Catalog.API.Data;
-
+using eshop.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddDefaultOpenApi();
+
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
 
 builder.Services.AddMarten(options =>
@@ -19,6 +21,7 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+app.UseDefaultOpenApi();
 app.MapDefaultHealthChecks();
 
 app.MapGroup("/api/v1/catalog")
