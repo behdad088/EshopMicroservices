@@ -74,7 +74,7 @@ public static class ExceptionHandlerMiddleware
                 Extensions = err.InnerException != null ? new Dictionary<string, object?>()
                 {
                     {"MoreInfo",  err.InnerException?.Message}
-                } : new()
+                } : []
             },
             _ => new ProblemDetails()
             {

@@ -10,34 +10,6 @@ public record UpdateProductCommand(
 
 public record UpdateProductResult(ProductModule Product);
 
-public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
-{
-    public UpdateProductCommandValidator()
-    {
-        RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required");
-
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .Length(2, 150).WithMessage("Name must be between 2 and 150 characters");
-
-
-        When(x => x.Category is not null,
-            () => RuleForEach(x => x.Category)
-            .NotEmpty()
-            .WithMessage("Category item cannot be null"));
-
-        RuleFor(x => x.ImageFile)
-            .NotEmpty()
-            .WithMessage("ImageFile cannot be null")
-            .When(x => x.ImageFile is not null);
-
-        RuleFor(x => x.Price)
-            .GreaterThan(0)
-            .WithMessage("Price must be greater than 0")
-            .When(x => x.Price is not null);
-    }
-}
-
 internal class UpdateProductsCommandHandler(
     IDocumentSession session) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
 {
@@ -64,16 +36,5 @@ internal class UpdateProductsCommandHandler(
         var updatedEntity = product.Adapt<ProductModule>();
 
         return new UpdateProductResult(updatedEntity);
-    }
-
-    /// <summary>
-    /// Prevents Log Injection attacks
-    /// https://owasp.org/www-community/attacks/Log_Injection
-    /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    private static string GetLogStringValue(string value)
-    {
-        return value.Replace(Environment.NewLine, "");
     }
 }
