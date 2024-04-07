@@ -19,6 +19,7 @@ public static class GetProductByIdEndpoint
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id));
-        return TypedResults.Ok(new GetProductByIdResponse(queryResult.Product));
+        var result = queryResult.Adapt<GetProductByIdResponse>();
+        return TypedResults.Ok(result);
     }
 }

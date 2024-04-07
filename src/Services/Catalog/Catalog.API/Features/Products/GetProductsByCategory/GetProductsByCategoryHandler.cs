@@ -6,16 +6,6 @@ public record GetProductByCategoryQuery(
 
 public record GetProductByCategoryResult(PaginatedItems<ProductModule> Product);
 
-public class GetProductByCategoryQueryValidator : AbstractValidator<GetProductByCategoryQuery>
-{
-    public GetProductByCategoryQueryValidator()
-    {
-        RuleFor(x => x.Category)
-            .NotEmpty()
-            .WithMessage("Category cannot be null");
-    }
-}
-
 internal class GetProductsByCategoryQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductByCategoryQuery, GetProductByCategoryResult>
 {

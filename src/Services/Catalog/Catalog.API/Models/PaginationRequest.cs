@@ -1,3 +1,7 @@
 ﻿namespace Catalog.API.Models;
 
-public record PaginationRequest(int PageSize = 10, int PageIndex = 0);
+public record PaginationRequest(
+    [property: JsonPropertyName("page_page")] 
+    int PageSize = 10,
+    [property: JsonPropertyName("page_index")]
+    int PageIndex = 0);

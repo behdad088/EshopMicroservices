@@ -18,15 +18,4 @@ internal class GetProductQueryHandler(
 
         return new GetProductsResult(new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));
     }
-
-    /// <summary>
-    /// Prevents Log Injection attacks
-    /// https://owasp.org/www-community/attacks/Log_Injection
-    /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    private static string GetLogStringValue(string value)
-    {
-        return value.Replace(Environment.NewLine, "");
-    }
 }
