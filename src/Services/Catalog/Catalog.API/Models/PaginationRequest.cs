@@ -1,7 +1,9 @@
-﻿namespace Catalog.API.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace Catalog.API.Models;
 
 public record PaginationRequest(
-    [property: JsonPropertyName("page_page")] 
+    [FromQuery(Name = "page_size")]
     int PageSize = 10,
-    [property: JsonPropertyName("page_index")]
+    [FromQuery( Name = "page_index")]
     int PageIndex = 0);
