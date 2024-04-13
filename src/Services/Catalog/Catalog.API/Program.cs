@@ -12,6 +12,8 @@ builder.Services.RegisterMediateR(typeof(Program).Assembly);
 builder.Services.AddMarten(options =>
 {
     options.Connection(builder.Configuration.GetConnectionString("Database")!);
+    options.Schema.For<Product>().UseNumericRevisions(true);
+
 }).UseLightweightSessions();
 builder.Services.AddHealthChecks(builder.Configuration);
 
@@ -29,4 +31,9 @@ app.MapGroup("/api/v1/catalog")
     .RegisterEndpoints();
 app.UseProblemDetailsResponseExceptionHandler();
 
-app.Run();
+await app.RunAsync();
+
+public partial class Program
+{
+
+}

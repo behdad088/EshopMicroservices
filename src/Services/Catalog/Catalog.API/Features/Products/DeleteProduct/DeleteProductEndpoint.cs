@@ -1,6 +1,6 @@
 ﻿namespace Catalog.API.Features.Products.DeleteProduct;
 
-public static class DeleteCategoryEndpoint
+public static class DeleteProductEndpoint
 {
     public static IEndpointRouteBuilder MapDeleteProductEndpoint(this IEndpointRouteBuilder app)
     {

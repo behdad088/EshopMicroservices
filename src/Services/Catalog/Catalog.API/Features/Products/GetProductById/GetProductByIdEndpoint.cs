@@ -8,6 +8,7 @@ public static class GetProductByIdEndpoint
             .WithName("GetProductById")
             .Produces<GetProductByIdResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Get Product by id")
             .WithDescription("Get Product by id");
 
@@ -19,7 +20,7 @@ public static class GetProductByIdEndpoint
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id));
-        var result = queryResult.Adapt<GetProductByIdResponse>();
+        var result = queryResult.Product.Adapt<GetProductByIdResponse>();
         return TypedResults.Ok(result);
     }
 }

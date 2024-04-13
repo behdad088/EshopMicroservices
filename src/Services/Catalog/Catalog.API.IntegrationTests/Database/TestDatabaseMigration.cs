@@ -1,19 +1,22 @@
-﻿using Marten.Schema;
+﻿using Catalog.API.Data;
+using Catalog.API.Models;
+using Marten;
+using Marten.Schema;
 using Polly;
 using Serilog;
 using System.Net.Sockets;
 
-namespace Catalog.API.Data;
+namespace Catalog.API.IntegrationTests.Database;
 
-public class CatalogInitialDataMigration : IInitialData
+public class TestDatabaseMigration : IInitialData
 {
     public async Task Populate(IDocumentStore store, CancellationToken cancellation)
     {
-        var logger = Log.Logger.ForContext<CatalogInitialDataMigration>();
+        var logger = Log.Logger.ForContext<TestDatabaseMigration>();
 
         try
         {
-            logger.Information("Migrate postresql database started.");
+            logger.Information("Migrate test postresql database started.");
             var policy = Policy.Handle<SocketException>()
                .Or<Marten.Exceptions.MartenCommandException>()
                .WaitAndRetryAsync(retryCount: 7, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
@@ -35,14 +38,13 @@ public class CatalogInitialDataMigration : IInitialData
         {
             logger.Error(ex, "An error occurred while migrating the postresql database.");
         }
-
     }
 
     private static IEnumerable<Product> GetPreConfiguredProducts() =>
     [
         new()
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("11d837be-a763-488d-a52e-9ff21ac9d1c2"),
             Name = "IPhone X",
             Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
             ImageFile = "product-1.png",
@@ -51,48 +53,12 @@ public class CatalogInitialDataMigration : IInitialData
         },
         new()
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("c92eba47-06a6-4730-82d4-8f36789c824a"),
             Name = "Samsung 10",
             Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
             ImageFile = "product-2.png",
             Price = 840.00M,
             Category = ["Smart Phone"]
-        },
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Huawei Plus",
-            Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
-            ImageFile = "product-3.png",
-            Price = 650.00M,
-            Category = ["White Appliances"]
-        },
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Xiaomi Mi 9",
-            Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
-            ImageFile = "product-4.png",
-            Price = 470.00M,
-            Category = ["White Appliances"]
-        },
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "HTC U11+ Plus",
-            Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
-            ImageFile = "product-5.png",
-            Price = 380.00M,
-            Category = ["Smart Phone"]
-        },
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "LG G7 ThinQ",
-            Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
-            ImageFile = "product-6.png",
-            Price = 240.00M,
-            Category = ["Home Kitchen"]
         }
     ];
 }
