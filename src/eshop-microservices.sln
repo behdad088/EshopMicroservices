@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{49F5E5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Services\Shared\Shared.csproj", "{49BB59EA-6012-4B45-B179-AA7059FC36A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.API.IntegrationTests", "Services\Catalog\Catalog.API.IntegrationTests\Catalog.API.IntegrationTests.csproj", "{36E0B0E7-5178-4992-B7B1-653583014FEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{49BB59EA-6012-4B45-B179-AA7059FC36A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49BB59EA-6012-4B45-B179-AA7059FC36A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49BB59EA-6012-4B45-B179-AA7059FC36A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36E0B0E7-5178-4992-B7B1-653583014FEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36E0B0E7-5178-4992-B7B1-653583014FEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36E0B0E7-5178-4992-B7B1-653583014FEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36E0B0E7-5178-4992-B7B1-653583014FEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{5F488D3E-3262-4A16-9D0E-7D2CF24DFE85} = {1F0F951F-650B-4764-963A-C46B89CBEAAC}
 		{49F5E5A7-3104-4F2C-A19D-EBF60E8738AB} = {4BB13993-9F73-477F-84CB-591F02235673}
 		{49BB59EA-6012-4B45-B179-AA7059FC36A6} = {49F5E5A7-3104-4F2C-A19D-EBF60E8738AB}
+		{36E0B0E7-5178-4992-B7B1-653583014FEC} = {1148FD45-0A7E-4944-BFA1-8B3DFEE5B38B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0608B3C-D272-4F4D-BDDF-846127EE47CD}
