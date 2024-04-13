@@ -1,5 +1,4 @@
 ﻿using Marten.Schema;
-using Npgsql;
 using Polly;
 using Serilog;
 using System.Net.Sockets;
