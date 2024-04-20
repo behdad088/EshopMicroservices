@@ -37,7 +37,7 @@ public class DeleteProductTests(ApiSpecification ApiSpecification) : IClassFixtu
     public async Task DeleteProductById_Add_Product_To_Db_Check_The_Existance_And_Delete_The_Product_By_Id()
     {
         // Arrange
-        var product = new Models.Product
+        var product = new Product
         {
             Id = Guid.NewGuid(),
             Name = "Test",
