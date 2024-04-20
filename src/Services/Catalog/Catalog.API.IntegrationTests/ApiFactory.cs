@@ -1,5 +1,4 @@
-﻿using Catalog.API.Models;
-using Marten;
+﻿using Marten;
 using Marten.Schema;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

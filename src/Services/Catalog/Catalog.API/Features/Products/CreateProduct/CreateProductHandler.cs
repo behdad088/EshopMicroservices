@@ -1,7 +1,7 @@
 ﻿namespace Catalog.API.Features.Products.CreateProduct;
 
 public record CreateProductCommand(
-    Guid Id,
+    Guid? Id,
     string Name,
     List<string> Category,
     string? Description,
@@ -22,12 +22,14 @@ internal class CreateProductCommandHandler(IDocumentSession session) : ICommandH
     {
         var product = new Product
         {
+            Id = command.Id ?? default,
             Name = command.Name,
             Category = command.Category,
             Description = command.Description,
             ImageFile = command.ImageFile,
             Price = command.Price
         };
+
 
         session.Store(product);
         await session.SaveChangesAsync(cancellationToken);

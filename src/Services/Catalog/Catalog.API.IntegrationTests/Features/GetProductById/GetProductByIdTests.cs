@@ -54,7 +54,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
             // Assert
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
-            var expected = response.Adapt<GetProductByIdResponse>();
+            var expected = product.Adapt<GetProductByIdResponse>();
             response.ShouldBeEquivalentTo(expected);
         }
 
