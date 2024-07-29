@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.API.IntegrationTests;
 
-[Collection(GetWebApiContainerFactory.Name)]
 public class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsyncLifetime
 {
     private ApiFactory? _factory;
@@ -18,7 +17,7 @@ public class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsyncLi
     }
 
     private HttpClient? _httpClient;
-    internal HttpClient HtpClient => _httpClient ??= _factory!.CreateClient();
+    internal HttpClient HttpClient => _httpClient ??= _factory!.CreateClient();
     internal IDocumentStore GetDocumentStore() => _store ??= _factory!.Services.GetRequiredService<IDocumentStore>();
     internal DataSeeder DataSeeder => _dataSeeder ??= new DataSeeder(GetDocumentStore());
 

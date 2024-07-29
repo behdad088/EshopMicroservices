@@ -15,7 +15,7 @@ public static class GetProductByIdEndpoint
         return app;
     }
 
-    public static async Task<Ok<GetProductByIdResponse>> GetProductById(
+    private static async Task<Ok<GetProductByIdResponse>> GetProductById(
         Guid id,
         ISender sender)
     {

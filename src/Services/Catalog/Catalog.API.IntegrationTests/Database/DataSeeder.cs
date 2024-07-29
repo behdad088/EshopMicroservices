@@ -9,7 +9,7 @@ namespace Catalog.API.IntegrationTests.Database
         {
             var products = product is null ? GetListOfProducts() : [product];
 
-            using var session = store.LightweightSession();
+            await using var session = store.LightweightSession();
             session.Store<Product>(products);
             await session.SaveChangesAsync();
         }

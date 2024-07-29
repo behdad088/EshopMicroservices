@@ -1,4 +1,4 @@
-﻿namespace Catalog.API.Features.Products.GetProductByCategory;
+﻿namespace Catalog.API.Features.Products.GetProductsByCategory;
 
 public record GetProductByCategoryResponse(
     PaginatedItems<ProductModule> ProductModule);

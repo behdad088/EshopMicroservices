@@ -1,4 +1,4 @@
-﻿global using Catalog.API.IntegrationTests.AutoFixure;
+﻿global using Catalog.API.IntegrationTests.AutoFixture;
 global using Catalog.API.IntegrationTests.Database;
 global using Catalog.API.Models;
 global using Mapster;

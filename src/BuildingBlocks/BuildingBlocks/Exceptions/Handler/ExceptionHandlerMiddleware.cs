@@ -55,18 +55,18 @@ public static class ExceptionHandlerMiddleware
                 Title = error.GetType().Name,
                 Status = StatusCodes.Status500InternalServerError
             },
-            ValidationException => new ProblemDetails()
+            ValidationException exception => new ProblemDetails()
             {
-                Detail = error.Message,
-                Title = error.GetType().Name,
+                Detail = exception.Message,
+                Title = exception.GetType().Name,
                 Status = StatusCodes.Status400BadRequest,
                 Extensions = new Dictionary<string, object?>()
                 {
-                    { "ValidationErros" , (error as ValidationException)?.Errors.Select(x =>
+                    { "ValidationErrors" , exception?.Errors.Select(x =>
                     new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []}
                 }
             },
-            BadHttpRequestException err when err.StatusCode == 400 => new ProblemDetails
+            BadHttpRequestException { StatusCode: 400 } err => new ProblemDetails
             {
                 Detail = error.Message,
                 Title = error.GetType().Name,
@@ -79,7 +79,7 @@ public static class ExceptionHandlerMiddleware
             _ => new ProblemDetails()
             {
                 Detail = "InternalServerError",
-                Title = "Spmething unexpected happened.",
+                Title = "Something unexpected happened.",
                 Status = StatusCodes.Status500InternalServerError
             }
         };

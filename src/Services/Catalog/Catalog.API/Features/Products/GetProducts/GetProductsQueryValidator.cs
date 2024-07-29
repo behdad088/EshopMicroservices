@@ -1,4 +1,4 @@
-﻿using Catalog.API.Features.Products.GetProduct;
+﻿using Catalog.API.Features.Products.GetProducts;
 
 namespace Catalog.API.Features.Products.GetProducts;
 

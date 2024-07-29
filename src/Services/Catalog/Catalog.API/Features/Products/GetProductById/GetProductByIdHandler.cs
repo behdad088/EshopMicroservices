@@ -4,7 +4,7 @@ public record GetProductByIdQuery(Guid Id) : IQuery<GetProductByIdResult>;
 
 public record GetProductByIdResult(ProductModule Product);
 
-internal class GetProductByIQuerydHandler(
+internal class GetProductByIQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
 {
     public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)

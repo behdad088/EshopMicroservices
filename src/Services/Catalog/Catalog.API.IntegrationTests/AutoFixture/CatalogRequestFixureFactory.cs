@@ -1,15 +1,11 @@
 ﻿using AutoFixture;
 using AutoFixture.Xunit2;
 
-namespace Catalog.API.IntegrationTests.AutoFixure
+namespace Catalog.API.IntegrationTests.AutoFixture
 {
-    public class CatalogRequestAutoDataAttribute : AutoDataAttribute
+    public class CatalogRequestAutoDataAttribute() : AutoDataAttribute(CatalogRequestFixtureFactory.Create)
     {
-        public CatalogRequestAutoDataAttribute() : base(CatalogRequestFixureFactory.Create)
-        {
-        }
-
-        private static class CatalogRequestFixureFactory
+        private static class CatalogRequestFixtureFactory
         {
             public static IFixture Create()
             {

@@ -13,7 +13,7 @@ public static class UpdateProductEndpoint
         return app;
     }
 
-    public static async Task<Ok<UpdateProductResponse>> UpdataeProduct(UpdateProductRequest request, ISender sender)
+    private static async Task<Ok<UpdateProductResponse>> UpdataeProduct(UpdateProductRequest request, ISender sender)
     {
         var command = request.Adapt<UpdateProductCommand>();
         var result = await sender.Send(command);

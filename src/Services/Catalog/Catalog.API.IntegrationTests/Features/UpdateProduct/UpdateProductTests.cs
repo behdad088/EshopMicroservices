@@ -1,18 +1,23 @@
 ﻿using Catalog.API.Features.Products.UpdateProduct;
+using Catalog.API.IntegrationTests.AutoFixture;
 
 namespace Catalog.API.IntegrationTests.Features.UpdateProduct
 {
     [Collection(GetWebApiContainerFactory.Name)]
-    public class UpdateProductTests(ApiSpecification ApiSpecification) : IClassFixture<ApiSpecification>, IAsyncLifetime
+    public class UpdateProductTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
     {
         private HttpClient _client = default!;
         private DataSeeder _dataSeeder = default!;
-
+        private ApiSpecification _apiSpecification = default!;
+        
         public async Task InitializeAsync()
         {
-            _dataSeeder = ApiSpecification.DataSeeder;
-            _client = ApiSpecification.HtpClient;
-            await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            _apiSpecification = new ApiSpecification(webApiContainer);
+            await _apiSpecification.InitializeAsync();
+            
+            _dataSeeder = _apiSpecification.DataSeeder;
+            _client = _apiSpecification.HttpClient;
+            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
 
         [Theory, CatalogRequestAutoData]
@@ -141,8 +146,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             var actual = response.Product.Adapt<UpdateProductRequest>();
             updateProductRequest.ShouldBeEquivalentTo(actual);
 
-            using var session = ApiSpecification.GetDocumentStore().LightweightSession();
-            var valueInDb = session.Query<Product>().Where(x => x.Id == updateProductRequest.Id).FirstOrDefault();
+            await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
+            var valueInDb = session.Query<Product>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
 
             valueInDb!.Name.ShouldBe(updateProductRequest.Name);
             valueInDb!.Description.ShouldBe(updateProductRequest.Description);
@@ -154,7 +159,7 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
 
         public async Task DisposeAsync()
         {
-            await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
     }
 }

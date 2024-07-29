@@ -3,9 +3,9 @@
 public record UpdateProductCommand(
     Guid Id,
     string Name,
-    List<string> Category,
+    List<string>? Category,
     string? Description,
-    string ImageFile,
+    string? ImageFile,
     decimal? Price) : ICommand<UpdateProductResult>;
 
 public record UpdateProductResult(ProductModule Product);
@@ -22,8 +22,8 @@ internal class UpdateProductsCommandHandler(
 
         if (!string.IsNullOrEmpty(command.Name))
             product.Name = command.Name;
-        if (command.Category.Count != 0)
-            product.Category = command.Category;
+        if (command.Category?.Count != 0)
+            product.Category = command.Category!;
         if (!string.IsNullOrEmpty(command.Description))
             product.Description = command.Description;
         if (!string.IsNullOrEmpty(command.ImageFile))

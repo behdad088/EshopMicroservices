@@ -23,12 +23,12 @@ public class CatalogInitialDataMigration : IInitialData
 
             await policy.ExecuteAsync(async () =>
             {
-                using var session = store.LightweightSession();
-                if (await session.Query<Product>().AnyAsync())
+                await using var session = store.LightweightSession();
+                if (await session.Query<Product>().AnyAsync(token: cancellation))
                     return;
 
                 session.Store<Product>(GetPreConfiguredProducts());
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync(cancellation);
             });
         }
         catch (Marten.Exceptions.MartenCommandException ex)

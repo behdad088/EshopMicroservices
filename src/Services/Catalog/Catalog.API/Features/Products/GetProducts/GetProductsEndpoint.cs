@@ -1,4 +1,4 @@
-﻿namespace Catalog.API.Features.Products.GetProduct;
+﻿namespace Catalog.API.Features.Products.GetProducts;
 
 public static class GetProductsEndpoint
 {
@@ -13,7 +13,7 @@ public static class GetProductsEndpoint
         return app;
     }
 
-    public static async Task<Ok<GetProductResponse>> GetProducts(
+    private static async Task<Ok<GetProductResponse>> GetProducts(
         [AsParameters] PaginationRequest paginationRequest,
         ISender sender)
     {
