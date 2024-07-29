@@ -4,7 +4,7 @@ public static class DeleteProductEndpoint
 {
     public static IEndpointRouteBuilder MapDeleteProductEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/products/{id}", UpdataeProduct)
+        app.MapDelete("/products/{id}", UpdateProduct)
             .WithName("DeleteProduct")
             .Produces<DeleteProductResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -13,7 +13,7 @@ public static class DeleteProductEndpoint
         return app;
     }
 
-    public static async Task<Ok<DeleteProductResponse>> UpdataeProduct(string? id, ISender sender)
+    private static async Task<Ok<DeleteProductResponse>> UpdateProduct(string? id, ISender sender)
     {
         var result = await sender.Send(new DeleteProductCommand(id));
         return TypedResults.Ok(new DeleteProductResponse(result.IsSuccess));

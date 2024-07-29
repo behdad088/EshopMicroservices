@@ -1,4 +1,4 @@
-﻿namespace Catalog.API.Features.Products.GetProduct;
+﻿namespace Catalog.API.Features.Products.GetProducts;
 
 public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<GetProductsResult>;
 

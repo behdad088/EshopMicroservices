@@ -13,7 +13,7 @@ public static class CreateProductEndpoint
         return app;
     }
 
-    public static async Task<Created<CreateProductResponse>> CreateProduct(CreateProductRequest request, ISender sender)
+    private static async Task<Created<CreateProductResponse>> CreateProduct(CreateProductRequest request, ISender sender)
     {
         var command = request.Adapt<CreateProductCommand>();
         var result = await sender.Send(command);

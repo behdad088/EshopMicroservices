@@ -1,4 +1,4 @@
-﻿namespace Catalog.API.Features.Products.GetProductByCategory;
+﻿namespace Catalog.API.Features.Products.GetProductsByCategory;
 
 public static class GetProductsByCategoryEndpoint
 {
@@ -13,7 +13,7 @@ public static class GetProductsByCategoryEndpoint
         return app;
     }
 
-    public static async Task<Ok<GetProductByCategoryResponse>> GetProductsByCategory(
+    private static async Task<Ok<GetProductByCategoryResponse>> GetProductsByCategory(
         [AsParameters] PaginationRequest paginationRequest,
         string? category,
         ISender sender)

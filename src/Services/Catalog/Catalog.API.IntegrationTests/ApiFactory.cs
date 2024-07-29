@@ -10,8 +10,6 @@ namespace Catalog.API.IntegrationTests
 {
     public class ApiFactory(string postgresConnection) : WebApplicationFactory<Program>
     {
-        private readonly string _postgresConnection = postgresConnection;
-
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureTestServices(service =>
@@ -19,10 +17,9 @@ namespace Catalog.API.IntegrationTests
                 service.RemoveAll(typeof(IInitialData));
                 service.AddMarten(options =>
                 {
-                    options.Connection(_postgresConnection);
+                    options.Connection(postgresConnection);
                     options.Schema.For<Product>().UseNumericRevisions(true);
                 }).UseLightweightSessions();
-                //service.InitializeMartenWith<TestDatabaseMigration>();
             });
         }
     }

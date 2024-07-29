@@ -4,16 +4,20 @@ using Catalog.API.Features.Products.GetProductById;
 namespace Catalog.API.IntegrationTests.Features.DeleteProduct;
 
 [Collection(GetWebApiContainerFactory.Name)]
-public class DeleteProductTests(ApiSpecification ApiSpecification) : IClassFixture<ApiSpecification>, IAsyncLifetime
+public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
 {
     private DataSeeder _dataSeeder = default!;
     private HttpClient _client = default!;
-
+    private ApiSpecification _apiSpecification = default!;
+    
     public async Task InitializeAsync()
     {
-        _dataSeeder = ApiSpecification.DataSeeder;
-        _client = ApiSpecification.HtpClient;
-        await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        _apiSpecification = new ApiSpecification(webApiContainer);
+        await _apiSpecification.InitializeAsync();
+        
+        _dataSeeder = _apiSpecification.DataSeeder;
+        _client = _apiSpecification.HttpClient;
+        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
 
     [Fact]
@@ -72,6 +76,6 @@ public class DeleteProductTests(ApiSpecification ApiSpecification) : IClassFixtu
 
     public async Task DisposeAsync()
     {
-        await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
 }

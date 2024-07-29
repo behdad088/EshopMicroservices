@@ -1,7 +1,7 @@
 ﻿using Catalog.API.Features.Products.CreateProduct;
 using Catalog.API.Features.Products.DeleteProduct;
-using Catalog.API.Features.Products.GetProduct;
-using Catalog.API.Features.Products.GetProductByCategory;
+using Catalog.API.Features.Products.GetProducts;
+using Catalog.API.Features.Products.GetProductsByCategory;
 using Catalog.API.Features.Products.GetProductById;
 using Catalog.API.Features.Products.UpdateProduct;
 

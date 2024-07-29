@@ -1,16 +1,21 @@
 ﻿using Catalog.API.Features.Products.CreateProduct;
+using Catalog.API.IntegrationTests.AutoFixture;
 
 namespace Catalog.API.IntegrationTests.Features.CreateProducts;
 
 [Collection(GetWebApiContainerFactory.Name)]
-public class CreateProductsTests(ApiSpecification ApiSpecification) : IClassFixture<ApiSpecification>, IAsyncLifetime
+public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
 {
     private HttpClient _client = default!;
-
+    private ApiSpecification _apiSpecification = default!;
+    
     public async Task InitializeAsync()
     {
-        _client = ApiSpecification.HtpClient;
-        await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        _apiSpecification = new ApiSpecification(webApiContainer);
+        await _apiSpecification.InitializeAsync();
+        
+        _client = _apiSpecification.HttpClient;
+        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
 
     [Theory, CatalogRequestAutoData]
@@ -107,7 +112,7 @@ public class CreateProductsTests(ApiSpecification ApiSpecification) : IClassFixt
 
         // Assert
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
-        using var session = ApiSpecification.GetDocumentStore().LightweightSession();
+        await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
         var valueInDb = session.Query<Product>().Where(x => x.Id == createProductRequest.Id).ToList();
         valueInDb.ShouldNotBeNull();
         var expected = createProductRequest.Adapt<CreateProductResponse>();
@@ -127,7 +132,7 @@ public class CreateProductsTests(ApiSpecification ApiSpecification) : IClassFixt
         // Assert
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
         response.ShouldNotBeNull();
-        using var session = ApiSpecification.GetDocumentStore().LightweightSession();
+        await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
         var valueInDb = session.Query<Product>().Where(x => x.Id == createProductRequest.Id).ToList();
         valueInDb.ShouldNotBeNull();
         var expected = createProductRequest.Adapt<CreateProductResponse>();
@@ -137,6 +142,6 @@ public class CreateProductsTests(ApiSpecification ApiSpecification) : IClassFixt
 
     public async Task DisposeAsync()
     {
-        await ApiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
 }
