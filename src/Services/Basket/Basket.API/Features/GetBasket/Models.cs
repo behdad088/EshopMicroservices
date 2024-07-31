@@ -2,6 +2,6 @@ namespace Basket.API.Features.GetBasket;
 
 public record GetBasketResponse(
     string Username,
-    List<CartItem> Items,
+    List<BasketItem> Items,
     decimal TotalPrice
 ) : BasketDto(Username, Items, TotalPrice);

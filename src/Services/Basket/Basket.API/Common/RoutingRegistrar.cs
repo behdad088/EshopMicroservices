@@ -1,3 +1,4 @@
+using Basket.API.Features.DeleteBasket;
 using Basket.API.Features.GetBasket;
 using Basket.API.Features.StoreBasket;
 
@@ -9,5 +10,6 @@ public static class RoutingRegistrar
     {
         app.MapGetBasketEndpoint();
         app.MapStoreBasketEndpoint();
+        app.MapDeleteBasketEndpoint();
     }
 }
