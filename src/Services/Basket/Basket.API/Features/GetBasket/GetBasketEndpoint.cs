@@ -8,13 +8,13 @@ public static class GetBasketEndpoint
 {
     public static IEndpointRouteBuilder MapGetBasketEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/Basket/{username}", GetBasketAsync)
+        app.MapGet("/{username}", GetBasketAsync)
             .WithName("GetBasket")
             .Produces<GetBasketResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithSummary("Get Product by id")
-            .WithDescription("Get Product by id");
+            .WithSummary("Get Basket by username")
+            .WithDescription("Get Basket by username");
 
         return app;
     }

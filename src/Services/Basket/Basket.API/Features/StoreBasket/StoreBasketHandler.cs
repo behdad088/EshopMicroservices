@@ -1,5 +1,4 @@
 using BuildingBlocks.CQRS.Command;
-using FluentValidation;
 
 namespace Basket.API.Features.StoreBasket;
 

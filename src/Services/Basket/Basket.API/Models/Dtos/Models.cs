@@ -6,12 +6,12 @@ public record BasketDto(
     [property: JsonPropertyName("username")]
     string Username,
     [property: JsonPropertyName("Items")]
-    List<CartItem> Items,
+    List<BasketItem> Items,
     [property: JsonPropertyName("total_price")]
     decimal TotalPrice
 );
     
-public record CartItem(
+public record BasketItem(
     [property: JsonPropertyName("quantity")]
     int Quantity,
     [property: JsonPropertyName("color")]

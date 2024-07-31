@@ -1,5 +1,6 @@
 using Basket.API.Common;
 using BuildingBlocks.CQRS.Extensions;
+using BuildingBlocks.Exceptions.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
@@ -23,5 +24,8 @@ app.MapGroup("/api/v1/basket")
     .WithTags("Basket API")
     .WithOpenApi()
     .RegisterEndpoints();
+
+app.UseProblemDetailsResponseExceptionHandler();
+
 
 app.Run();
