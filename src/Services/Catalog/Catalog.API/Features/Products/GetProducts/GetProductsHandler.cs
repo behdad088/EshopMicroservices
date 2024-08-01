@@ -12,8 +12,12 @@ internal class GetProductQueryHandler(
         var pageSize = query.PaginationRequest.PageSize;
         var pageIndex = query.PaginationRequest.PageIndex;
         var productsAsQueryable = session.Query<Product>().AsQueryable();
-        var totalItems = await productsAsQueryable.CountAsync(cancellationToken);
-        var products = await productsAsQueryable.Skip(pageSize * pageIndex).Take(pageSize).ToListAsync(cancellationToken);
+        var totalItems = await productsAsQueryable.CountAsync(cancellationToken).ConfigureAwait(false);
+        var products = await productsAsQueryable.Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        
         var result = products.Adapt<IEnumerable<ProductModule>>();
 
         return new GetProductsResult(new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));

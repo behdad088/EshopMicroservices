@@ -1,4 +1,3 @@
-using Basket.API.Features.GetBasket;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -24,7 +23,7 @@ public static class DeleteBasketEndpoint
         string username,
         ISender sender)
     {
-        var queryResult = await sender.Send(new DeleteBasketCommand(username));
+        var queryResult = await sender.Send(new DeleteBasketCommand(username)).ConfigureAwait(false);
         var result = queryResult.Adapt<DeleteBasketResponse>();
         return TypedResults.Ok(result);
     }

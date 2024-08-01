@@ -6,10 +6,11 @@ public record DeleteBasketCommand(string Username) : ICommand<DeleteBasketResult
 
 public record DeleteBasketResult(bool IsSuccess);
 
-public class DeleteBasketHandler : ICommandHandler<DeleteBasketCommand, DeleteBasketResult>
+public class DeleteBasketHandler(IBasketRepository basketRepository) : ICommandHandler<DeleteBasketCommand, DeleteBasketResult>
 {
-    public Task<DeleteBasketResult> Handle(DeleteBasketCommand request, CancellationToken cancellationToken)
+    public async Task<DeleteBasketResult> Handle(DeleteBasketCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = await basketRepository.DeleteBasketAsync(request.Username, cancellationToken).ConfigureAwait(false);
+        return new DeleteBasketResult(result);
     }
 }

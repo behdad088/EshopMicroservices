@@ -9,7 +9,7 @@ internal class GetProductByIQueryHandler(
 {
     public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
-        var product = await session.LoadAsync<Product>(query.Id, cancellationToken);
+        var product = await session.LoadAsync<Product>(query.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
             throw new ProductNotFoundException(query.Id);

@@ -2,7 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace Basket.API.Models.Dtos;
 
-public record BasketDto(
+public record BasketDtoRequest(
+    [property: JsonPropertyName("username")]
+    string Username,
+    [property: JsonPropertyName("Items")]
+    List<BasketItem> Items
+);
+
+public record BasketDtoResponse(
     [property: JsonPropertyName("username")]
     string Username,
     [property: JsonPropertyName("Items")]

@@ -16,7 +16,7 @@ public static class CreateProductEndpoint
     private static async Task<Created<CreateProductResponse>> CreateProduct(CreateProductRequest request, ISender sender)
     {
         var command = request.Adapt<CreateProductCommand>();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command).ConfigureAwait(false);
         var response = result.Adapt<CreateProductResponse>();
         return TypedResults.Created($"/api/v1/catalog/products/{response.Id}", response);
     }

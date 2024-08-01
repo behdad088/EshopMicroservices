@@ -23,7 +23,7 @@ public static class GetBasketEndpoint
         string username,
         ISender sender)
     {
-        var queryResult = await sender.Send(new GetBasketQuery(username));
+        var queryResult = await sender.Send(new GetBasketQuery(username)).ConfigureAwait(false);
         var result = queryResult.ShoppingCart.Adapt<GetBasketResponse>();
         return TypedResults.Ok(result);
     }

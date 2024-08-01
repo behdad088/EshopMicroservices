@@ -15,7 +15,7 @@ public static class DeleteProductEndpoint
 
     private static async Task<Ok<DeleteProductResponse>> UpdateProduct(string? id, ISender sender)
     {
-        var result = await sender.Send(new DeleteProductCommand(id));
+        var result = await sender.Send(new DeleteProductCommand(id)).ConfigureAwait(false);
         return TypedResults.Ok(new DeleteProductResponse(result.IsSuccess));
     }
 }

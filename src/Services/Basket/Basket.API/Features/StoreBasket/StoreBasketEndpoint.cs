@@ -22,7 +22,7 @@ public static class StoreBasketEndpoint
     private static async Task<Ok<StoreBasketResponse>> StoreBasketAsync(StoreBasketRequest request, ISender sender)
     {
         var command = request.Adapt<StoreBasketCommand>();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command).ConfigureAwait(false);
         var response = result.Adapt<StoreBasketResponse>();
         return TypedResults.Ok(response);
     }

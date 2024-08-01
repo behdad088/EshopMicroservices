@@ -15,7 +15,7 @@ internal class UpdateProductsCommandHandler(
 {
     public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
     {
-        var product = await session.LoadAsync<Product>(command.Id, cancellationToken);
+        var product = await session.LoadAsync<Product>(command.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
             throw new ProductNotFoundException(command.Id);
@@ -31,7 +31,7 @@ internal class UpdateProductsCommandHandler(
 
         product.Price = command.Price ?? product.Price;
         session.Update(product);
-        await session.SaveChangesAsync(cancellationToken);
+        await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var updatedEntity = product.Adapt<ProductModule>();
 
