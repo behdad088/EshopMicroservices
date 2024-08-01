@@ -16,7 +16,7 @@ public static class UpdateProductEndpoint
     private static async Task<Ok<UpdateProductResponse>> UpdataeProduct(UpdateProductRequest request, ISender sender)
     {
         var command = request.Adapt<UpdateProductCommand>();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command).ConfigureAwait(false);
         return TypedResults.Ok(new UpdateProductResponse(result.Product));
     }
 }

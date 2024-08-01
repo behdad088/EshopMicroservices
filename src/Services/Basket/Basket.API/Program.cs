@@ -4,6 +4,17 @@ using BuildingBlocks.Exceptions.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
+
+builder.Services.AddMarten(options =>
+{
+    options.Connection(builder.Configuration.GetConnectionString("Database")!);
+    options.Schema.For<ShoppingCart>()
+        .UseNumericRevisions(true);
+
+}).UseLightweightSessions();
+
+builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

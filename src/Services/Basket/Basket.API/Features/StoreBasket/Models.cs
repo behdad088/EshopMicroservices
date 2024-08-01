@@ -1,9 +1,9 @@
-using System.Text.Json.Serialization;
-
 namespace Basket.API.Features.StoreBasket;
 
-public record StoreBasketResponse(bool IsSuccess);
+public record StoreBasketResponse(
+    [property: JsonPropertyName("shopping_cart")]
+    BasketDtoResponse ShoppingCart);
 
 public record StoreBasketRequest(
     [property: JsonPropertyName("shopping_cart")]
-    BasketDto ShoppingCart);
+    BasketDtoRequest ShoppingCart);

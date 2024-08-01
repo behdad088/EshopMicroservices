@@ -32,7 +32,7 @@ internal class CreateProductCommandHandler(IDocumentSession session) : ICommandH
 
 
         session.Store(product);
-        await session.SaveChangesAsync(cancellationToken);
+        await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         var result = product.Adapt<CreateProductResult>();
         return result;
     }

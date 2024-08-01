@@ -8,18 +8,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Marten" Version="7.26.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
     </ItemGroup>
 
 </Project>

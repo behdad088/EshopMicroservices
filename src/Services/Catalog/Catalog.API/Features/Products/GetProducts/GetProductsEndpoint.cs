@@ -17,7 +17,7 @@ public static class GetProductsEndpoint
         [AsParameters] PaginationRequest paginationRequest,
         ISender sender)
     {
-        var queryResult = await sender.Send(new GetProductsQuery(paginationRequest));
+        var queryResult = await sender.Send(new GetProductsQuery(paginationRequest)).ConfigureAwait(false);
         return TypedResults.Ok(new GetProductResponse(queryResult.Result));
     }
 }
