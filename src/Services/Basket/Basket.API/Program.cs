@@ -1,26 +1,42 @@
 using Basket.API.Common;
+using Basket.API.Configurations;
 using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
+using BuildingBlocks.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
 
+builder.Services
+    .AddOptions<DatabaseConfigurations>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
+
+var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 builder.Services.AddMarten(options =>
 {
-    options.Connection(builder.Configuration.GetConnectionString("Database")!);
+    options.Connection(databaseConfigurations.PostgresDb);
     options.Schema.For<ShoppingCart>()
         .UseNumericRevisions(true);
 
 }).UseLightweightSessions();
 
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = databaseConfigurations.Redis;
+});
+builder.Services.AddHealthChecks(builder.Configuration);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.MapDefaultHealthChecks();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -37,6 +53,5 @@ app.MapGroup("/api/v1/basket")
     .RegisterEndpoints();
 
 app.UseProblemDetailsResponseExceptionHandler();
-
 
 app.Run();
