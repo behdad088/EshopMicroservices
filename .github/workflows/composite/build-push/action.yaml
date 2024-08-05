@@ -12,6 +12,9 @@ inputs:
   project_path:
     description: "Project path"
     required: true
+  registry_username:
+    description: "Registry username"
+    required: true
   dockerhub_username:
     description: "Docker hub username"
     required: true
@@ -57,7 +60,7 @@ runs:
       id: docker_meta
       uses: docker/metadata-action@v4
       with:
-          images: ${{ vars.REGISTRYUSERNAME }}/${{ inputs.image_name }}
+          images: ${{ inputs.registry_username }}/${{ inputs.image_name }}
           flavor: |
             latest=false
           tags: |

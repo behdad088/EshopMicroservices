@@ -24,7 +24,7 @@ env:
   IMAGE: eshop-catalog.api
   ProjectPath: src/Services/Catalog/Catalog.API
   ProjectTestPath: src/Services/Catalog/Catalog.API.IntegrationTests
-    
+
 jobs:
 
   build:
@@ -39,5 +39,6 @@ jobs:
         image_name: ${{ env.IMAGE }}
         project_path: ${{ env.ProjectPath }}
         test_path: ${{ env.ProjectTestPath }}
+        registry_username: ${{ vars.REGISTRYUSERNAME }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
