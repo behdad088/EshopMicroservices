@@ -24,7 +24,7 @@ env:
   IMAGE: eshop-catalog.api
   ProjectPath: src/Services/Catalog/Catalog.API
   ProjectTestPath: src/Services/Catalog/Catalog.API.IntegrationTests
-  RegistryUsername:  ${{ env.RegistryUsername }}
+  RegistryUsername:  ${{ vars.REGISTRYUSERNAME }}
     
 jobs:
 
