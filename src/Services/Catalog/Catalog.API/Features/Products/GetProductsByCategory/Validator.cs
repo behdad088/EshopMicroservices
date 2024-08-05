@@ -1,6 +1,4 @@
-﻿using Catalog.API.Features.Products.GetProductsByCategory;
-
-namespace Catalog.API.Features.Products.GetProductsByCategory;
+﻿namespace Catalog.API.Features.Products.GetProductsByCategory;
 
 public class GetProductByCategoryQueryValidator : AbstractValidator<GetProductByCategoryQuery>
 {
