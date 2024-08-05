@@ -12,4 +12,5 @@ public class Product
     [Version]
     public int Version { get; set; } 
     public decimal? Price { get; set; }
+    public decimal? Price1 { get; set; }
 }
