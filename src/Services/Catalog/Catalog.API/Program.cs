@@ -1,4 +1,3 @@
-using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
 using Catalog.API.Common;
 using Catalog.API.Data;
