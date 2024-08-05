@@ -12,5 +12,9 @@ public class PaginatedItems<TEntity>(int pageIndex, int pageSize, long count, IE
     public long Count { get; } = count;
 
     [JsonPropertyName("data")]
-    public IEnumerable<TEntity> Data { get; } = data;
+    public IEnumerable<TEntity> Data { get; } = data; 
+    
+    
+    [JsonPropertyName("data")]
+    public IEnumerable<TEntity> Datas { get; } = data; 
 }
