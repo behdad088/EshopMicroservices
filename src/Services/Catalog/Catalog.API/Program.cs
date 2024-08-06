@@ -32,7 +32,9 @@ app.UseProblemDetailsResponseExceptionHandler();
 
 await app.RunAsync();
 
-public partial class Program
+namespace Catalog.API
 {
-
+    public class Program
+    {
+    }
 }

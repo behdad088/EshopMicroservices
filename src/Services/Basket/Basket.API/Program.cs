@@ -56,6 +56,9 @@ app.UseProblemDetailsResponseExceptionHandler();
 
 app.Run();
 
-public partial class Program
+namespace Basket.API
 {
+    public class Program
+    {
+    }
 }
