@@ -1,7 +1,7 @@
-﻿using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 
-namespace Catalog.API.IntegrationTests;
+namespace Basket.API.IntegrationTests;
 
 public class WebApiContainerFactory : IAsyncLifetime
 {
@@ -20,14 +20,25 @@ public class WebApiContainerFactory : IAsyncLifetime
     internal string PostgresConnectionString =>
         $"Server={_postgres.Hostname};Port={_postgres.GetMappedPublicPort(PostgresPort)};Database=TestCatalogDb;User Id=postgres;Password=postgres";
 
-    public async Task DisposeAsync()
-    {
-        await _postgres.DisposeAsync().ConfigureAwait(false);
-    }
+    private const ushort RedisPort = 6379;
+    private readonly IContainer _redis = new ContainerBuilder()
+        .WithImage("redis:alpine")
+        .WithPortBinding(6379, true)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(RedisPort))
+        .Build();
 
+    internal string RedisConnectionString => $"{_redis.Hostname}:{_redis.GetMappedPublicPort(RedisPort)}";
+    
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync().ConfigureAwait(false);
+        await _redis.StartAsync().ConfigureAwait(false);
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _postgres.DisposeAsync().ConfigureAwait(false);
+        await _redis.DisposeAsync().ConfigureAwait(false);
     }
 }
 

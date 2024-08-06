@@ -55,3 +55,10 @@ app.MapGroup("/api/v1/basket")
 app.UseProblemDetailsResponseExceptionHandler();
 
 app.Run();
+
+namespace Basket.API
+{
+    public class Program
+    {
+    }
+}
