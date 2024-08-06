@@ -55,3 +55,7 @@ app.MapGroup("/api/v1/basket")
 app.UseProblemDetailsResponseExceptionHandler();
 
 app.Run();
+
+public partial class Program
+{
+}
