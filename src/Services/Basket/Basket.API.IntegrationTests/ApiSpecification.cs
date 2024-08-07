@@ -10,9 +10,9 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
 {
     private ApiFactory? _factory;
     private IDocumentStore? _store;
-    private IDistributedCache _cache;
-    private PostgresDataSeeder _postgresDataSeeder;
-    private RedisDataSeeder _redisDataSeeder;
+    private IDistributedCache? _cache;
+    private PostgresDataSeeder? _postgresDataSeeder;
+    private RedisDataSeeder? _redisDataSeeder;
     
     public async Task InitializeAsync()
     {
@@ -30,6 +30,9 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
 
     private IDistributedCache GetCache() => _cache ??= _factory!.Services.GetRequiredService<IDistributedCache>();
     internal RedisDataSeeder RedisDataSeeder => _redisDataSeeder ??= new RedisDataSeeder(GetCache());
+    
+    private readonly CancellationTokenSource _timeoutCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+    internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token; 
 
     
     public async Task DisposeAsync()

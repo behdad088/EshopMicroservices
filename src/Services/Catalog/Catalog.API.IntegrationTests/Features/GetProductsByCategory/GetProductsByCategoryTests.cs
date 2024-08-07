@@ -36,7 +36,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
         }
 
         [Fact]
-        public async Task GetProductsByCategory_Save_Two_Catalog_With_Differenct_Category_Returns_One()
+        public async Task GetProductsByCategory_Save_Two_Catalog_With_Different_Category_Returns_One()
         {
             // Arrange
             await _dataSeeder.SeedDataBaseAsync();

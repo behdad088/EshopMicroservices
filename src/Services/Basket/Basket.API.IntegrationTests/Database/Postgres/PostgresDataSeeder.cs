@@ -5,11 +5,18 @@ namespace Basket.API.IntegrationTests.Database.Postgres;
 
 public class PostgresDataSeeder(IDocumentStore store)
 {
-    public async Task SeedDataBaseAsync(ShoppingCart shoppingCart)
+    public async Task SeedDatabaseAsync(ShoppingCart shoppingCart, CancellationToken cancellationToken = default)
     {
         await using var session = store.LightweightSession();
         session.Store<ShoppingCart>(shoppingCart);
-        await session.SaveChangesAsync();
+        await session.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<ShoppingCart?> GetBasketAsync(string username, CancellationToken cancellationToken = default)
+    {
+        await using var session = store.LightweightSession();
+        var basket = await session.LoadAsync<ShoppingCart>(username, cancellationToken).ConfigureAwait(false);
+        return basket;
+    }
+    
 }
