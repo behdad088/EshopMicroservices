@@ -16,6 +16,7 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer): IAsyncLifet
     private RedisDataSeeder _redisDataSeeder = default!;
     private HttpClient _client = default!;
     private ApiSpecification _apiSpecification = default!;
+    
     public async Task InitializeAsync()
     {
         _apiSpecification = new ApiSpecification(webApiContainer);
