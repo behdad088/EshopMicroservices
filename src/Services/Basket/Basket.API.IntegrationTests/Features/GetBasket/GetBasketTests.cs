@@ -134,7 +134,7 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer): IAsyncLifet
 
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
         
-        //Assert Value in Redis db
+        //Assert Value in postgres db
         var basketInPostgresDb = await _postgresDataSeeder.GetBasketAsync(username, timeout);
         basketInPostgresDb.ShouldBeNull();
         
