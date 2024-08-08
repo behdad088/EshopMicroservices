@@ -6,7 +6,7 @@ public record BasketDtoRequest(
     [property: JsonPropertyName("username")]
     string Username,
     [property: JsonPropertyName("Items")]
-    List<BasketItem> Items
+    List<BasketItem>? Items
 );
 
 public record BasketDtoResponse(
