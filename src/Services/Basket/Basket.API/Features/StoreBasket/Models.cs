@@ -6,4 +6,4 @@ public record StoreBasketResponse(
 
 public record StoreBasketRequest(
     [property: JsonPropertyName("shopping_cart")]
-    BasketDtoRequest ShoppingCart);
+    BasketDtoRequest? ShoppingCart);
