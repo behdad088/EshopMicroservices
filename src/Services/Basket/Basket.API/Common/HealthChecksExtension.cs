@@ -1,6 +1,7 @@
 using Basket.API.Configurations;
 using Basket.API.Configurations.ConfigurationOptions;
 using BuildingBlocks.HealthChecks;
+using eshop.Shared;
 
 namespace Basket.API.Common;
 
