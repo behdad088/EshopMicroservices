@@ -1,0 +1,43 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Discount Grpc CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+    - src/BuildingBlocks/**
+    - src/Services/Discount/**
+    - .github/workflows/discount-grpc-CI.yml
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - src/BuildingBlocks/**
+    - src/Services/Discount/**
+    - .github/workflows/discount-grpc-CI.yml
+
+env:
+  SERVICE: eshop-discount.grpc
+  IMAGE: eshop-discount.grpc
+  ProjectPath: src/Services/Discount/Discount.Grpc
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - uses: ./.github/workflows/composite/build-push
+      with: 
+        service: ${{ env.SERVICE }}
+        image_name: ${{ env.IMAGE }}
+        project_path: ${{ env.ProjectPath }}
+        test_path: ${{ env.ProjectTestPath }}
+        registry_username: ${{ vars.REGISTRYUSERNAME }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
