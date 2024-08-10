@@ -1,7 +1,7 @@
-using Discount.Grpc.Configurations;
 using Discount.Grpc.Configurations.ConfigurationOptions;
 using Discount.Grpc.Data;
 using Discount.Grpc.Services;
+using eshop.Shared;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

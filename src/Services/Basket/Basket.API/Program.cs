@@ -1,8 +1,8 @@
 using Basket.API.Common;
-using Basket.API.Configurations;
 using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
+using eshop.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
