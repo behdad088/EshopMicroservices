@@ -1,5 +1,3 @@
-using Discount.Grpc.Data;
-using Discount.Grpc.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,9 +12,6 @@ public class DatabaseSeeder : IDisposable
         var scopeFactory = serviceProvider.GetService<IServiceScopeFactory>();
         _scope = scopeFactory!.CreateScope();
         _discountContext = _scope.ServiceProvider.GetRequiredService<DiscountContext>();
-        
-        _discountContext.Coupons.RemoveRange(_discountContext.Coupons);
-        _discountContext.SaveChanges();
     }
 
     public async Task<Coupon?> GetCouponAsync(string productName)
@@ -43,7 +38,6 @@ public class DatabaseSeeder : IDisposable
     
     public void Dispose()
     {
-        _discountContext.Database.EnsureDeleted();
         _discountContext.Dispose();
         _scope.Dispose();
     }

@@ -16,6 +16,12 @@ public class DiscountService (DiscountContext dbContext, ILogger<DiscountService
         if (coupon is null)
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid request object"));
 
+        var couponInDb = await dbContext.Coupons.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.ProductName == request.Coupon.ProductName).ConfigureAwait(false);
+
+        if (couponInDb != null)
+            return await UpdateDiscount(new UpdateDiscountRequest() { Coupon = couponInDb.Adapt<CouponModel>() }, context);
+        
         dbContext.Coupons.Add(coupon);
         await dbContext.SaveChangesAsync().ConfigureAwait(false);
 

@@ -1,0 +1,7 @@
+global using Grpc.Core;
+global using Grpc.Net.Client;
+global using Shouldly;
+global using Xunit.Abstractions;
+global using Discount.Grpc.Models;
+global using Mapster;
+global using Discount.Grpc.Data;

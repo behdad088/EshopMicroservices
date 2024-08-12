@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
 
 namespace Discount.Grpc.IntegrationTests.Helpers;
 
