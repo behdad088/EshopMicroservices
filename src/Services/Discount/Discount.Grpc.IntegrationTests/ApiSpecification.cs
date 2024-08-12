@@ -1,7 +1,5 @@
 using Discount.Grpc.IntegrationTests.Database;
-using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
 
 namespace Discount.Grpc.IntegrationTests;
 
@@ -41,11 +39,13 @@ public class ApiSpecification(ITestOutputHelper outputHelper) : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        if (ApiFactory is not null) 
-            await ApiFactory.DisposeAsync().ConfigureAwait(false);
-        
         _testContext?.Dispose();
         _databaseSeeder?.Dispose();
+        
         _channel = null;
+        
+        if (ApiFactory is not null) 
+            await ApiFactory.DisposeAsync().ConfigureAwait(false);
+
     }
 }
