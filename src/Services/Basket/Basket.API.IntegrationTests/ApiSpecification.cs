@@ -36,7 +36,8 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
 
     
     public async Task DisposeAsync()
-    {if (_factory is not null)
+    {
+        if (_factory is not null)
             await _factory.DisposeAsync();
 
         _httpClient?.Dispose();
