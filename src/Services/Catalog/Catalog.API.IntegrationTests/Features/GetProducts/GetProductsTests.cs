@@ -97,7 +97,8 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
 
         public async Task DisposeAsync()
         {
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
+            await _apiSpecification.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

@@ -194,5 +194,6 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
     public async Task DisposeAsync()
     {
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
+        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
     }
 }
