@@ -155,5 +155,6 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer): IAsyncLifet
     public async Task DisposeAsync()
     {
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
+        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
     }
 }
