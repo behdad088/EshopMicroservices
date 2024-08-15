@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "Basket.API.Proto";
+
+package basket;
+
+message ShoppingCart{
+  string username = 1;
+  repeated ShoppingCartItem shoppingCartItem = 2;
+  string totalPrice = 3;
+  int32 version = 4;
+}
+
+message ShoppingCartItem{
+ int32 quantity = 1;
+ string color = 2;
+ string price = 3;
+ string produceId = 4;
+ string productName = 5;
+}
