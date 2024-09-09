@@ -9,6 +9,8 @@
 
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="8.0.1" />
+        <PackageReference Include="Grpc.Net.ClientFactory" Version="2.54.0" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
         <PackageReference Include="Google.Protobuf" Version="3.23.3" />
         <PackageReference Include="Grpc.Core" Version="2.46.6" />
         <PackageReference Include="Grpc.Tools" Version="2.54.0">
@@ -27,8 +29,9 @@
       <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
       <ProjectReference Include="..\..\Shared\Shared.csproj" />
         <Protobuf Include="Protos\basket.proto" GrpcServices="none" />
+        <Protobuf Include="..\..\Discount\Discount.Grpc\Protos\discount.proto" GrpcServices="Client"/>
     </ItemGroup>
-    
+
     <ItemGroup>
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>

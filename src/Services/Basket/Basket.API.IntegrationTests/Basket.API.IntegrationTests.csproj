@@ -17,14 +17,23 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
         <PackageReference Include="Shouldly" Version="4.2.1" />
         <PackageReference Include="Testcontainers" Version="3.8.0" />
+        <PackageReference Include="WireMock.Net.StandAlone" Version="1.6.3" />
         <PackageReference Include="xunit" Version="2.5.3"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3"/>
     </ItemGroup>
+    
+    
 
     <ItemGroup>
         <Using Include="Xunit"/>
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <None Include="..\..\Discount\Discount.Grpc\Protos\**" LinkBase="protos">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\Basket.API\Basket.API.csproj" />
     </ItemGroup>
