@@ -1,8 +1,10 @@
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
+using Basket.API.IntegrationTests.ServerGivens;
 using Marten;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using WireMock.Server;
 
 namespace Basket.API.IntegrationTests;
 
@@ -13,14 +15,27 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
     private IDistributedCache? _cache;
     private PostgresDataSeeder? _postgresDataSeeder;
     private RedisDataSeeder? _redisDataSeeder;
-    
+    private WireMockServer? _discountWireMockServer;
+        
     public async Task InitializeAsync()
     {
+        _discountWireMockServer = StartWireMockServer();
+        Environment.SetEnvironmentVariable("Grpc__Discount", _discountWireMockServer.Url);
+        
         _factory = new ApiFactory(webApiContainer.PostgresConnectionString, webApiContainer.RedisConnectionString);
         _store = _factory.Services.GetRequiredService<IDocumentStore>();
         _cache =  _factory.Services.GetRequiredService<IDistributedCache>();
         await Task.CompletedTask;
     }
+    
+    private static WireMockServer StartWireMockServer()
+    {
+        var server = WireMockServer.Start(useHttp2: true);
+        return server;
+    }
+    
+    public DiscountGiven CreateDiscountServerGiven() =>
+        new (_discountWireMockServer ?? throw new Exception("Failed starting Discount WireMockServer!"));
     
     private HttpClient? _httpClient;
     internal HttpClient HttpClient => _httpClient ??= _factory!.CreateClient();
@@ -41,7 +56,10 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
             await _factory.DisposeAsync();
 
         _httpClient?.Dispose();
-        _store?.Advanced.ResetAllData();
+        _store?.Advanced.ResetAllData(CancellationToken);
         _store?.Dispose();
+        
+        _discountWireMockServer?.Stop();
+        _discountWireMockServer?.Dispose();
     }
 }

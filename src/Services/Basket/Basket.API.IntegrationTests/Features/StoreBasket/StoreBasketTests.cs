@@ -3,6 +3,7 @@ using Basket.API.Features.StoreBasket;
 using Basket.API.IntegrationTests.AutoFixture;
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
+using Basket.API.IntegrationTests.ServerGivens;
 using Basket.API.Models.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -17,6 +18,7 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
     private RedisDataSeeder _redisDataSeeder = default!;
     private HttpClient _client = default!;
     private ApiSpecification _apiSpecification = default!;
+    private DiscountGiven _discountGiven = default!;
     
     public async Task InitializeAsync()
     {
@@ -28,6 +30,8 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
         _client = _apiSpecification.HttpClient;
 
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
+
+        _discountGiven = _apiSpecification.CreateDiscountServerGiven();
     }
 
     [Theory, BasketRequestAutoData]
@@ -132,6 +136,7 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
     {
         // Arrange 
         var token = _apiSpecification.CancellationToken;
+        _discountGiven.GetDiscountGiven(request.ShoppingCart!.Items!.FirstOrDefault()!.ProductName);
         
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/basket", request, token);
@@ -167,6 +172,8 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
                 request.ShoppingCart.Items!.FirstOrDefault()!,
             }));
         
+        _discountGiven.GetDiscountGiven(request.ShoppingCart.Items!.FirstOrDefault()!.ProductName);
+        
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/basket", validRequest, token);
         var response = await result.Content.ReadFromJsonAsync<StoreBasketResponse>(token);
@@ -181,14 +188,14 @@ public class StoreBasketTests(WebApiContainerFactory webApiContainer)  : IAsyncL
         response.ShoppingCart.Username.ShouldBe(resultInPostgresDb!.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInPostgresDb.Items));
-        resultInPostgresDb.TotalPrice.ShouldBe(200);
+        resultInPostgresDb.TotalPrice.ShouldBe(180);
 
         var resultInRedis = await _redisDataSeeder.GetShoppingCartAsync(validRequest.ShoppingCart.Username, token);
         resultInRedis.ShouldNotBeNull();
         response.ShoppingCart.Username.ShouldBe(resultInRedis.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInRedis.Items));
-        resultInRedis.TotalPrice.ShouldBe(200);
+        resultInRedis.TotalPrice.ShouldBe(180);
     }
     
     public async Task DisposeAsync()
