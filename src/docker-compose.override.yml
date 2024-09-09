@@ -60,9 +60,11 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/basket.pfx
       - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
       - ConnectionStrings__Redis=distributedCache:6379
+      - Grpc__Discount=https://discount.grpc:8080
     depends_on:
       - basketDb
       - distributedCache
+      - discount.grpc
     ports:
       - "6001:8080"
       - "6061:8081"

@@ -2,6 +2,7 @@ using Basket.API.Common;
 using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
+using Discount;
 using eshop.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,14 @@ builder.Services
     .ValidateDataAnnotationsRecursively()
     .ValidateOnStart();
 
+builder.Services
+    .AddOptions<DiscountGrpcConfiguration>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
+var discountGrpcConfiguration = builder.Configuration.TryGetValidatedOptions<DiscountGrpcConfiguration>();
 var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
+
 builder.Services.AddMarten(options =>
 {
     options.Connection(databaseConfigurations.PostgresDb);
@@ -21,6 +29,11 @@ builder.Services.AddMarten(options =>
         .UseNumericRevisions(true);
 
 }).UseLightweightSessions();
+
+builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>((_, option) =>
+{
+    option.Address = new Uri(discountGrpcConfiguration.DiscountGrpc);
+});
 
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();
@@ -44,8 +57,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.MapGroup("/api/v1/basket")
     .WithTags("Basket API")
