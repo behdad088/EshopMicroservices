@@ -9,7 +9,7 @@ public static class HealthChecksExtension
 {
     public static IServiceCollection AddHealthChecks(this IServiceCollection services, ConfigurationManager configuration)
     {
-        services.AddDefaultHealthChecks(configuration);
+        services.AddDefaultHealthChecks();
         var databaseConfiguration = configuration.TryGetValidatedOptions<DatabaseConfigurations>();
         
         services.AddHealthChecks()
