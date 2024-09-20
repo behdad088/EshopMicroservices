@@ -27,8 +27,13 @@ services:
     build:
       context: .
       dockerfile: Services/Discount/Discount.Grpc/Dockerfile
+      
+  order.command.api:
+    image: order.command.api
+    build:
+      context: .
+      dockerfile: Services/Order.Command/Order.Command.API/Dockerfile
 
 volumes:
   postgres_catalog_db:
   postgres_basket_db:
-

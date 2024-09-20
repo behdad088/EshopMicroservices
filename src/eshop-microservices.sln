@@ -33,6 +33,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discount.Grpc", "Services\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discount.Grpc.IntegrationTests", "Services\Discount\Discount.Grpc.IntegrationTests\Discount.Grpc.IntegrationTests.csproj", "{D300EFA4-FB96-4E30-8DDB-680A27C1A925}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Order.Command", "Order.Command", "{42EFD55E-0787-4C86-A9AB-B2FD324922CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Command.API", "Services\Order.Command\Order.Command.API\Order.Command.API.csproj", "{C83D8C74-2BC8-46E1-A989-E4CF36F8876D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +79,10 @@ Global
 		{D300EFA4-FB96-4E30-8DDB-680A27C1A925}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D300EFA4-FB96-4E30-8DDB-680A27C1A925}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D300EFA4-FB96-4E30-8DDB-680A27C1A925}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83D8C74-2BC8-46E1-A989-E4CF36F8876D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83D8C74-2BC8-46E1-A989-E4CF36F8876D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83D8C74-2BC8-46E1-A989-E4CF36F8876D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83D8C74-2BC8-46E1-A989-E4CF36F8876D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,6 +100,8 @@ Global
 		{A48AF143-CAA7-43EA-B221-66BD79E842FD} = {4BB13993-9F73-477F-84CB-591F02235673}
 		{622A7F33-16AC-4C7A-B87F-D4F23C39957C} = {A48AF143-CAA7-43EA-B221-66BD79E842FD}
 		{D300EFA4-FB96-4E30-8DDB-680A27C1A925} = {A48AF143-CAA7-43EA-B221-66BD79E842FD}
+		{42EFD55E-0787-4C86-A9AB-B2FD324922CE} = {4BB13993-9F73-477F-84CB-591F02235673}
+		{C83D8C74-2BC8-46E1-A989-E4CF36F8876D} = {42EFD55E-0787-4C86-A9AB-B2FD324922CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0608B3C-D272-4F4D-BDDF-846127EE47CD}
