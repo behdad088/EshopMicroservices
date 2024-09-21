@@ -1,0 +1,4 @@
+[*.{cs,csproj}]
+indent_style = space
+indent_size = 4
+csharp_indent_raw_literal_string = indent
