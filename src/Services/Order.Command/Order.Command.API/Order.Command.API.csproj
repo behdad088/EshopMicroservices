@@ -14,6 +14,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+      <ProjectReference Include="..\Order.Command.Application\Order.Command.Application.csproj" />
+      <ProjectReference Include="..\Order.Command.Infrastructure\Order.Command.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>
