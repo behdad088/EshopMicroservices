@@ -1,7 +1,7 @@
 namespace Order.Command.Domain.Models;
 
-public class Product : Entity<ProductId>
+public class Product(ProductName name, Price price) : Entity<ProductId>
 {
-    public string Name { get; private set; } = default!;
-    public decimal Price { get; private set; } = default!;
+    public ProductName? Name { get; private set; } = name;
+    public Price Price { get; private set; } = price;
 }

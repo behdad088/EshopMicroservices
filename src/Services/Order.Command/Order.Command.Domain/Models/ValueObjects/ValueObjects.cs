@@ -22,6 +22,11 @@ public class OrderItemId : ValueOf<Guid, OrderItemId>
     
 }
 
+public class ProductName : ValueOf<string, ProductName>
+{
+    
+}
+
 public class OrderName : ValueOf<string, OrderName>
 {
     private const int DefaultLength = 5;
