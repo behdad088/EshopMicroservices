@@ -3,9 +3,9 @@ using Order.Command.Domain.Models.ValueObjects;
 
 namespace Order.Command.Infrastructure.Data.Extensions;
 
-internal class InitialData
+internal static class InitialData
 {
-    public static IEnumerable<Customer> Customers => new[]
+    internal static IEnumerable<Customer> Customers => new[]
     {
         Customer.Create(
             id: CustomerId.From(new Guid("d0fad6c2-19d2-4c1c-ad9f-834076d50e2d")),
@@ -17,7 +17,7 @@ internal class InitialData
             email: "customer2@test.com"),
     };
 
-    public static IEnumerable<Product> Products => new[]
+    internal static IEnumerable<Product> Products => new[]
     {
         Product.Create(
             id: ProductId.From(new Guid("19dc8c88-097a-4a19-9f3c-f2ab0be2ee34")),
@@ -37,7 +37,7 @@ internal class InitialData
             price: Price.From(450))
     };
 
-    public static IEnumerable<Order.Command.Domain.Models.Order> OrdersWithItems()
+    internal static IEnumerable<Order.Command.Domain.Models.Order> OrdersWithItems()
     {
         var address1 = new Address("customer firstname", "customer1 lastname", "customer1@test.com",
             "customer 1 address line", "customer 1 country" ,"customer 1 state", "13245");
