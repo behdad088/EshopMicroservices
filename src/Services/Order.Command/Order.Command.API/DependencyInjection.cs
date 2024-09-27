@@ -1,6 +1,7 @@
 namespace Order.Command.API;
 
-public class DependencyInjection
+public static class DependencyInjection
 {
+    
     
 }
