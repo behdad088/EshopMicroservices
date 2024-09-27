@@ -8,8 +8,17 @@ public record Payment
     public string CVV { get; private set; } = default!;
     public int PaymentMethod { get; private set; } = default!;
 
+    public Payment()
+    {
+    }
+    
     public Payment(string cardName, string cardNumber, string expiration, string cvv, int paymentMethod)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cardName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(cardNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expiration);
+        ArgumentOutOfRangeException.ThrowIfNotEqual(cvv.Length, 3);
+        
         CardName = cardName;
         CardNumber = cardNumber;
         Expiration = expiration;
