@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Order.Command.Domain.Events;
 
 namespace Order.Command.Domain.Models;
@@ -8,20 +9,28 @@ public class Order : Aggregate<OrderId>
     public IReadOnlyList<OrderItem> OrderItems => _orderItems;
     public CustomerId? CustomerId { get; private set; } = default!;
     public OrderName OrderName { get; private set; } = default!;
-    public ShippingAddress ShippingAddress { get; private set; } = default!;
-    public BillingAddress BillingAddress { get; private set; } = default!;
-    public OrderPayment Payment { get; private set; } = default!;
+    public Address ShippingAddress { get; private set; } = default!;
+    public Address BillingAddress { get; private set; } = default!;
+    public Payment Payment { get; private set; } = default!;
     public OrderStatus Status { get; private set; } = default!;
 
-    public Price TotalPrice => Price.From(OrderItems.Sum(x => x.Price.Value * x.Quantity));
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
+    
+    public Price TotalPrice
+    {
+        get { return Price.From(OrderItems.Sum(x => x.Price.Value * x.Quantity)); }
+        set{ }
+    }
 
     public Order Create(
         OrderId id,
         CustomerId? customerId,
         OrderName orderName,
-        ShippingAddress shippingAddress,
-        BillingAddress billingAddress,
-        OrderPayment payment)
+        Address shippingAddress,
+        Address billingAddress,
+        Payment payment,
+        List<OrderItem>? orderItems = null)
     {
         var order = new Order
         {
@@ -31,30 +40,26 @@ public class Order : Aggregate<OrderId>
             ShippingAddress = shippingAddress,
             BillingAddress = billingAddress,
             Payment = payment,
-            Status = OrderStatus.Pending
+            Status = OrderStatus.Pending,
         };
-
-        AddDomainEvent(new OrderCreatedEvent(order));
+        order._orderItems.AddRange(orderItems?.Select(x => new OrderItem(id, x.ProductId, x.Quantity, x.Price)).ToArray() ?? []);
+        order.AddDomainEvent(new OrderCreatedEvent(order));
         
         return order;
     }
     
-    public Order Update(
+    public void Update(
         OrderName orderName,
-        ShippingAddress shippingAddress,
-        BillingAddress billingAddress,
+        Address shippingAddress,
+        Address billingAddress,
         OrderStatus orderStatus)
     {
-        var order = new Order
-        {
-            OrderName = orderName,
-            ShippingAddress = shippingAddress,
-            BillingAddress = billingAddress,
-            Status = orderStatus
-        };
+        OrderName = orderName;
+        ShippingAddress = shippingAddress;
+        BillingAddress = billingAddress;
+        Status = orderStatus;
         
-        AddDomainEvent(new OrderUpdatedEvent(order));
-        return order;
+        AddDomainEvent(new OrderUpdatedEvent(this));
     }
 
     public void Add(ProductId productId, int quantity, Price price)
