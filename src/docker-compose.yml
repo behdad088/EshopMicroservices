@@ -9,6 +9,10 @@ services:
   
   distributedCache:
     image: redis:alpine
+    
+  order.command.db:
+    image: mcr.microsoft.com/mssql/server
+    platform: linux/amd64
   
   catalog.api:
     image: ${DOCKER_REGISTRY-}catalog.api

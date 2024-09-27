@@ -10,8 +10,15 @@ public record Address
     public string State { get; private set; } = default!;
     public string ZipCode { get; private set; } = default!;
 
+    public Address()
+    {
+    }
+    
     public Address(string firstName, string lastName, string emailAddress, string addressLine, string country, string state, string zipCode)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(emailAddress);
+        ArgumentException.ThrowIfNullOrWhiteSpace(addressLine);
+        
         FirstName = firstName;
         LastName = lastName;
         EmailAddress = emailAddress;
