@@ -15,7 +15,7 @@ public class Order : Aggregate<OrderId>
     public OrderStatus Status { get; private set; } = default!;
 
     [Timestamp]
-    public byte[] RowVersion { get; set; }
+    public byte[] RowVersion { get; set; } = default!;
     
     public Price TotalPrice
     {
