@@ -52,11 +52,13 @@ public class Order : Aggregate<OrderId>
         OrderName orderName,
         Address shippingAddress,
         Address billingAddress,
+        Payment payment,
         OrderStatus orderStatus)
     {
         OrderName = orderName;
         ShippingAddress = shippingAddress;
         BillingAddress = billingAddress;
+        Payment = payment;
         Status = orderStatus;
         
         AddDomainEvent(new OrderUpdatedEvent(this));
