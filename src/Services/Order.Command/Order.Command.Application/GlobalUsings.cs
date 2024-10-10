@@ -6,3 +6,5 @@ global using Order.Command.Domain.Models.ValueObjects;
 global using MediatR;
 global using Microsoft.Extensions.Logging;
 global using Order.Command.Domain.Events;
+global using BuildingBlocks.CQRS.Query;
+global using Microsoft.EntityFrameworkCore;
