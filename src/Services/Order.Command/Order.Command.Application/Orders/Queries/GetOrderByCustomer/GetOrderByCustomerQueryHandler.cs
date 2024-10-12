@@ -1,22 +1,24 @@
-namespace Order.Command.Application.Orders.Queries.GetOrdersByName;
+namespace Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
-public record GetOrdersByNameQuery(string Name) : IQuery<GetOrdersByNameResult>;
-public record GetOrdersByNameResult(IReadOnlyCollection<OrderDto> Orders);
+public record GetOrderByCustomerQuery(Guid CustomerId) : IQuery<GetOrderByCustomerResult>;
 
-public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
-    : IQueryHandler<GetOrdersByNameQuery, GetOrdersByNameResult>
+public record GetOrderByCustomerResult(IEnumerable<OrderDto> Orders);
+
+public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
+    : IQueryHandler<GetOrderByCustomerQuery, GetOrderByCustomerResult>
 {
-    public async Task<GetOrdersByNameResult> Handle(GetOrdersByNameQuery query, CancellationToken cancellationToken)
+    public async Task<GetOrderByCustomerResult> Handle(GetOrderByCustomerQuery query,
+        CancellationToken cancellationToken)
     {
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .Where(x => x.OrderName.Value == query.Name)
+            .Where(x => x.CustomerId!.Value == query.CustomerId)
             .OrderBy(x => x.OrderName.Value)
             .ToListAsync(cancellationToken);
 
         var result = MapResult(orders);
-        return new GetOrdersByNameResult(result);
+        return new GetOrderByCustomerResult(result);
     }
 
     private static OrderDto[] MapResult(IReadOnlyCollection<Domain.Models.Order> orders)
