@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.GetProducts;
+﻿using BuildingBlocks.Pagination;
+
+namespace Catalog.API.Features.Products.GetProducts;
 
 public static class GetProductsEndpoint
 {
