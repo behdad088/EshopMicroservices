@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.GetProductsByCategory;
+﻿using BuildingBlocks.Pagination;
+
+namespace Catalog.API.Features.Products.GetProductsByCategory;
 
 public record GetProductByCategoryQuery(
     PaginationRequest PaginationRequest,

@@ -1,3 +1,5 @@
-﻿namespace Catalog.API.Features.Products.GetProducts;
+﻿using BuildingBlocks.Pagination;
+
+namespace Catalog.API.Features.Products.GetProducts;
 
 public record GetProductResponse(PaginatedItems<ProductModule> Result);
