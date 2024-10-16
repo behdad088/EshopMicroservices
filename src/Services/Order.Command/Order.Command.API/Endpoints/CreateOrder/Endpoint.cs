@@ -20,7 +20,7 @@ public class Endpoint : EndpointBase<Request, Response>
     public override async Task<IResult> HandleAsync(Request request, ISender sender)
     {
         var command = request.Adapt<CreateOrderCommand>();
-        var result = await sender.Send(command).ConfigureAwait(false);
+        var result = await sender.Send(command, CancellationToken).ConfigureAwait(false);
         var response = result.Adapt<Response>();
         return Results.Created($"/order/{response.OrderId}", response);
     }
