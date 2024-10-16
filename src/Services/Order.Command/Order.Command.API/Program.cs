@@ -1,6 +1,8 @@
+using System.Reflection;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
 using eshop.Shared;
+using Order.Command.API.Common;
 using Order.Command.API.Configurations;
 using Order.Command.Application;
 using Order.Command.Infrastructure;
@@ -25,6 +27,8 @@ builder.Services
     .AddApplicationServices()
     .AddInfrastructureServices(databaseConfigurations.SqlDatabase);
 
+builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
+
 var app = builder.Build();
 app.MapDefaultHealthChecks();
 
@@ -39,6 +43,8 @@ if (app.Environment.IsDevelopment())
 app.MapGroup("/api/v1/order/command/")
     .WithTags("Order Command API")
     .WithOpenApi();
+
+app.MapEndpoints();
 
 app.UseProblemDetailsResponseExceptionHandler();
 app.Run();
