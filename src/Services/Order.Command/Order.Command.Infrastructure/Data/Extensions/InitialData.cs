@@ -5,38 +5,6 @@ namespace Order.Command.Infrastructure.Data.Extensions;
 
 internal static class InitialData
 {
-    internal static IEnumerable<Customer> Customers => new[]
-    {
-        Customer.Create(
-            id: CustomerId.From(new Guid("d0fad6c2-19d2-4c1c-ad9f-834076d50e2d")),
-            name: "Customer 1",
-            email: "customer1@test.com"),
-        Customer.Create(
-            id: CustomerId.From(new Guid("d232b9e2-d2dc-4356-95a4-fc7aec1b3028")),
-            name: "Customer 2",
-            email: "customer2@test.com"),
-    };
-
-    internal static IEnumerable<Product> Products => new[]
-    {
-        Product.Create(
-            id: ProductId.From(new Guid("19dc8c88-097a-4a19-9f3c-f2ab0be2ee34")),
-            name: ProductName.FromNullable("IPhone X"),
-            price: Price.From(500)),
-        Product.Create(
-            id: ProductId.From(new Guid("bba65837-3960-4ec2-b49f-4e0b25f9eab8")),
-            name: ProductName.FromNullable("Samsung 10"),
-            price: Price.From(400)),
-        Product.Create(
-            id: ProductId.From(new Guid("909d92f3-c752-4ef8-9a14-a833987ab9c8")),
-            name: ProductName.FromNullable("Huawei Plus"),
-            price: Price.From(650)),
-        Product.Create(
-            id: ProductId.From(new Guid("11f67827-cce8-4c25-b298-efc1648f99fb")),
-            name: ProductName.FromNullable("Xiaomi Mi"),
-            price: Price.From(450))
-    };
-
     internal static IEnumerable<Order.Command.Domain.Models.Order> OrdersWithItems()
     {
         var address1 = new Address("customer firstname", "customer1 lastname", "customer1@test.com",

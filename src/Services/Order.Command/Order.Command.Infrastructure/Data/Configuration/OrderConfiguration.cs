@@ -17,9 +17,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
         builder.Property(p => p.RowVersion)
             .IsRowVersion();
 
-        builder.HasOne<Customer>()
-            .WithMany()
-            .HasForeignKey(x => x.CustomerId)
+        builder.Property(x => x.CustomerId).HasConversion(
+                customerId => customerId.Value,
+                dbCustomerId => CustomerId.From(dbCustomerId))
             .IsRequired();
 
         builder.HasMany<OrderItem>()
