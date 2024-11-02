@@ -1,6 +1,6 @@
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
-public record CreateOrderCommand(OrderDto Order) : ICommand<CreateOrderResult>;
+public record CreateOrderCommand(CreateOrderDto Order) : ICommand<CreateOrderResult>;
 public record CreateOrderResult(Guid Id);
 
 public class CreateOrderCommandHandler(IApplicationDbContext dbContext) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
@@ -13,7 +13,7 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext) : IComma
         return new CreateOrderResult(order.Id.Value);
     }
 
-    private static Domain.Models.Order MapOrder(OrderDto orderDto)
+    private static Domain.Models.Order MapOrder(CreateOrderDto orderDto)
     {
         var order = new Domain.Models.Order().Create(
             id: OrderId.From(orderDto.Id),

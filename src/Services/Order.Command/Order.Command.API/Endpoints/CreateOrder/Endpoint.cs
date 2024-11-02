@@ -1,5 +1,3 @@
-using Mapster;
-using MediatR;
 using Order.Command.Application.Orders.Commands.CreateOrder;
 
 namespace Order.Command.API.Endpoints.CreateOrder;
@@ -8,7 +6,7 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Post("/order", HandleAsync);
+        Post("/orders", HandleAsync);
         Name("CreateOrder");
         Produces(StatusCodes.Status201Created);
         ProducesProblem(StatusCodes.Status400BadRequest);
@@ -17,11 +15,11 @@ public class Endpoint : EndpointBase<Request, Response>
         Description("Creates a new order");
     }
 
-    public override async Task<IResult> HandleAsync(Request request, ISender sender)
+    public override async Task<IResult> HandleAsync(Request request)
     {
         var command = request.Adapt<CreateOrderCommand>();
-        var result = await sender.Send(command, CancellationToken).ConfigureAwait(false);
+        var result = await SendAsync(command).ConfigureAwait(false);
         var response = result.Adapt<Response>();
-        return Results.Created($"/order/{response.OrderId}", response);
+        return Results.Created($"/orders/{response.Id}", response);
     }
 }

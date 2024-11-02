@@ -1,5 +1,4 @@
 using FluentValidation;
-using Order.Command.Application.Dtos;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
@@ -13,7 +12,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 
         RuleForEach(x => x.Order.OrderItems).SetValidator(new OrderItemValidator());
     }
-    
+
     private class OrderItemValidator : AbstractValidator<OrderItemsDto>
     {
         public OrderItemValidator()

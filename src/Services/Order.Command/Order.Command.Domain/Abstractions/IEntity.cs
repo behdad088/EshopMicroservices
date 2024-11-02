@@ -1,8 +1,6 @@
-using ValueOf;
-
 namespace Order.Command.Domain.Abstractions;
 
-public interface IEntity<T> : IEntity 
+public interface IEntity<T> : IEntity
     where T : class
 {
     public T Id { get; set; }

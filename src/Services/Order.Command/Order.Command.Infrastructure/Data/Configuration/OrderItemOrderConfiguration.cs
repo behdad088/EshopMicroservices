@@ -19,10 +19,10 @@ public class OrderItemOrderConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasForeignKey(x => x.ProductId);
 
         builder.Property(x => x.Quantity).IsRequired();
-        
+
         builder.Property(x => x.Price).HasConversion(
-            price => price.Value,
-            dbPrice => Price.From(dbPrice))
+                price => price.Value,
+                dbPrice => Price.From(dbPrice))
             .IsRequired();
     }
 }

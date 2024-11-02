@@ -9,6 +9,10 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/Order.Command/Order.Command.API/Order.Command.API.csproj", "Services/Order.Command/Order.Command.API/"]
 COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
+COPY ["Services/Shared/Shared.csproj", "Services/Shared/"]
+COPY ["Services/Order.Command/Order.Command.Application/Order.Command.Application.csproj", "Services/Order.Command/Order.Command.Application/"]
+COPY ["Services/Order.Command/Order.Command.Domain/Order.Command.Domain.csproj", "Services/Order.Command/Order.Command.Domain/"]
+COPY ["Services/Order.Command/Order.Command.Infrastructure/Order.Command.Infrastructure.csproj", "Services/Order.Command/Order.Command.Infrastructure/"]
 RUN dotnet restore "Services/Order.Command/Order.Command.API/Order.Command.API.csproj"
 COPY . .
 WORKDIR "/src/Services/Order.Command/Order.Command.API"

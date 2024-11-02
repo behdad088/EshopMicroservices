@@ -1,0 +1,460 @@
+openapi: 3.0.3
+info:
+  title: Order.Command.API
+  version: 0.0.2
+
+servers:
+  - url: https://localhost:5053/
+    
+paths:
+  /api/v1/order/command/orders/{order_id}:  
+    delete:
+      tags:
+        - Order Command API
+      summary: Delete an existing order.
+      description: Delete an existing order
+      operationId: DeleteOrder
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          style: form
+          schema:
+            type: string
+      responses:
+        '202':
+          $ref: '#/components/responses/delete-order-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+        '404':
+          $ref: '#/components/responses/not-found-error'
+  
+  /api/v1/order/command/orders/byname:
+    get:
+      tags:
+        - Order Command API
+      summary: Gets orders by name.
+      description: Gets orders by name
+      operationId: GetOrdersByName
+      parameters:
+        - name: name
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/get-order-by-name-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+        '404':
+          $ref: '#/components/responses/not-found-error'
+  /api/v1/order/command/orders/customer:
+    get:
+      tags:
+        - Order Command API
+      summary: Gets orders by customer.
+      description: Gets orders by customer.
+      operationId: GetOrdersByCustomer
+      parameters:
+        - name: customer_id
+          in: query
+          required: true
+          style: form
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/get-order-by-customer-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+  /api/v1/order/command/orders:
+    get:
+      tags:
+        - Order Command API
+      summary: Gets the list of orders.
+      description: Gets the list of orders.
+      operationId: GetOrders
+      parameters:
+        - name: page_size
+          in: query
+          style: form
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: page_index
+          in: query
+          style: form
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          $ref: '#/components/responses/get-order-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+    put:
+      tags:
+        - Order Command API
+      summary: Update an existing order.
+      description: Update an existing order
+      operationId: UpdateOrder
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          style: form
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/update-order-request'
+      responses:
+        '204':
+          $ref: '#/components/responses/update-order-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+        '404':
+          $ref: '#/components/responses/not-found-error'
+          
+    post:
+      tags:
+        - Order Command API
+      summary: Creates a new order
+      description: Creates a new order
+      operationId: CreateOrder
+      parameters:
+        - in: path
+          name: order_id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        $ref: '#/components/requestBodies/create-order-request'
+      responses:
+        '201':
+          $ref: '#/components/responses/create-order-response'
+        '400':
+          $ref: '#/components/responses/bad-request-error'
+        '404':
+          $ref: '#/components/responses/not-found-error'
+          
+          
+components:
+  schemas:
+    AddressDto:
+      type: object
+      properties:
+        firstname:
+          type: string
+          nullable: true
+        lastname:
+          type: string
+          nullable: true
+        emailAddress:
+          type: string
+          nullable: true
+        addressLine:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        zipCode:
+          type: string
+          nullable: true
+    
+    CreateOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+    
+    DeleteOrderResponse:
+      type: object
+      properties:
+        is_success:
+          type: boolean
+    
+    GetOrderByCustomerResponse:
+      type: object
+      properties:
+        order:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDto'
+          nullable: true
+    
+    GetOrderByNameResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDto'
+          nullable: true
+    
+    GetOrderResponse:
+      type: object
+      properties:
+        orders:
+          $ref: '#/components/schemas/OrderDtoPaginatedItems'
+    
+    OrderCreateRequest:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/CreateOrderDto'
+          
+    
+    CreateOrderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+          nullable: true
+        order_name:
+          type: string
+          nullable: true
+        shipping_Address:
+          $ref: '#/components/schemas/AddressDto'
+        billing_address:
+          $ref: '#/components/schemas/AddressDto'
+        payment:
+          $ref: '#/components/schemas/PaymentDto'
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemsDto'
+          nullable: true
+    UpdateOrderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+          nullable: true
+        order_name:
+          type: string
+          nullable: true
+        shipping_Address:
+          $ref: '#/components/schemas/AddressDto'
+        billing_address:
+          $ref: '#/components/schemas/AddressDto'
+        payment:
+          $ref: '#/components/schemas/PaymentDto'
+        status:
+          type: string
+          nullable: true
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemsDto'
+          nullable: true
+          
+    OrderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+          nullable: true
+        order_name:
+          type: string
+          nullable: true
+        shipping_Address:
+          $ref: '#/components/schemas/AddressDto'
+        billing_address:
+          $ref: '#/components/schemas/AddressDto'
+        payment:
+          $ref: '#/components/schemas/PaymentDto'
+        status:
+          type: string
+          nullable: true
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemsDto'
+          nullable: true
+    
+    OrderDtoPaginatedItems:
+      type: object
+      properties:
+        page_index:
+          type: integer
+          format: int32
+        page_size:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int64
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDto'
+          nullable: true
+    
+    OrderItemsDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+          nullable: true
+        product_id:
+          type: string
+          format: uuid
+          nullable: true
+        quantity:
+          type: integer
+          format: int32
+          nullable: true
+        price:
+          type: number
+          format: double
+          nullable: true
+    
+    PaymentDto:
+      type: object
+      properties:
+        cardName:
+          type: string
+          nullable: true
+        cardNumber:
+          type: string
+          nullable: true
+        expiration:
+          type: string
+          nullable: true
+        cvv:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: integer
+          format: int32
+    
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+      additionalProperties: {}
+      
+    UpdateOrderRequest:
+      type: object
+      properties:
+        orderDto:
+          $ref: '#/components/schemas/UpdateOrderDto'
+    
+    UpdateOrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+  
+  
+  responses:
+    bad-request-error:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    not-found-error:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    update-order-response:
+      description: No Content
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpdateOrderResponse'
+    
+    get-order-by-name-response:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetOrderByNameResponse'
+    
+    get-order-by-customer-response:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetOrderByCustomerResponse'
+    
+    get-order-response:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetOrderResponse'
+    
+    delete-order-response:
+      description: Accepted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeleteOrderResponse'
+    
+    create-order-response:
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateOrderResponse'
+  
+  requestBodies:
+    update-order-request:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpdateOrderRequest'
+      required: true
+    
+    create-order-request:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrderCreateRequest'
+      required: true

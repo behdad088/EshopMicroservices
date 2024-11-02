@@ -14,7 +14,7 @@ public static class DependencyInjection
         string connectionString)
     {
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        
+
         services.AddDbContext<ApplicationDbContext>((sp, option) =>
         {
             option.AddInterceptors(sp.GetRequiredService<ISaveChangesInterceptor>(), new AuditableEntityInterceptor());
@@ -22,7 +22,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-        
+
         return services;
     }
 }

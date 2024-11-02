@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Order.Command.Infrastructure.Data.Migrations;
 
 namespace Order.Command.Infrastructure.Data.Extensions;
 
@@ -30,7 +29,7 @@ public static class DatabaseExtensions
             await context.SaveChangesAsync();
         }
     }
-    
+
     private static async Task SeedProductAsync(ApplicationDbContext context)
     {
         if (!await context.Products.AnyAsync())
@@ -39,7 +38,7 @@ public static class DatabaseExtensions
             await context.SaveChangesAsync();
         }
     }
-    
+
     private static async Task SeedOrderWithItemsAsync(ApplicationDbContext context)
     {
         if (!await context.Orders.AnyAsync())
