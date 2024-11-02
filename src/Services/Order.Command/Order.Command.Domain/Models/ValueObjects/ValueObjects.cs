@@ -6,15 +6,15 @@ public class CustomerId : ValueOf<Guid, CustomerId>
 {
 }
 
-public class ProductId : ValueOf<Guid, ProductId>
+public class ProductId : ValueOf<Ulid, ProductId>
 {
 }
 
-public class OrderId : ValueOf<Guid, OrderId>
+public class OrderId : ValueOf<Ulid, OrderId>
 {
 }
 
-public class OrderItemId : ValueOf<Guid, OrderItemId>
+public class OrderItemId : ValueOf<Ulid, OrderItemId>
 {
 }
 

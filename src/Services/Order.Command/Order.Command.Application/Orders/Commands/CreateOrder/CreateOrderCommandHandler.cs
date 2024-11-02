@@ -1,7 +1,7 @@
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
 public record CreateOrderCommand(CreateOrderDto Order) : ICommand<CreateOrderResult>;
-public record CreateOrderResult(Guid Id);
+public record CreateOrderResult(Ulid Id);
 
 public class CreateOrderCommandHandler(IApplicationDbContext dbContext) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
 {

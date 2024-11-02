@@ -4,7 +4,7 @@ namespace Order.Command.Application.Dtos;
 
 public record CreateOrderDto(
     [property: JsonPropertyName("id")]
-    Guid Id,
+    Ulid Id,
     [property: JsonPropertyName("customer_id")]
     Guid? CustomerId,
     [property: JsonPropertyName("order_name")]

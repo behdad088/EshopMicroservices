@@ -11,12 +11,12 @@ public class OrderItemOrderConfiguration : IEntityTypeConfiguration<OrderItem>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasConversion(
-            id => id.Value,
-            dbId => OrderItemId.From(dbId));
+            id => id.ToString(),
+            dbId => OrderItemId.From(Ulid.Parse(dbId)));
 
         builder.Property(x => x.ProductId).HasConversion(
-                productId => productId.Value,
-                dbProductId => ProductId.From(dbProductId))
+                productId => productId.ToString(),
+                dbProductId => ProductId.From(Ulid.Parse(dbProductId)))
             .IsRequired();
 
         builder.Property(x => x.Quantity).IsRequired();

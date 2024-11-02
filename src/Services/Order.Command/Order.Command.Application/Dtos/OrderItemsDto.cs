@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 namespace Order.Command.Application.Dtos;
 
 public record OrderItemsDto(
-    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("id")] Ulid Id,
     [property: JsonPropertyName("order_id")]
-    Guid? OrderId,
+    Ulid? OrderId,
     [property: JsonPropertyName("product_id")]
-    Guid? ProductId,
+    Ulid? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
     [property: JsonPropertyName("price")] decimal? Price);

@@ -18,9 +18,9 @@ paths:
         - name: order_id
           in: path
           required: true
-          style: form
           schema:
             type: string
+            format: uuid
       responses:
         '202':
           $ref: '#/components/responses/delete-order-response'
@@ -64,6 +64,7 @@ paths:
           style: form
           schema:
             type: string
+            format: uuid
       responses:
         '200':
           $ref: '#/components/responses/get-order-by-customer-response'
@@ -106,9 +107,9 @@ paths:
         - name: order_id
           in: path
           required: true
-          style: form
           schema:
             type: string
+            format: uuid
       requestBody:
         $ref: '#/components/requestBodies/update-order-request'
       responses:
@@ -130,6 +131,7 @@ paths:
           name: order_id
           schema:
             type: string
+            format: uuid
           required: true
       requestBody:
         $ref: '#/components/requestBodies/create-order-request'

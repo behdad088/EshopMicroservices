@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Order.Command.Application.Dtos;
 
 public record UpdateOrderDto(
-    [property: JsonPropertyName("id")] Guid Id,
+    [property: JsonPropertyName("id")] Ulid Id,
     [property: JsonPropertyName("customer_id")]
     Guid? CustomerId,
     [property: JsonPropertyName("order_name")]
