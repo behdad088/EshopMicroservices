@@ -4,7 +4,7 @@ public class OrderItem : Entity<OrderItemId>
 {
     public OrderItem(OrderId orderId, ProductId productId, int quantity, Price price)
     {
-        Id = OrderItemId.From(Guid.NewGuid());
+        Id = OrderItemId.From(Ulid.NewUlid());
         OrderId = orderId;
         ProductId = productId;
         Quantity = quantity;

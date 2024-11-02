@@ -11,7 +11,7 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
 {
     public async Task<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
     {
-        var orderId = OrderId.From(Guid.Parse(command.OrderId));
+        var orderId = OrderId.From(Ulid.Parse(command.OrderId));
         var order = await dbContext.Orders.FindAsync([orderId], cancellationToken).ConfigureAwait(false);
 
         if (order is null)

@@ -11,8 +11,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasConversion(
-            id => id.Value,
-            dbId => OrderId.From(dbId));
+            id => id.ToString(),
+            dbId => OrderId.From(Ulid.Parse(dbId)));
 
         builder.Property(p => p.RowVersion)
             .IsRowVersion();
