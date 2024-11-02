@@ -90,7 +90,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.Result.Data.ShouldNotBeEmpty();
-            var expected = DataSeeder.GetListOfProducts().Adapt<List<ProductModule>>();
+            var expected = (await _dataSeeder.GetAllData()).Adapt<List<ProductModule>>();
             response.Result.Data.ShouldBeEquivalentTo(expected);
             response.Result.Count.ShouldBeEquivalentTo((long)expected.Count);
         }

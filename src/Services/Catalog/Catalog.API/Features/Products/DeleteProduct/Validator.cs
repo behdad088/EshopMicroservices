@@ -5,7 +5,7 @@ public class DeleteProductCommandValidator : AbstractValidator<DeleteProductComm
     public DeleteProductCommandValidator()
     {
         RuleFor(x => x.Id)
-          .NotEmpty()
-          .Must(x => Guid.TryParse(x, out _)).WithMessage("Product Id is not a valid UUID");
+            .NotEmpty()
+            .Must(x => Ulid.TryParse(x, out _)).WithMessage("Product Id is not a valid UUID");
     }
 }

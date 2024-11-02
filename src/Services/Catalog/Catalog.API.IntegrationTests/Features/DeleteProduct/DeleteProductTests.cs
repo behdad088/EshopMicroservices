@@ -43,7 +43,7 @@ public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsync
         // Arrange
         var product = new Product
         {
-            Id = Guid.NewGuid(),
+            Id = Ulid.NewUlid().ToString(),
             Name = "Test",
             Description = "Test",
             Category = ["test"],

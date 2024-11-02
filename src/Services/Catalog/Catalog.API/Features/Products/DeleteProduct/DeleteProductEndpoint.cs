@@ -6,7 +6,7 @@ public static class DeleteProductEndpoint
     {
         app.MapDelete("/products/{id}", UpdateProduct)
             .WithName("DeleteProduct")
-            .Produces<DeleteProductResponse>(StatusCodes.Status200OK)
+            .Produces<DeleteProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Delete Product")
             .WithDescription("Delete Product");

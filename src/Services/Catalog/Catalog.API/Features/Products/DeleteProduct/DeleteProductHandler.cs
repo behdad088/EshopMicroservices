@@ -9,7 +9,7 @@ internal class DeleteProductCommandHandler(
 {
     public async Task<DeleteProductResult> Handle(DeleteProductCommand command, CancellationToken cancellationToken)
     {
-        session.Delete<Product>(Guid.Parse(command.Id!));
+        session.Delete<Product>(Ulid.Parse(command.Id!).ToString());
         await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return new DeleteProductResult(true);

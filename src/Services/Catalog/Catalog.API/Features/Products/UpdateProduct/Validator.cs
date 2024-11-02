@@ -4,7 +4,7 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
 {
     public UpdateProductCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required");
+        RuleFor(x => x.Id).NotEmpty().Must(x => Ulid.TryParse(x, out _)).WithMessage("Product Id is required");
 
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")
@@ -13,8 +13,8 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
 
         When(x => x.Category is not null,
             () => RuleForEach(x => x.Category)
-            .NotEmpty()
-            .WithMessage("Category item cannot be null"));
+                .NotEmpty()
+                .WithMessage("Category item cannot be null"));
 
         RuleFor(x => x.ImageFile)
             .NotEmpty()

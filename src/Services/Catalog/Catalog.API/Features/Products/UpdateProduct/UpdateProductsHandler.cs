@@ -1,7 +1,7 @@
 ﻿namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductCommand(
-    Guid Id,
+    string Id,
     string Name,
     List<string>? Category,
     string? Description,
@@ -18,7 +18,7 @@ internal class UpdateProductsCommandHandler(
         var product = await session.LoadAsync<Product>(command.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
-            throw new ProductNotFoundException(command.Id);
+            throw new ProductNotFoundException(Ulid.Parse(command.Id));
 
         if (!string.IsNullOrEmpty(command.Name))
             product.Name = command.Name;

@@ -109,7 +109,7 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<CreateProductResponse>();
-
+    
         // Assert
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
         await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
@@ -120,24 +120,20 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     }
 
     [Theory, CatalogRequestAutoData]
-    public async Task CreateProduct_With_Valid_Object_With_No_Id_Return_Created(CreateProductRequest createProductRequest)
+    public async Task CreateProduct_With_Invalid_Id_Return_NotFound(CreateProductRequest createProductRequest)
     {
         // Arrange
         createProductRequest = createProductRequest with { Id = default };
-
+    
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
-        var response = await result.Content.ReadFromJsonAsync<CreateProductResponse>();
-
+        var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
+    
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
+        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
-        await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
-        var valueInDb = session.Query<Product>().Where(x => x.Id == createProductRequest.Id).ToList();
-        valueInDb.ShouldNotBeNull();
-        var expected = createProductRequest.Adapt<CreateProductResponse>();
-        expected = expected with { Id = response!.Id };
-        response.ShouldBeEquivalentTo(expected);
+        response.Detail.ShouldNotBeNull();
+        response.Detail.ShouldContain("Id must be a valid Ulid");
     }
 
     public async Task DisposeAsync()
