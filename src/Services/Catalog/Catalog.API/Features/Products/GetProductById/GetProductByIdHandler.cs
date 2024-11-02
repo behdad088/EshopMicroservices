@@ -1,6 +1,6 @@
 ﻿namespace Catalog.API.Features.Products.GetProductById;
 
-public record GetProductByIdQuery(Guid Id) : IQuery<GetProductByIdResult>;
+public record GetProductByIdQuery(string Id) : IQuery<GetProductByIdResult>;
 
 public record GetProductByIdResult(ProductModule Product);
 
@@ -12,7 +12,7 @@ internal class GetProductByIQueryHandler(
         var product = await session.LoadAsync<Product>(query.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
-            throw new ProductNotFoundException(query.Id);
+            throw new ProductNotFoundException(Ulid.Parse(query.Id));
 
         return new GetProductByIdResult(product.Adapt<ProductModule>());
     }

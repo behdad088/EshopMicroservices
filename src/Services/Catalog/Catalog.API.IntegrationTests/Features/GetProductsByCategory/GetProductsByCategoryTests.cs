@@ -40,7 +40,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
         {
             // Arrange
             await _dataSeeder.SeedDataBaseAsync();
-            var product = DataSeeder.GetListOfProducts().FirstOrDefault(x => x.Name == "IPhone X");
+            var product = (await _dataSeeder.GetAllData()).FirstOrDefault(x => x.Name == "IPhone X");
             var category = product!.Category[0];
 
             // Act

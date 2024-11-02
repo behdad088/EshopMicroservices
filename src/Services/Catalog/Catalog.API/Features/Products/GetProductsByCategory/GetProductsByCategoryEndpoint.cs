@@ -8,7 +8,7 @@ public static class GetProductsByCategoryEndpoint
     {
         app.MapGet("/products/category/{category}", GetProductsByCategory)
             .WithName("GetProductByCategory")
-            .Produces<GetProductByCategoryResponse>(StatusCodes.Status200OK)
+            .Produces<GetProductByCategoryResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Product By Category")
             .WithDescription("Get Product By Category");

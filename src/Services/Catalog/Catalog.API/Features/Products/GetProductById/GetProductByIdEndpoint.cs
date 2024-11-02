@@ -4,9 +4,9 @@ public static class GetProductByIdEndpoint
 {
     public static IEndpointRouteBuilder MapGetProductByIdEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/products/{id:guid}", GetProductById)
+        app.MapGet("/products/{id}", GetProductById)
             .WithName("GetProductById")
-            .Produces<GetProductByIdResponse>(StatusCodes.Status200OK)
+            .Produces<GetProductByIdResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Get Product by id")
@@ -16,7 +16,7 @@ public static class GetProductByIdEndpoint
     }
 
     private static async Task<Ok<GetProductByIdResponse>> GetProductById(
-        Guid id,
+        string id,
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id)).ConfigureAwait(false);

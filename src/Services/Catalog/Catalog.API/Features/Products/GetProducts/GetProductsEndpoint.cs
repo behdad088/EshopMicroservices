@@ -8,7 +8,7 @@ public static class GetProductsEndpoint
     {
         app.MapGet("/products", GetProducts)
             .WithName("GetProducts")
-            .Produces<GetProductResponse>(StatusCodes.Status200OK)
+            .Produces<GetProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Products")
             .WithDescription("Get Products");

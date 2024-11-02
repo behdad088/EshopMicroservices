@@ -19,7 +19,7 @@ internal class GetProductQueryHandler(
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-        
+
         var result = products.Adapt<IEnumerable<ProductModule>>();
 
         return new GetProductsResult(new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));

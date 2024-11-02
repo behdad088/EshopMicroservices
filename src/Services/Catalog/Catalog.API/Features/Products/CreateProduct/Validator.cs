@@ -4,6 +4,8 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
 {
     public CreateProductCommandValidator()
     {
+        RuleFor(x => x.Id).NotEmpty().Must(x => Ulid.TryParse(x, out _))
+            .WithMessage("{PropertyName} must be a valid Ulid");
         RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");
         RuleFor(x => x.Category).NotEmpty().WithMessage("Category is required");
         RuleFor(x => x.ImageFile).NotEmpty().WithMessage("ImageFile is required");

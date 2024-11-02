@@ -6,7 +6,7 @@ public static class UpdateProductEndpoint
     {
         app.MapPut("/products", UpdataeProduct)
             .WithName("UpdateProduct")
-            .Produces<UpdateProductResponse>(StatusCodes.Status200OK)
+            .Produces<UpdateProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Update Product")
             .WithDescription("Update Product");

@@ -23,7 +23,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
         public async Task GetProductById_Product_NotFound_Returns_NotFound()
         {
             // Arrange
-            var productId = Guid.NewGuid();
+            var productId = Ulid.NewUlid();
 
             // Act
             var result = await _client.GetAsync($"api/v1/catalog/products/{productId}");
@@ -42,7 +42,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
             // Arrange
             var product = new Product()
             {
-                Id = Guid.Parse("a897cc49-02ea-436e-ae37-1129a991da35"),
+                Id = Ulid.NewUlid().ToString(),
                 Name = "IPhone X",
                 Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
                 ImageFile = "product-1.png",
