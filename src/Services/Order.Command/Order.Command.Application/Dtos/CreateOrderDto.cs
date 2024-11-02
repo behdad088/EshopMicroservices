@@ -2,8 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace Order.Command.Application.Dtos;
 
-public record OrderDto(
-    [property: JsonPropertyName("id")] Guid Id,
+public record CreateOrderDto(
+    [property: JsonPropertyName("id")]
+    Guid Id,
     [property: JsonPropertyName("customer_id")]
     Guid? CustomerId,
     [property: JsonPropertyName("order_name")]
@@ -14,6 +15,5 @@ public record OrderDto(
     AddressDto BillingAddress,
     [property: JsonPropertyName("payment")]
     PaymentDto Payment,
-    [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("order_items")]
     List<OrderItemsDto> OrderItems);

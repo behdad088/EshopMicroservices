@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Order.Command.Application.Dtos;
 
-public record OrderDto(
+public record UpdateOrderDto(
     [property: JsonPropertyName("id")] Guid Id,
     [property: JsonPropertyName("customer_id")]
     Guid? CustomerId,

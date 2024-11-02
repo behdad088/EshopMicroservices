@@ -1,6 +1,7 @@
 namespace Order.Command.Application.Orders.Queries.GetOrdersByName;
 
 public record GetOrdersByNameQuery(string Name) : IQuery<GetOrdersByNameResult>;
+
 public record GetOrdersByNameResult(IReadOnlyCollection<OrderDto> Orders);
 
 public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
@@ -11,8 +12,8 @@ public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .Where(x => x.OrderName.Value == query.Name)
-            .OrderBy(x => x.OrderName.Value)
+            .Where(x => x.OrderName.Equals(OrderName.From(query.Name)))
+            .OrderBy(x => x.OrderName)
             .ToListAsync(cancellationToken);
 
         var result = MapResult(orders);
@@ -34,14 +35,22 @@ public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
         return result;
     }
 
-    private static AddressDto MapAddress(Address address) =>
-        new(address.FirstName, address.LastName, address.EmailAddress, address.AddressLine, address.Country,
+    private static AddressDto MapAddress(Address address)
+    {
+        return new AddressDto(address.FirstName, address.LastName, address.EmailAddress, address.AddressLine,
+            address.Country,
             address.State, address.ZipCode);
+    }
 
-    private static PaymentDto MapPayment(Payment payment) =>
-        new(payment.CardName, payment.CardNumber, payment.Expiration, payment.CVV, payment.PaymentMethod);
+    private static PaymentDto MapPayment(Payment payment)
+    {
+        return new PaymentDto(payment.CardName, payment.CardNumber, payment.Expiration, payment.CVV,
+            payment.PaymentMethod);
+    }
 
-    private static List<OrderItemsDto> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems) =>
-        orderItems.Select(x =>
+    private static List<OrderItemsDto> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+    {
+        return orderItems.Select(x =>
             new OrderItemsDto(x.Id.Value, x.OrderId.Value, x.ProductId.Value, x.Quantity, x.Price.Value)).ToList();
+    }
 }

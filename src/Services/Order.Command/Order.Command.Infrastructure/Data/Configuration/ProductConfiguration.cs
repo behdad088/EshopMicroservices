@@ -15,14 +15,13 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             dbId => ProductId.From(dbId));
 
         builder.Property(x => x.Name).HasConversion(
-            name => name != null? name.Value : null,
-            dbName => ProductName.FromNullable(dbName))
+                name => name != null ? name.Value : null,
+                dbName => ProductName.FromNullable(dbName))
             .HasMaxLength(100)
             .IsRequired();
-        
+
         builder.Property(x => x.Price).HasConversion(
             price => price.Value,
             dbPrice => Price.From(dbPrice));
-        
     }
 }

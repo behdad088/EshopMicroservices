@@ -4,6 +4,7 @@ using BuildingBlocks.HealthChecks;
 using eshop.Shared;
 using Order.Command.API.Common;
 using Order.Command.API.Configurations;
+using Order.Command.API.Endpoints.CreateOrder;
 using Order.Command.Application;
 using Order.Command.Infrastructure;
 using Order.Command.Infrastructure.Data.Extensions;
@@ -21,7 +22,6 @@ var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<Databa
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddDefaultHealthChecks();
 builder.Services
     .AddApplicationServices()
@@ -36,15 +36,13 @@ app.MapDefaultHealthChecks();
 if (app.Environment.IsDevelopment())
 {
     await app.InitialisedDatabaseAsync();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
-app.MapGroup("/api/v1/order/command/")
+var routeGroupBuilder = app.MapGroup("/api/v1/order/command/")
     .WithTags("Order Command API")
     .WithOpenApi();
 
-app.MapEndpoints();
+app.MapEndpoints(routeGroupBuilder);
 
 app.UseProblemDetailsResponseExceptionHandler();
 app.Run();

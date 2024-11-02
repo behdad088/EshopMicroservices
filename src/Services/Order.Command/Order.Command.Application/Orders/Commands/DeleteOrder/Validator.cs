@@ -8,6 +8,6 @@ public class Validator : AbstractValidator<DeleteOrderCommand>
     {
         RuleFor(x => x.OrderId)
             .NotEmpty()
-            .Must(x => Guid.TryParse(x, out _)).WithMessage("OrderId is required.");
+            .Must(x => Guid.TryParse(x, out _)).WithMessage("Valid OrderId is required.");
     }
 }
