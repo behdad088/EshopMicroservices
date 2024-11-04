@@ -13,7 +13,7 @@ public record BasketDtoResponse(
     [property: JsonPropertyName("username")]
     string Username,
     [property: JsonPropertyName("items")]
-    List<BasketItem> Items,
+    IReadOnlyList<BasketItem> Items,
     [property: JsonPropertyName("total_price")]
     decimal TotalPrice
 );
@@ -25,7 +25,7 @@ public record BasketItem(
     string Color,
     [property: JsonPropertyName("price")]
     decimal Price,
-    [property: JsonPropertyName("produce_id")]
-    Guid ProduceId,
+    [property: JsonPropertyName("product_id")]
+    string ProductId,
     [property: JsonPropertyName("product_name")]
     string ProductName);

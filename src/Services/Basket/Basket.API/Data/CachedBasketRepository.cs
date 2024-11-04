@@ -11,21 +11,21 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         var cachedBasket = await cache.GetAsync(username, cancellationToken).ConfigureAwait(false);
         if (cachedBasket is not null && TryParseBasket(cachedBasket, out var shoppingCart))
             return shoppingCart;
-        
+
         var basketInDb = await repository.GetBasketAsync(username, cancellationToken).ConfigureAwait(false);
         var basketByteArray = GetShoppingCartAsByteArray(basketInDb);
         await cache.SetAsync(username, basketByteArray, cancellationToken)
             .ConfigureAwait(false);
-        
+
         return basketInDb;
     }
 
     public async Task<ShoppingCart> StoreBasketAsync(ShoppingCart basket, CancellationToken cancellationToken = default)
-    {  
+    {
         await repository.StoreBasketAsync(basket, cancellationToken).ConfigureAwait(false);
         var basketByteArray = GetShoppingCartAsByteArray(basket);
         await cache.SetAsync(basket.Username, basketByteArray, cancellationToken).ConfigureAwait(false);
-        
+
         return basket;
     }
 
@@ -59,7 +59,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         foreach (var item in basket.ShoppingCartItem)
         {
             decimal? price = decimal.TryParse(item.Price, out var parsedPrice) ? parsedPrice : null;
-            Guid? productId = Guid.TryParse(item.ProduceId, out var parsedProductId) ? parsedProductId : null;
+            Ulid? productId = Ulid.TryParse(item.ProduceId, out var parsedProductId) ? parsedProductId : null;
 
             if (price is null || productId is null)
             {
@@ -67,17 +67,17 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
                 return false;
             }
 
-            shoppingCartItems.Add(new ShoppingCartItem()
+            shoppingCartItems.Add(new ShoppingCartItem
             {
                 Color = item.Color,
                 Price = price.Value,
-                ProduceId = productId.Value,
+                ProductId = item.ProduceId,
                 ProductName = item.ProductName,
                 Quantity = item.Quantity
             });
         }
-        
-        shoppingCart = new ShoppingCart()
+
+        shoppingCart = new ShoppingCart
         {
             Username = basket.Username,
             Items = shoppingCartItems,
@@ -86,20 +86,20 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
 
         return true;
     }
-    
+
     private static byte[] GetShoppingCartAsByteArray(ShoppingCart basket)
     {
-        var basketInDb = new Proto.ShoppingCart()
+        var basketInDb = new Proto.ShoppingCart
         {
             Username = basket.Username,
             TotalPrice = basket.TotalPrice.ToString(CultureInfo.InvariantCulture),
             Version = basket.Version
         };
-        basketInDb.ShoppingCartItem.AddRange(basket.Items.Select(x => new Proto.ShoppingCartItem()
+        basketInDb.ShoppingCartItem.AddRange(basket.Items.Select(x => new Proto.ShoppingCartItem
         {
             Color = x.Color,
             Price = x.Price.ToString(CultureInfo.InvariantCulture),
-            ProduceId = x.ProduceId.ToString(),
+            ProduceId = x.ProductId.ToString(),
             ProductName = x.ProductName,
             Quantity = x.Quantity
         }));

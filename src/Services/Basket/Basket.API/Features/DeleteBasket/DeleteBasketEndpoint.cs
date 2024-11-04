@@ -10,7 +10,7 @@ public static class DeleteBasketEndpoint
     {
         app.MapDelete("/{username}", DeleteBasketAsync)
             .WithName("DeleteBasket")
-            .Produces<DeleteBasketResponse>(StatusCodes.Status200OK)
+            .Produces<DeleteBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Delete Basket by username")
@@ -18,13 +18,14 @@ public static class DeleteBasketEndpoint
 
         return app;
     }
-    
+
     private static async Task<Ok<DeleteBasketResponse>> DeleteBasketAsync(
         string username,
         ISender sender)
     {
         var queryResult = await sender.Send(new DeleteBasketCommand(username)).ConfigureAwait(false);
-        var result = queryResult.Adapt<DeleteBasketResponse>();
-        return TypedResults.Ok(result);
+        return TypedResults.Ok(Map(queryResult));
     }
+
+    private static DeleteBasketResponse Map(DeleteBasketResult response) => new(response.IsSuccess);
 }

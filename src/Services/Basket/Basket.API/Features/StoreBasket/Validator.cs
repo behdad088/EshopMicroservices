@@ -22,6 +22,7 @@ public class StoreBasketCommandValidator : AbstractValidator<StoreBasketCommand>
     {
         public ShoppingCartItemValidator()
         {
+            RuleFor(x => x.ProductId).NotEmpty().Must(x => Ulid.TryParse(x, out _)).WithMessage("Product id must be a valid Ulid");
             RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than 0.");
             RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than 0.");
         }

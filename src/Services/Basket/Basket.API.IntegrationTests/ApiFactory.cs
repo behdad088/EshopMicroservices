@@ -13,7 +13,7 @@ public class ApiFactory(string postgresConnection, string redisConnectionString)
     {
         Environment.SetEnvironmentVariable("ConnectionStrings__Database", postgresConnection);
         Environment.SetEnvironmentVariable("ConnectionStrings__Redis", redisConnectionString);
-        
+
         builder.ConfigureTestServices(service =>
         {
             service.AddMarten(options =>
@@ -21,12 +21,9 @@ public class ApiFactory(string postgresConnection, string redisConnectionString)
                 options.Connection(postgresConnection);
                 options.Schema.For<ShoppingCart>().UseNumericRevisions(true);
             }).UseLightweightSessions();
-            
-            
-            service.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = redisConnectionString;
-            });
+
+
+            service.AddStackExchangeRedisCache(options => { options.Configuration = redisConnectionString; });
         });
     }
 }
