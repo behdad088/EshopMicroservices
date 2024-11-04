@@ -5,7 +5,7 @@ namespace Basket.API.IntegrationTests.AutoFixture;
 
 public class BasketRequestAutoDataAttribute() : AutoDataAttribute(BasketRequestFixtureFactory.Create)
 {
-    private static class BasketRequestFixtureFactory 
+    private static class BasketRequestFixtureFactory
     {
         public static IFixture Create()
         {

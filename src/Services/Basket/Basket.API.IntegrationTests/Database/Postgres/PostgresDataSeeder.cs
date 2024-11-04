@@ -8,7 +8,7 @@ public class PostgresDataSeeder(IDocumentStore store)
     public async Task SeedDatabaseAsync(ShoppingCart shoppingCart, CancellationToken cancellationToken = default)
     {
         await using var session = store.LightweightSession();
-        session.Store<ShoppingCart>(shoppingCart);
+        session.Store(shoppingCart);
         await session.SaveChangesAsync(cancellationToken);
     }
 
@@ -18,5 +18,4 @@ public class PostgresDataSeeder(IDocumentStore store)
         var basket = await session.LoadAsync<ShoppingCart>(username, cancellationToken).ConfigureAwait(false);
         return basket;
     }
-    
 }

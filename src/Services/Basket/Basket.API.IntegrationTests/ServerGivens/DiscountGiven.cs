@@ -7,20 +7,20 @@ namespace Basket.API.IntegrationTests.ServerGivens;
 
 public class DiscountGiven
 {
-    private readonly WireMockServer _discountWireMockServer;
-    private static string ProtoFilePath => Directory.GetCurrentDirectory() + "/protos/discount.proto";
     private const string ProtoDefinitionId = "DiscountTestProto";
+    private readonly WireMockServer _discountWireMockServer;
 
     public DiscountGiven(WireMockServer discountWireMockServer)
     {
         _discountWireMockServer = discountWireMockServer;
-        
-        var protoDefinitionText = File.ReadAllText(ProtoFilePath);
-        
 
-        
+        var protoDefinitionText = File.ReadAllText(ProtoFilePath);
+
+
         _discountWireMockServer.AddProtoDefinition(ProtoDefinitionId, protoDefinitionText);
     }
+
+    private static string ProtoFilePath => Directory.GetCurrentDirectory() + "/protos/discount.proto";
 
     public DiscountGiven GetDiscountGiven(string productName)
     {
@@ -28,7 +28,7 @@ public class DiscountGiven
             .Given(Request.Create()
                 .UsingPost()
                 .WithPath("/discount.DiscountProtoService/GetDiscount")
-                .WithBodyAsProtoBuf("discount.GetDiscountRequest", new JsonMatcher(new { productName = productName }))
+                .WithBodyAsProtoBuf("discount.GetDiscountRequest", new JsonMatcher(new { productName }))
             )
             .WithProtoDefinition(ProtoDefinitionId)
             .RespondWith(Response.Create()
@@ -44,7 +44,7 @@ public class DiscountGiven
                     })
                 .WithTransformer()
             );
-        
+
         return this;
     }
 }

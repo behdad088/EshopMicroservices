@@ -6,17 +6,21 @@ namespace Basket.API.IntegrationTests.AutoFixture;
 
 public class StoreBasketRequestCustomization : ICustomization
 {
+    private const string ValidCharacters = "ABCDEFGHIKLMNOPQRSTVXYZ";
+
+    private static readonly string? Username = new(Enumerable.Range(0, 10)
+        .Select(_ => ValidCharacters[Random.Shared.Next(0, 10)]).ToArray());
+
     public void Customize(IFixture fixture)
     {
         fixture.Customize<StoreBasketRequest>(composer => composer
-            .With(r => r.ShoppingCart, () => new BasketDtoRequest(Username: Username!, Items:
-            [
+            .With(r => r.ShoppingCart, () => new BasketDtoRequest(Username!, [
                 new BasketItem(
-                    Quantity: 1, Color: "Test Color", Price: 100, fixture.Create<Guid>(), ProductName: "Test Product")
+                    1,
+                    "Test Color",
+                    100,
+                    Ulid.NewUlid().ToString(),
+                    "Test Product")
             ])));
     }
-
-    private const string ValidCharacters = "ABCDEFGHIKLMNOPQRSTVXYZ";
-    private static readonly string? Username = new string(Enumerable.Range(0, 10)
-        .Select(_ => ValidCharacters[Random.Shared.Next(0, 10)]).ToArray());
 }

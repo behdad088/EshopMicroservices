@@ -8,4 +8,4 @@ public class DeleteBasketCommandValidator : AbstractValidator<DeleteBasketComman
     {
         RuleFor(x => x.Username).NotEmpty().WithMessage("Username is required");
     }
-} 
+}

@@ -10,7 +10,7 @@ public static class StoreBasketEndpoint
     {
         app.MapPost("/", StoreBasketAsync)
             .WithName("StoreBasket")
-            .Produces<StoreBasketResponse>(StatusCodes.Status200OK)
+            .Produces<StoreBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Store Basket")
@@ -18,12 +18,43 @@ public static class StoreBasketEndpoint
 
         return app;
     }
-    
+
     private static async Task<Ok<StoreBasketResponse>> StoreBasketAsync(StoreBasketRequest request, ISender sender)
     {
         var command = request.Adapt<StoreBasketCommand>();
         var result = await sender.Send(command).ConfigureAwait(false);
-        var response = result.Adapt<StoreBasketResponse>();
-        return TypedResults.Ok(response);
+        return TypedResults.Ok(MapResult(result));
+    }
+
+    private static StoreBasketCommand MapCommand(StoreBasketRequest request)
+    {
+        return new StoreBasketCommand(
+            new ShoppingCart
+            {
+                Username = request.ShoppingCart!.Username,
+                Items = request.ShoppingCart!.Items!.Select(x => new ShoppingCartItem
+                {
+                    ProductId = x.ProductId,
+                    Color = x.Color,
+                    Price = x.Price,
+                    ProductName = x.ProductName,
+                    Quantity = x.Quantity
+                }).ToList().ToList()
+            });
+    }
+
+    private static StoreBasketResponse MapResult(StoreBasketResult result)
+    {
+        return new StoreBasketResponse(
+            new BasketDtoResponse(
+                result.ShoppingCart.Username,
+                result.ShoppingCart.Items.Select(x =>
+                    new BasketItem(
+                        x.Quantity,
+                        x.Color,
+                        x.Price,
+                        x.ProductId,
+                        x.ProductName)).ToList(),
+                result.ShoppingCart.TotalPrice));
     }
 }
