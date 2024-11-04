@@ -60,8 +60,7 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
 
     public DiscountGiven CreateDiscountServerGiven()
     {
-        return new DiscountGiven(_discountWireMockServer ??
-                                 throw new Exception("Failed starting Discount WireMockServer!"));
+        return new DiscountGiven(_discountWireMockServer ?? throw new Exception("Failed starting Discount WireMockServer!"));
     }
 
     internal IDocumentStore GetDocumentStore()
