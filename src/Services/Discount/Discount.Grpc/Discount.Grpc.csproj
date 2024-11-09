@@ -9,27 +9,26 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore" Version="2.57.0"/>
-        <PackageReference Include="Mapster" Version="7.4.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
+        <PackageReference Include="ReHackt.Extensions.Options.Validation" Version="8.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Protobuf Include="Protos\discount.proto"  GrpcServices="Server" />
+        <Protobuf Include="Protos\discount.proto" GrpcServices="Server"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -17,9 +17,19 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
-        var command = request.Adapt<UpdateOrderCommand>();
+        var command = MapToCommand(request);
         var result = await SendAsync(command).ConfigureAwait(false);
-        var response = result.Adapt<Response>();
+        var response = MapToResponse(result);
         return TypedResults.Ok(response);
+    }
+
+    private static UpdateOrderCommand MapToCommand(Request request)
+    {
+        return new UpdateOrderCommand(request.Order);
+    }
+
+    private static Response MapToResponse(UpdateOrderResult result)
+    {
+        return new Response(result.IsSuccess);
     }
 }

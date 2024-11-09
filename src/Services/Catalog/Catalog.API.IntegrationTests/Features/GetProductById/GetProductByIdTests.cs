@@ -8,12 +8,12 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
         private DataSeeder _dataSeeder = default!;
         private HttpClient _client = default!;
         private ApiSpecification _apiSpecification = default!;
-        
+
         public async Task InitializeAsync()
         {
             _apiSpecification = new ApiSpecification(webApiContainer);
             await _apiSpecification.InitializeAsync();
-            
+
             _dataSeeder = _apiSpecification.DataSeeder;
             _client = _apiSpecification.HttpClient;
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
@@ -44,7 +44,8 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
             {
                 Id = Ulid.NewUlid().ToString(),
                 Name = "IPhone X",
-                Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
+                Description =
+                    "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
                 ImageFile = "product-1.png",
                 Price = 950.00M,
                 Category = ["Smart Phone"]
@@ -58,7 +59,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
             // Assert
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
-            var expected = product.Adapt<GetProductByIdResponse>();
+            var expected = MapToProduct(product);
             response.ShouldBeEquivalentTo(expected);
         }
 
@@ -66,6 +67,17 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
         {
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
             await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private static GetProductByIdResponse MapToProduct(Product product)
+        {
+            return new GetProductByIdResponse(
+                Id: Ulid.Parse(product.Id),
+                Name: product.Name,
+                Category: product.Category,
+                Description: product.Description,
+                ImageFile: product.ImageFile,
+                Price: product.Price);
         }
     }
 }

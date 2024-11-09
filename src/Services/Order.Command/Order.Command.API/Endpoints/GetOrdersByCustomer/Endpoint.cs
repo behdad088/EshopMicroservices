@@ -16,9 +16,19 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
-        var query = request.Adapt<GetOrderByCustomerQuery>();
+        var query = ToQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
-        var response = result.Adapt<Response>();
+        var response = MapToResponse(result);
         return TypedResults.Ok(response);
+    }
+
+    private static GetOrderByCustomerQuery ToQuery(Request request)
+    {
+        return new GetOrderByCustomerQuery(request.CustomerId);
+    }
+
+    private static Response MapToResponse(GetOrderByCustomerResult result)
+    {
+        return new Response(result.Orders);
     }
 }

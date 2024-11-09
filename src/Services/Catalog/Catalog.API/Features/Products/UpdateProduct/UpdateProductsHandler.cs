@@ -33,8 +33,19 @@ internal class UpdateProductsCommandHandler(
         session.Update(product);
         await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var updatedEntity = product.Adapt<ProductModule>();
+        var updatedEntity = MapToResult(product);
 
         return new UpdateProductResult(updatedEntity);
+    }
+
+    private static ProductModule MapToResult(Product product)
+    {
+        return new ProductModule(
+            Id: Ulid.Parse(product.Id),
+            Name: product.Name,
+            Category: product.Category,
+            Description: product.Description,
+            ImageFile: product.ImageFile,
+            Price: product.Price);
     }
 }

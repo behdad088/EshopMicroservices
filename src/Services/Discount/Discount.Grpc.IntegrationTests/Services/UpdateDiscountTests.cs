@@ -1,10 +1,10 @@
 namespace Discount.Grpc.IntegrationTests.Services;
 
-public class UpdateDiscountTests(ITestOutputHelper outputHelper): IAsyncLifetime
+public class UpdateDiscountTests(ITestOutputHelper outputHelper) : IAsyncLifetime
 {
     private ApiSpecification _apiSpecification = default!;
     private GrpcChannel _channel = default!;
-    
+
     public async Task InitializeAsync()
     {
         _apiSpecification = new ApiSpecification(outputHelper);
@@ -25,7 +25,7 @@ public class UpdateDiscountTests(ITestOutputHelper outputHelper): IAsyncLifetime
             Description = "Test Description",
             ProductName = "Test Name 2"
         };
-            
+
         coupon = await _apiSpecification.DatabaseSeeder.CreateCouponAsync(coupon);
 
         var updatedCoupon = new Coupon()
@@ -35,21 +35,48 @@ public class UpdateDiscountTests(ITestOutputHelper outputHelper): IAsyncLifetime
             Description = coupon.Description + " - Updated",
             ProductName = coupon.ProductName + " - Updated"
         };
-        
+
         var request = new UpdateDiscountRequest()
         {
-            Coupon = updatedCoupon.Adapt<CouponModel>()
+            Coupon = MapToCoupon(updatedCoupon)
         };
-        
+
         // Act
-        var result = await client.UpdateDiscountAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
-        
+        var result = await client.UpdateDiscountAsync(request, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
         // Assert
-        result.Adapt<Coupon>().ShouldBeEquivalentTo(updatedCoupon);
+        MapToCoupon(result).ShouldBeEquivalentTo(updatedCoupon);
     }
 
     public async Task DisposeAsync()
     {
         await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+    }
+
+    private static Coupon? MapToCoupon(CouponModel? couponModel)
+    {
+        return couponModel is null
+            ? null
+            : new Coupon
+            {
+                Id = couponModel.Id,
+                ProductName = couponModel.ProductName,
+                Amount = couponModel.Amount,
+                Description = couponModel.Description
+            };
+    }
+
+    private static CouponModel? MapToCoupon(Coupon? coupon)
+    {
+        return coupon is null
+            ? null
+            : new CouponModel
+            {
+                Id = coupon.Id,
+                Amount = coupon.Amount,
+                Description = coupon.Description,
+                ProductName = coupon.ProductName
+            };
     }
 }

@@ -17,9 +17,19 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
-        var command = request.Adapt<DeleteOrderCommand>();
+        var command = MapToCommand(request);
         var result = await SendAsync(command).ConfigureAwait(false);
-        var response = result.Adapt<Response>();
+        var response = MapToResponse(result);
         return TypedResults.Ok(response);
+    }
+
+    private static DeleteOrderCommand MapToCommand(Request request)
+    {
+        return new DeleteOrderCommand(request.OrderId);
+    }
+
+    private static Response MapToResponse(DeleteOrderResult result)
+    {
+        return new Response(result.IsSuccess);
     }
 }

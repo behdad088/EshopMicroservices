@@ -14,6 +14,18 @@ internal class GetProductByIQueryHandler(
         if (product is null)
             throw new ProductNotFoundException(Ulid.Parse(query.Id));
 
-        return new GetProductByIdResult(product.Adapt<ProductModule>());
+        return MapResult(product);
+    }
+
+    private static GetProductByIdResult MapResult(Product product)
+    {
+        return new GetProductByIdResult(
+            Product: new ProductModule(
+                Id: Ulid.Parse(product.Id),
+                Name: product.Name,
+                Category: product.Category,
+                Description: product.Description,
+                ImageFile: product.ImageFile,
+                Price: product.Price));
     }
 }

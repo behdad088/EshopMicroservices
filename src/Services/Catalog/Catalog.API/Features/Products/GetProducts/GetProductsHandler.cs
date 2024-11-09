@@ -1,4 +1,6 @@
-﻿using BuildingBlocks.Pagination;
+﻿using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using BuildingBlocks.Pagination;
 
 namespace Catalog.API.Features.Products.GetProducts;
 
@@ -20,8 +22,19 @@ internal class GetProductQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var result = products.Adapt<IEnumerable<ProductModule>>();
+        var result = MapToResult(products);
 
         return new GetProductsResult(new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));
+    }
+
+    private static ReadOnlyCollection<ProductModule>? MapToResult(IReadOnlyCollection<Product>? products)
+    {
+        return products?.Select(x => new ProductModule(
+            Id: Ulid.Parse(x.Id),
+            Name: x.Name,
+            Category: x.Category,
+            Description: x.Description,
+            ImageFile: x.ImageFile,
+            Price: x.Price)).ToList().AsReadOnly();
     }
 }

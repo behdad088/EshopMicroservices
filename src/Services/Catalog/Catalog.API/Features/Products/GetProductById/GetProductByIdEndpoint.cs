@@ -20,7 +20,20 @@ public static class GetProductByIdEndpoint
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id)).ConfigureAwait(false);
-        var result = queryResult.Product.Adapt<GetProductByIdResponse>();
+        var result = ToResponse(queryResult);
         return TypedResults.Ok(result);
+    }
+
+    private static GetProductByIdResponse? ToResponse(GetProductByIdResult? result)
+    {
+        return result is null
+            ? null
+            : new GetProductByIdResponse(
+                Id: result.Product.Id,
+                Name: result.Product.Name,
+                Category: result.Product.Category,
+                Description: result.Product.Description,
+                ImageFile: result.Product.ImageFile,
+                Price: result.Product.Price);
     }
 }

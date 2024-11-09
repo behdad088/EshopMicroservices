@@ -9,4 +9,4 @@ public record Request
 
 public record Response(
     [property: JsonPropertyName("order_id")]
-    Guid Id);
+    Ulid Id);

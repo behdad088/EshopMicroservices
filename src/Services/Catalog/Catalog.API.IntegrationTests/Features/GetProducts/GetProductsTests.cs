@@ -1,4 +1,5 @@
-﻿using Catalog.API.Features.Products.GetProducts;
+﻿using System.Collections.ObjectModel;
+using Catalog.API.Features.Products.GetProducts;
 
 namespace Catalog.API.IntegrationTests.Features.GetProducts
 {
@@ -8,12 +9,12 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
         private DataSeeder _dataSeeder = default!;
         private HttpClient _client = default!;
         private ApiSpecification _apiSpecification = default!;
-        
+
         public async Task InitializeAsync()
         {
             _apiSpecification = new ApiSpecification(webApiContainer);
             await _apiSpecification.InitializeAsync();
-            
+
             _dataSeeder = _apiSpecification.DataSeeder;
             _client = _apiSpecification.HttpClient;
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
@@ -75,7 +76,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
         }
 
         [Fact]
-        public async Task GetList_With_With_Two_Items_In_Database_Should_Return_2_Items()
+        public async Task GetList_With_Two_Items_In_Database_Should_Return_2_Items()
         {
             // Arrange
             var pageIndex = 0;
@@ -90,15 +91,26 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.Result.Data.ShouldNotBeEmpty();
-            var expected = (await _dataSeeder.GetAllData()).Adapt<List<ProductModule>>();
+            var expected = GetProductsModules(await _dataSeeder.GetAllData());
             response.Result.Data.ShouldBeEquivalentTo(expected);
-            response.Result.Count.ShouldBeEquivalentTo((long)expected.Count);
+            response.Result.Count.ShouldBe(expected.Count);
         }
 
         public async Task DisposeAsync()
         {
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
             await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private static List<ProductModule> GetProductsModules(IReadOnlyList<Product> products)
+        {
+            return products.Select(x => new ProductModule(
+                Id: Ulid.Parse(x.Id),
+                Name: x.Name,
+                Category: x.Category,
+                Description: x.Description,
+                ImageFile: x.ImageFile,
+                Price: x.Price)).ToList();
         }
     }
 }
