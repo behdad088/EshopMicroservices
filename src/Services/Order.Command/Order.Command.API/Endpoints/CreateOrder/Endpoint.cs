@@ -1,3 +1,4 @@
+using Order.Command.Application.Dtos;
 using Order.Command.Application.Orders.Commands.CreateOrder;
 
 namespace Order.Command.API.Endpoints.CreateOrder;
@@ -17,9 +18,22 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
-        var command = request.Adapt<CreateOrderCommand>();
+        var command = ToCommand(request);
+        if (command is null)
+            return Results.BadRequest("Null request");
+
         var result = await SendAsync(command).ConfigureAwait(false);
-        var response = result.Adapt<Response>();
+        var response = MapResult(result);
         return Results.Created($"/orders/{response.Id}", response);
+    }
+
+    private static CreateOrderCommand? ToCommand(Request? request)
+    {
+        return request is null ? null : new CreateOrderCommand(request.Order);
+    }
+
+    private static Response MapResult(CreateOrderResult result)
+    {
+        return new Response(result.Id);
     }
 }

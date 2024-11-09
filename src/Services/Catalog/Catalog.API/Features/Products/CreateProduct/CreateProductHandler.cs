@@ -34,7 +34,19 @@ internal class CreateProductCommandHandler(IDocumentSession session)
 
         session.Store(product);
         await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        var result = product.Adapt<CreateProductResult>();
+        var result = MapResult(product);
         return result;
+    }
+
+    private static CreateProductResult MapResult(Product product)
+    {
+        return new CreateProductResult(
+            Id: Ulid.Parse(product.Id),
+            Name: product.Name,
+            Category: product.Category,
+            Description: product.Description,
+            ImageFile: product.ImageFile,
+            Price: product.Price
+        );
     }
 }

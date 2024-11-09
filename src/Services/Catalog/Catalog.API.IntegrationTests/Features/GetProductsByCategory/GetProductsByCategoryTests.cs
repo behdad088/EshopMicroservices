@@ -8,12 +8,12 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
         private DataSeeder _dataSeeder = default!;
         private HttpClient _client = default!;
         private ApiSpecification _apiSpecification = default!;
-        
+
         public async Task InitializeAsync()
         {
             _apiSpecification = new ApiSpecification(webApiContainer);
             await _apiSpecification.InitializeAsync();
-            
+
             _dataSeeder = _apiSpecification.DataSeeder;
             _client = _apiSpecification.HttpClient;
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
@@ -51,7 +51,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.ProductModule.Count.ShouldBe(1);
-            var expected = product.Adapt<ProductModule>();
+            var expected = ToProductModule(product);
             response.ProductModule.Data.ShouldBeEquivalentTo(new List<ProductModule> { expected });
         }
 
@@ -59,6 +59,17 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
         {
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
             await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+        }
+
+        private static ProductModule ToProductModule(Product product)
+        {
+            return new ProductModule(
+                Id: Ulid.Parse(product.Id),
+                Name: product.Name,
+                Category: product.Category,
+                Description: product.Description,
+                ImageFile: product.ImageFile,
+                Price: product.Price);
         }
     }
 }

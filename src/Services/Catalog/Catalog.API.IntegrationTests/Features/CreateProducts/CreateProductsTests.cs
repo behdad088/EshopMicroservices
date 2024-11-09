@@ -8,12 +8,12 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
 {
     private HttpClient _client = default!;
     private ApiSpecification _apiSpecification = default!;
-    
+
     public async Task InitializeAsync()
     {
         _apiSpecification = new ApiSpecification(webApiContainer);
         await _apiSpecification.InitializeAsync();
-        
+
         _client = _apiSpecification.HttpClient;
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
@@ -109,13 +109,13 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<CreateProductResponse>();
-    
+
         // Assert
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
         await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
         var valueInDb = session.Query<Product>().Where(x => x.Id == createProductRequest.Id).ToList();
         valueInDb.ShouldNotBeNull();
-        var expected = createProductRequest.Adapt<CreateProductResponse>();
+        var expected = MapToResponse(createProductRequest);
         response.ShouldBeEquivalentTo(expected);
     }
 
@@ -124,11 +124,11 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     {
         // Arrange
         createProductRequest = createProductRequest with { Id = default };
-    
+
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
-    
+
         // Assert
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
@@ -140,5 +140,16 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     {
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
         await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+    }
+
+    private static CreateProductResponse MapToResponse(CreateProductRequest request)
+    {
+        return new CreateProductResponse(
+            Ulid.Parse(request.Id),
+            request.Name,
+            request.Category,
+            request.Description,
+            request.ImageFile,
+            request.Price);
     }
 }
