@@ -1,4 +1,3 @@
-using Order.Command.Application.Dtos;
 using Order.Command.Application.Orders.Commands.CreateOrder;
 
 namespace Order.Command.API.Endpoints.CreateOrder;
@@ -29,8 +28,48 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static CreateOrderCommand? ToCommand(Request? request)
     {
-        return request is null ? null : new CreateOrderCommand(request.Order);
+        return request is null
+            ? null
+            : new CreateOrderCommand(
+                new OrderDto(
+                    Id: request.Id,
+                    CustomerId: request.CustomerId,
+                    OrderName: request.OrderName,
+                    ShippingAddress: MapAddress(request.ShippingAddress),
+                    BillingAddress: MapAddress(request.BillingAddress),
+                    OrderPayment: MapPayment(request.Payment),
+                    OrderItems: request.OrderItems.Select(x =>
+                        new OrderDto.OrderItem(
+                            x.Id,
+                            x.OrderId,
+                            x.ProductId,
+                            x.Quantity,
+                            x.Price
+                        )).ToList()));
     }
+
+    private static OrderDto.Address MapAddress(AddressDto addressDto)
+    {
+        return new OrderDto.Address(
+            Firstname: addressDto.Firstname,
+            Lastname: addressDto.Lastname,
+            EmailAddress: addressDto.EmailAddress,
+            AddressLine: addressDto.AddressLine,
+            Country: addressDto.Country,
+            State: addressDto.State,
+            ZipCode: addressDto.ZipCode);
+    }
+
+    private static OrderDto.Payment MapPayment(PaymentDto paymentDto)
+    {
+        return new OrderDto.Payment(
+            paymentDto.CardName,
+            paymentDto.CardNumber,
+            paymentDto.Expiration,
+            paymentDto.Cvv,
+            paymentDto.PaymentMethod);
+    }
+
 
     private static Response MapResult(CreateOrderResult result)
     {

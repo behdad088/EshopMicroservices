@@ -17,7 +17,7 @@ public class Validator : AbstractValidator<UpdateOrderCommand>
         RuleForEach(x => x.Order.OrderItems).SetValidator(new OrderItemValidator());
     }
 
-    private class OrderItemValidator : AbstractValidator<OrderItemsDto>
+    private class OrderItemValidator : AbstractValidator<OrderItems>
     {
         public OrderItemValidator()
         {

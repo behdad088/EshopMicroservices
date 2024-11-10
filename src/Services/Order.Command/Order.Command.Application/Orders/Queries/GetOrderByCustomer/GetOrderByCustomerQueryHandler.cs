@@ -50,9 +50,10 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
             payment.PaymentMethod);
     }
 
-    private static List<OrderItemsDto> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+    private static List<OrderItems> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
     {
         return orderItems.Select(x =>
-            new OrderItemsDto(x.Id.Value, x.OrderId.Value, x.ProductId.Value, x.Quantity, x.Price.Value)).ToList();
+            new OrderItems(x.Id.Value.ToString(), x.OrderId.Value.ToString(), x.ProductId.Value.ToString(), x.Quantity,
+                x.Price.Value)).ToList();
     }
 }
