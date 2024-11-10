@@ -32,6 +32,8 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     protected HttpContext Context { get; set; } = default!;
     protected CancellationToken CancellationToken { get; set; }
 
+    private static JsonSerializerOptions JsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
     /// <summary>
     ///     Map the endpoint with a route options : <see cref="Post" />, <see cref="Get" />, <see cref="Delete" />,
     ///     <see cref="Put" />, <see cref="Patch" />
@@ -126,9 +128,8 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     {
         var request = new TRequest();
         var properties = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
+        request = await BindRequestBody(properties, context, request);
         BindQueryAndRoute(properties, context, request);
-        await BindRequestBody(properties, context, request);
         return request;
     }
 
@@ -152,44 +153,31 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
         }
     }
 
-    private static async Task BindRequestBody(PropertyInfo[] properties, HttpContext context, TRequest request)
+    private static async Task<TRequest> BindRequestBody(PropertyInfo[] properties, HttpContext context,
+        TRequest request)
     {
-        if (context.Request.HasJsonContentType() && context.Request.ContentLength > 0)
+        if (!context.Request.HasJsonContentType() || !(context.Request.ContentLength > 0)) return new TRequest();
+
+        context.Request.EnableBuffering(); // Allow the stream to be read multiple times
+        context.Request.Body.Position = 0; // Ensure we're at the start of the stream
+
+        using var reader = new StreamReader(context.Request.Body);
+        var jsonBody = await reader.ReadToEndAsync();
+        context.Request.Body.Position = 0; // Reset stream position after reading
+
+        if (string.IsNullOrWhiteSpace(jsonBody))
+            return new TRequest();
+
+        // var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        try
         {
-            context.Request.EnableBuffering(); // Allow the stream to be read multiple times
-            context.Request.Body.Position = 0; // Ensure we're at the start of the stream
-
-            using var reader = new StreamReader(context.Request.Body);
-            var jsonBody = await reader.ReadToEndAsync();
-            context.Request.Body.Position = 0; // Reset stream position after reading
-
-            if (string.IsNullOrWhiteSpace(jsonBody))
-                return;
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-            try
-            {
-                var bodyData = JsonSerializer.Deserialize<TRequest>(jsonBody, options);
-
-                if (bodyData != null)
-                    foreach (var property in properties)
-                    {
-                        var jsonName = GetAttributeName<JsonPropertyNameAttribute>(property) ?? property.Name;
-                        var bodyProperty = bodyData.GetType().GetProperty(jsonName,
-                            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
-                        if (bodyProperty == null) continue;
-
-                        var value = bodyProperty.GetValue(bodyData);
-                        if (value != null) property.SetValue(request, value);
-                    }
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine($"JSON Deserialization error: {ex.Message}");
-                throw;
-            }
+            var bodyData = JsonSerializer.Deserialize<TRequest>(jsonBody, JsonSerializerOptions);
+            return bodyData ?? new TRequest();
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"JSON Deserialization error: {ex.Message}");
+            throw;
         }
     }
 

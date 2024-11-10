@@ -16,4 +16,4 @@ public record UpdateOrderDto(
     PaymentDto Payment,
     [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("order_items")]
-    List<OrderItemsDto> OrderItems);
+    List<OrderItems> OrderItems);
