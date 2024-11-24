@@ -2,7 +2,7 @@
 
 public record GetProductByIdQuery(string Id) : IQuery<GetProductByIdResult>;
 
-public record GetProductByIdResult(ProductModule Product);
+public record GetProductByIdResult(GetProductById Product);
 
 internal class GetProductByIQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
@@ -20,12 +20,13 @@ internal class GetProductByIQueryHandler(
     private static GetProductByIdResult MapResult(Product product)
     {
         return new GetProductByIdResult(
-            Product: new ProductModule(
+            Product: new GetProductById(
                 Id: Ulid.Parse(product.Id),
                 Name: product.Name,
                 Category: product.Category,
                 Description: product.Description,
                 ImageFile: product.ImageFile,
-                Price: product.Price));
+                Price: product.Price,
+                product.Version));
     }
 }

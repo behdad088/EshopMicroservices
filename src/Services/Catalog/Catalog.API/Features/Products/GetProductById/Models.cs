@@ -10,3 +10,12 @@ public record GetProductByIdResponse(
     [property: JsonPropertyName("image_file")]
     string ImageFile,
     [property: JsonPropertyName("price")] decimal? Price);
+
+public record GetProductById(
+    Ulid Id,
+    string Name,
+    List<string> Category,
+    string? Description,
+    string ImageFile,
+    decimal? Price,
+    int Version);

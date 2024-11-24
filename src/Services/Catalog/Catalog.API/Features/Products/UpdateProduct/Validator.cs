@@ -1,10 +1,13 @@
-﻿namespace Catalog.API.Features.Products.UpdateProduct;
+﻿using System.Text.RegularExpressions;
 
-public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
+namespace Catalog.API.Features.Products.UpdateProduct;
+
+public partial class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
     public UpdateProductCommandValidator()
     {
         RuleFor(x => x.Id).NotEmpty().Must(x => Ulid.TryParse(x, out _)).WithMessage("Product Id is required");
+        RuleFor(x => x.Etag).NotEmpty().Must(x => !string.IsNullOrWhiteSpace(x) && EtagRegex().IsMatch(x));
 
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")
@@ -26,4 +29,7 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
             .WithMessage("Price must be greater than 0")
             .When(x => x.Price is not null);
     }
+
+    [GeneratedRegex("""^W\/"\d+"$""")]
+    private static partial Regex EtagRegex();
 }

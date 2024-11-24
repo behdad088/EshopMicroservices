@@ -102,9 +102,9 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             await _apiSpecification.DisposeAsync().ConfigureAwait(false);
         }
 
-        private static List<ProductModule> GetProductsModules(IReadOnlyList<Product> products)
+        private static List<ProductResponse> GetProductsModules(IReadOnlyList<Product> products)
         {
-            return products.Select(x => new ProductModule(
+            return products.Select(x => new ProductResponse(
                 Id: Ulid.Parse(x.Id),
                 Name: x.Name,
                 Category: x.Category,
