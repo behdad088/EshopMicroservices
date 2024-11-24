@@ -6,7 +6,7 @@ namespace Catalog.API.Features.Products.GetProducts;
 
 public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<GetProductsResult>;
 
-public record GetProductsResult(PaginatedItems<ProductModule> Result);
+public record GetProductsResult(PaginatedItems<ProductModule> PaginatedResult);
 
 internal class GetProductQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductsQuery, GetProductsResult>

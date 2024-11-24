@@ -2,6 +2,7 @@ using BuildingBlocks.Exceptions.Handler;
 using Catalog.API.Common;
 using Catalog.API.Data;
 using eshop.Shared;
+using Marten.Schema.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDefaultOpenApi();
@@ -12,8 +13,8 @@ builder.Services.AddMarten(options =>
 {
     options.Connection(builder.Configuration.GetConnectionString("Database")!);
     options.Schema.For<Product>().UseNumericRevisions(true);
-
 }).UseLightweightSessions();
+
 builder.Services.AddHealthChecks(builder.Configuration);
 
 if (builder.Environment.IsDevelopment())

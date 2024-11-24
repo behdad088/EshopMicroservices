@@ -8,22 +8,28 @@ public static class UpdateProductEndpoint
             .WithName("UpdateProduct")
             .Produces<UpdateProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status412PreconditionFailed)
             .WithSummary("Update Product")
             .WithDescription("Update Product");
         return app;
     }
 
-    private static async Task<IResult> UpdateProduct(UpdateProductRequest request, ISender sender)
+    private static async Task<IResult> UpdateProduct(
+        HttpContext context,
+        UpdateProductRequest request,
+        ISender sender)
     {
-        var command = request.ToCommand();
+        var eTag = context.Request.Headers["If-Match"];
+        var command = request.ToCommand(eTag);
+
         if (command is null)
             return TypedResults.BadRequest("Request is null");
 
-        var result = await sender.Send(command).ConfigureAwait(false);
-        return TypedResults.Ok(new UpdateProductResponse(result.Product));
+        await sender.Send(command).ConfigureAwait(false);
+        return TypedResults.NoContent();
     }
 
-    private static UpdateProductCommand? ToCommand(this UpdateProductRequest? request)
+    private static UpdateProductCommand? ToCommand(this UpdateProductRequest? request, string? etag)
     {
         return request is null
             ? null
@@ -33,6 +39,7 @@ public static class UpdateProductEndpoint
                 Category: request.Category,
                 Description: request.Description,
                 ImageFile: request.ImageFile,
-                Price: request.Price);
+                Price: request.Price,
+                Etag: etag);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Catalog.API.Features.Products.UpdateProduct;
+﻿using System.Net;
+using Catalog.API.Features.Products.UpdateProduct;
 using Catalog.API.IntegrationTests.AutoFixture;
 
 namespace Catalog.API.IntegrationTests.Features.UpdateProduct
@@ -9,12 +10,12 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         private HttpClient _client = default!;
         private DataSeeder _dataSeeder = default!;
         private ApiSpecification _apiSpecification = default!;
-        
+
         public async Task InitializeAsync()
         {
             _apiSpecification = new ApiSpecification(webApiContainer);
             await _apiSpecification.InitializeAsync();
-            
+
             _dataSeeder = _apiSpecification.DataSeeder;
             _client = _apiSpecification.HttpClient;
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
@@ -38,7 +39,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         }
 
         [Theory, CatalogRequestAutoData]
-        public async Task UpdateProduct_With_Invalid_Name_Length_Returns_BadRequest(UpdateProductRequest updateProductRequest)
+        public async Task UpdateProduct_With_Invalid_Name_Length_Returns_BadRequest(
+            UpdateProductRequest updateProductRequest)
         {
             // Arrange
             updateProductRequest = updateProductRequest with { Name = "a" };
@@ -55,7 +57,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         }
 
         [Theory, CatalogRequestAutoData]
-        public async Task UpdateProduct_With_Invalid_Category_Value_Returns_BadRequest(UpdateProductRequest updateProductRequest)
+        public async Task UpdateProduct_With_Invalid_Category_Value_Returns_BadRequest(
+            UpdateProductRequest updateProductRequest)
         {
             // Arrange
             updateProductRequest = updateProductRequest with { Category = [string.Empty] };
@@ -72,7 +75,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         }
 
         [Theory, CatalogRequestAutoData]
-        public async Task UpdateProduct_With_Null_ImageFile_Value_Returns_BadRequest(UpdateProductRequest updateProductRequest)
+        public async Task UpdateProduct_With_Null_ImageFile_Value_Returns_BadRequest(
+            UpdateProductRequest updateProductRequest)
         {
             // Arrange
             updateProductRequest = updateProductRequest with { ImageFile = string.Empty };
@@ -89,7 +93,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         }
 
         [Theory, CatalogRequestAutoData]
-        public async Task UpdateProduct_With_Invalid_Price_Value_Returns_BadRequest(UpdateProductRequest updateProductRequest)
+        public async Task UpdateProduct_With_Invalid_Price_Value_Returns_BadRequest(
+            UpdateProductRequest updateProductRequest)
         {
             // Arrange
             updateProductRequest = updateProductRequest with { Price = 0 };
@@ -108,6 +113,8 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         [Theory, CatalogRequestAutoData]
         public async Task UpdateProduct_ProductId_NotFound_Returns_NotFound(UpdateProductRequest updateProductRequest)
         {
+            // Arrange
+            _client.DefaultRequestHeaders.Add("If-Match", "W/\"1\"");
             // Act
             var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
@@ -119,43 +126,64 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             response.Detail.ShouldContain($"Entity \"Product\" ({updateProductRequest.Id}) was not found.");
         }
 
-        // [Theory, CatalogRequestAutoData]
-        // public async Task UpdateProduct_With_Valid_Object_Ok(UpdateProductRequest updateProductRequest)
-        // {
-        //     // Arrange
-        //     var product = new Product
-        //     {
-        //         Id = updateProductRequest.Id,
-        //         Name = "Test",
-        //         Description = "Test",
-        //         Category = ["test"],
-        //         ImageFile = "test",
-        //         Price = 1
-        //     };
-        //
-        //     await _dataSeeder.SeedDataBaseAsync(product);
-        //
-        //     // Act
-        //     var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
-        //     var response = await result.Content.ReadFromJsonAsync<UpdateProductResponse>();
-        //
-        //     // Assert
-        //     result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
-        //     response.ShouldNotBeNull();
-        //
-        //     var actual = response.Product.Adapt<UpdateProductRequest>();
-        //     updateProductRequest.ShouldBeEquivalentTo(actual);
-        //
-        //     await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
-        //     var valueInDb = session.Query<Product>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
-        //
-        //     valueInDb!.Name.ShouldBe(updateProductRequest.Name);
-        //     valueInDb!.Description.ShouldBe(updateProductRequest.Description);
-        //     valueInDb!.Category.ShouldBe(updateProductRequest.Category);
-        //     valueInDb!.ImageFile.ShouldBe(updateProductRequest.ImageFile);
-        //     valueInDb!.Price.ShouldBe(updateProductRequest.Price);
-        //     valueInDb!.Version.ShouldBe(2);
-        // }
+        [Theory, CatalogRequestAutoData]
+        public async Task UpdateProduct_With_Invalid_Etag_ReturnsStatus412PreconditionFailed(
+            UpdateProductRequest updateProductRequest)
+        {
+            // Arrange
+            _client.DefaultRequestHeaders.Add("If-Match", "W/\"0\"");
+            var product = new Product
+            {
+                Id = updateProductRequest.Id,
+                Name = "Test",
+                Description = "Test",
+                Category = ["test"],
+                ImageFile = "test",
+                Price = 1
+            };
+
+            await _dataSeeder.SeedDataBaseAsync(product);
+
+            // Act
+            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+
+            // Assert
+            result.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
+        }
+
+        [Theory, CatalogRequestAutoData]
+        public async Task UpdateProduct_With_Valid_Object_Ok(UpdateProductRequest updateProductRequest)
+        {
+            // Arrange
+            _client.DefaultRequestHeaders.Add("If-Match", "W/\"1\"");
+            var product = new Product
+            {
+                Id = updateProductRequest.Id,
+                Name = "Test",
+                Description = "Test",
+                Category = ["test"],
+                ImageFile = "test",
+                Price = 1
+            };
+
+            await _dataSeeder.SeedDataBaseAsync(product);
+
+            // Act
+            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+
+            // Assert
+            result.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+            await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
+            var valueInDb = session.Query<Product>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
+
+            valueInDb!.Name.ShouldBe(updateProductRequest.Name);
+            valueInDb.Description.ShouldBe(updateProductRequest.Description);
+            valueInDb.Category.ShouldBe(updateProductRequest.Category);
+            valueInDb.ImageFile.ShouldBe(updateProductRequest.ImageFile);
+            valueInDb.Price.ShouldBe(updateProductRequest.Price);
+            valueInDb.Version.ShouldBe(2);
+        }
 
         public async Task DisposeAsync()
         {

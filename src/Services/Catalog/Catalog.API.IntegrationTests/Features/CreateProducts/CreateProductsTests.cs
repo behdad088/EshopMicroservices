@@ -108,15 +108,19 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     {
         // Act
         var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
-        var response = await result.Content.ReadFromJsonAsync<CreateProductResponse>();
 
         // Assert
+        result.Headers.Location.ShouldNotBeNull();
+        var locationHeader = result.Headers.Location.ToString();
+        var productId = locationHeader.Split('/').Last();
+        Should.NotThrow(() => Ulid.Parse(productId));
+
+
         result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
         await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
-        var valueInDb = session.Query<Product>().Where(x => x.Id == createProductRequest.Id).ToList();
+        var valueInDb = session.Query<Product>().First(x => x.Id == createProductRequest.Id);
         valueInDb.ShouldNotBeNull();
-        var expected = MapToResponse(createProductRequest);
-        response.ShouldBeEquivalentTo(expected);
+        valueInDb.Id.ShouldBe(productId);
     }
 
     [Theory, CatalogRequestAutoData]
@@ -140,16 +144,5 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     {
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
         await _apiSpecification.DisposeAsync().ConfigureAwait(false);
-    }
-
-    private static CreateProductResponse MapToResponse(CreateProductRequest request)
-    {
-        return new CreateProductResponse(
-            Ulid.Parse(request.Id),
-            request.Name,
-            request.Category,
-            request.Description,
-            request.ImageFile,
-            request.Price);
     }
 }

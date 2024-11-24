@@ -1,4 +1,7 @@
-﻿namespace Catalog.API.Features.Products.UpdateProduct;
+﻿using Marten.Exceptions;
+using Exception = System.Exception;
+
+namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductCommand(
     string Id,
@@ -6,9 +9,10 @@ public record UpdateProductCommand(
     List<string>? Category,
     string? Description,
     string? ImageFile,
-    decimal? Price) : ICommand<UpdateProductResult>;
+    decimal? Price,
+    string? Etag) : ICommand<UpdateProductResult>;
 
-public record UpdateProductResult(ProductModule Product);
+public record UpdateProductResult(bool IsSuccess);
 
 internal class UpdateProductsCommandHandler(
     IDocumentSession session) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
@@ -20,6 +24,11 @@ internal class UpdateProductsCommandHandler(
         if (product is null)
             throw new ProductNotFoundException(Ulid.Parse(command.Id));
 
+        var version = GetVersionFromEtag(command.Etag!);
+
+        if (product.Version != version)
+            throw new InvalidEtagException(etag: version);
+
         if (!string.IsNullOrEmpty(command.Name))
             product.Name = command.Name;
         if (command.Category?.Count != 0)
@@ -30,22 +39,22 @@ internal class UpdateProductsCommandHandler(
             product.ImageFile = command.ImageFile;
 
         product.Price = command.Price ?? product.Price;
-        session.Update(product);
-        await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var updatedEntity = MapToResult(product);
+        try
+        {
+            session.UpdateRevision(product, version + 1);
+            await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (ConcurrencyException)
+        {
+            throw new InvalidEtagException(etag: version);
+        }
 
-        return new UpdateProductResult(updatedEntity);
+        return new UpdateProductResult(true);
     }
 
-    private static ProductModule MapToResult(Product product)
+    private static int GetVersionFromEtag(string eTag)
     {
-        return new ProductModule(
-            Id: Ulid.Parse(product.Id),
-            Name: product.Name,
-            Category: product.Category,
-            Description: product.Description,
-            ImageFile: product.ImageFile,
-            Price: product.Price);
+        return int.Parse(eTag[2..].Trim('"'));
     }
 }

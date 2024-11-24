@@ -27,9 +27,9 @@ public static class ExceptionHandlerMiddleware
     }
 
     private static async Task HandleException(
-       HttpContext context,
-       IExceptionHandlerFeature exHandlerFeature
-   )
+        HttpContext context,
+        IExceptionHandlerFeature exHandlerFeature
+    )
     {
         var error = exHandlerFeature.Error;
         var logger = Log.Logger.ForContext(typeof(ExceptionHandlerMiddleware));
@@ -62,8 +62,10 @@ public static class ExceptionHandlerMiddleware
                 Status = StatusCodes.Status400BadRequest,
                 Extensions = new Dictionary<string, object?>()
                 {
-                    { "ValidationErrors" , exception?.Errors.Select(x =>
-                    new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []}
+                    {
+                        "ValidationErrors", exception?.Errors.Select(x =>
+                            new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []
+                    }
                 }
             },
             BadHttpRequestException { StatusCode: 400 } err => new ProblemDetails
@@ -71,10 +73,22 @@ public static class ExceptionHandlerMiddleware
                 Detail = error.Message,
                 Title = error.GetType().Name,
                 Status = StatusCodes.Status400BadRequest,
-                Extensions = err.InnerException != null ? new Dictionary<string, object?>()
+                Extensions = err.InnerException != null
+                    ? new Dictionary<string, object?>()
+                    {
+                        { "MoreInfo", err.InnerException?.Message }
+                    }
+                    : []
+            },
+            InvalidEtagException err => new ProblemDetails()
+            {
+                Detail = err.Message,
+                Title = err.GetType().Name,
+                Status = StatusCodes.Status412PreconditionFailed,
+                Extensions = new Dictionary<string, object?>()
                 {
-                    {"MoreInfo",  err.InnerException?.Message}
-                } : []
+                    { "Error", error.Message }
+                }
             },
             _ => new ProblemDetails()
             {

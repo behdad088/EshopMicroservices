@@ -16,10 +16,12 @@ public static class GetProductByIdEndpoint
     }
 
     private static async Task<Ok<GetProductByIdResponse>> GetProductById(
+        HttpContext context,
         string id,
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id)).ConfigureAwait(false);
+        context.Response.Headers.ETag = $"W/\"{queryResult.Product.Version}\"";
         var result = ToResponse(queryResult);
         return TypedResults.Ok(result);
     }

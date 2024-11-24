@@ -9,12 +9,7 @@ public record CreateProductCommand(
     decimal? Price) : ICommand<CreateProductResult>;
 
 public record CreateProductResult(
-    Ulid Id,
-    string Name,
-    List<string> Category,
-    string? Description,
-    string ImageFile,
-    decimal? Price);
+    Ulid Id);
 
 internal class CreateProductCommandHandler(IDocumentSession session)
     : ICommandHandler<CreateProductCommand, CreateProductResult>
@@ -41,12 +36,7 @@ internal class CreateProductCommandHandler(IDocumentSession session)
     private static CreateProductResult MapResult(Product product)
     {
         return new CreateProductResult(
-            Id: Ulid.Parse(product.Id),
-            Name: product.Name,
-            Category: product.Category,
-            Description: product.Description,
-            ImageFile: product.ImageFile,
-            Price: product.Price
+            Id: Ulid.Parse(product.Id)
         );
     }
 }

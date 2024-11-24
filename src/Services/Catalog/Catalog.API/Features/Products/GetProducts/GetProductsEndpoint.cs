@@ -20,6 +20,22 @@ public static class GetProductsEndpoint
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductsQuery(paginationRequest)).ConfigureAwait(false);
-        return TypedResults.Ok(new GetProductResponse(queryResult.Result));
+        return TypedResults.Ok(MapResponse(queryResult.PaginatedResult));
+    }
+
+    private static GetProductResponse MapResponse(PaginatedItems<ProductModule> result)
+    {
+        return new GetProductResponse(
+            new PaginatedItems<ProductResponse>(
+                result.PageIndex,
+                result.PageSize,
+                result.Count,
+                result.Data.Select(x => new ProductResponse(
+                    x.Id,
+                    x.Name,
+                    x.Category,
+                    x.Description,
+                    x.ImageFile,
+                    x.Price))));
     }
 }
