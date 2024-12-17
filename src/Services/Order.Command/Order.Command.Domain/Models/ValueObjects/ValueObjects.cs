@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ValueOf;
 
 namespace Order.Command.Domain.Models.ValueObjects;
@@ -16,6 +17,26 @@ public class OrderId : ValueOf<Ulid, OrderId>
 
 public class OrderItemId : ValueOf<Ulid, OrderItemId>
 {
+}
+
+public partial class VersionId : ValueOf<int, VersionId>
+{
+    public static VersionId InitialVersion => From(1);
+
+    public static VersionId FromWeakEtag(string etag)
+    {
+        if (string.IsNullOrWhiteSpace(etag) || !EtagRegex().IsMatch(etag))
+        {
+            throw new InvalidOperationException($"Invalid Etag value: {etag}.");
+        }
+
+        return From(int.Parse(etag[3..^1]));
+    }
+
+    public VersionId Increment() => From(Value + 1);
+    
+    [GeneratedRegex("""^W\/"\d+"$""")]
+    private static partial Regex EtagRegex();
 }
 
 public class ProductName : ValueOf<string, ProductName>

@@ -14,8 +14,8 @@ public class Order : Aggregate<OrderId>
     public Payment Payment { get; private set; } = default!;
     public OrderStatus Status { get; private set; } = default!;
 
-    [Timestamp]
-    public byte[] RowVersion { get; set; } = default!;
+    [ConcurrencyCheck]
+    public VersionId RowVersion { get; set; } = default!;
     
     public Price TotalPrice
     {
@@ -25,7 +25,7 @@ public class Order : Aggregate<OrderId>
 
     public Order Create(
         OrderId id,
-        CustomerId? customerId,
+        CustomerId customerId,
         OrderName orderName,
         Address shippingAddress,
         Address billingAddress,
@@ -41,6 +41,7 @@ public class Order : Aggregate<OrderId>
             BillingAddress = billingAddress,
             Payment = payment,
             Status = OrderStatus.Pending,
+            RowVersion = VersionId.InitialVersion
         };
         order._orderItems.AddRange(orderItems?.Select(x => new OrderItem(id, x.ProductId, x.Quantity, x.Price)).ToArray() ?? []);
         order.AddDomainEvent(new OrderCreatedEvent(order));
