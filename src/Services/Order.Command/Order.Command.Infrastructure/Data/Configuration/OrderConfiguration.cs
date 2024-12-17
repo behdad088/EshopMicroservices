@@ -14,8 +14,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             id => id.ToString(),
             dbId => OrderId.From(Ulid.Parse(dbId)));
 
-        builder.Property(p => p.RowVersion)
-            .IsRowVersion();
+        builder.Property(p => p.RowVersion).HasConversion(
+            versionId => versionId.Value,
+            dbVersionId => VersionId.From(dbVersionId))
+            .IsConcurrencyToken();
 
         builder.Property(x => x.CustomerId).HasConversion(
                 customerId => customerId.Value,

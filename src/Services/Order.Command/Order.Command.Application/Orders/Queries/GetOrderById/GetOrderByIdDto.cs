@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace Order.Command.Application.Dtos;
+namespace Order.Command.Application.Orders.Queries.GetOrderById;
 
-public record OrderDto(
+public record GetOrderByIdDto(
     [property: JsonPropertyName("id")] 
     Ulid Id,
     [property: JsonPropertyName("customer_id")]
@@ -17,5 +17,7 @@ public record OrderDto(
     PaymentDto Payment,
     [property: JsonPropertyName("status")]
     string Status,
+    [property: JsonPropertyName("version")]
+    int Version,
     [property: JsonPropertyName("order_items")]
     List<OrderItems> OrderItems);

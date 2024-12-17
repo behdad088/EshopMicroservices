@@ -13,7 +13,7 @@ using Order.Command.Infrastructure.Data;
 namespace Order.Command.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241102205101_Initial")]
+    [Migration("20241217213839_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -51,11 +51,9 @@ namespace Order.Command.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<byte[]>("RowVersion")
+                    b.Property<int>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
