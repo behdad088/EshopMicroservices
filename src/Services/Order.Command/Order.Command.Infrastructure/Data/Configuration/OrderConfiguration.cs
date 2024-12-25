@@ -15,9 +15,14 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             dbId => OrderId.From(Ulid.Parse(dbId)));
 
         builder.Property(p => p.RowVersion).HasConversion(
-            versionId => versionId.Value,
-            dbVersionId => VersionId.From(dbVersionId))
+                versionId => versionId.Value,
+                dbVersionId => VersionId.From(dbVersionId))
             .IsConcurrencyToken();
+
+
+        builder.Property(x => x.DeleteDate).HasConversion(
+            deleteDate => (deleteDate == null) ? null : deleteDate.Value,
+            dbDeleteDate => DeleteDate.From(dbDeleteDate ?? string.Empty));
 
         builder.Property(x => x.CustomerId).HasConversion(
                 customerId => customerId.Value,

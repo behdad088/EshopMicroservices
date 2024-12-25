@@ -9,21 +9,33 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : SaveChangesIn
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        DispatchDomainEvents(eventData.Context).GetAwaiter().GetResult();
-        return base.SavingChanges(eventData, result);
+        var eventToDispatch = GetDomainEvents(eventData.Context);
+        var interceptionResult = base.SavingChanges(eventData, result);
+        DispatchDomainEvents(eventToDispatch).GetAwaiter().GetResult();
+        return interceptionResult;
     }
 
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = new())
     {
-        DispatchDomainEvents(eventData.Context).GetAwaiter().GetResult();
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        var eventToDispatch = GetDomainEvents(eventData.Context);
+        var interceptionResult = base.SavingChangesAsync(eventData, result, cancellationToken);
+        DispatchDomainEvents(eventToDispatch).GetAwaiter().GetResult();
+        return interceptionResult;
     }
 
-    private async Task DispatchDomainEvents(DbContext? context)
+    private async Task DispatchDomainEvents(List<IDomainEvent>? domainEvents)
     {
-        if (context is null) return;
+        if (domainEvents is null) return;
+
+        foreach (var domainEvent in domainEvents)
+            await mediator.Publish(domainEvent).ConfigureAwait(false);
+    }
+
+    private static List<IDomainEvent>? GetDomainEvents(DbContext? context)
+    {
+        if (context is null) return null;
 
         var entities = context.ChangeTracker
             .Entries<IAggregate>()
@@ -35,8 +47,6 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : SaveChangesIn
             .ToList();
 
         entities.ToList().ForEach(e => e.ClearDomainEvents());
-
-        foreach (var domainEvent in domainEvents)
-            await mediator.Publish(domainEvent).ConfigureAwait(false);
+        return domainEvents;
     }
 }

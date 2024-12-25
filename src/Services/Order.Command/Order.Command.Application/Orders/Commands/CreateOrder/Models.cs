@@ -1,13 +1,13 @@
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
 public record OrderDto(
-    string Id,
+    string? Id,
     string? CustomerId,
-    string OrderName,
-    OrderDto.Address ShippingAddress,
-    OrderDto.Address BillingAddress,
-    OrderDto.Payment OrderPayment,
-    List<OrderDto.OrderItem> OrderItems)
+    string? OrderName,
+    OrderDto.Address? ShippingAddress,
+    OrderDto.Address? BillingAddress,
+    OrderDto.Payment? OrderPayment,
+    List<OrderDto.OrderItem>? OrderItems)
 {
     public record Address(
         string Firstname,
@@ -17,14 +17,14 @@ public record OrderDto(
         string Country,
         string State,
         string ZipCode);
-    
+
     public record Payment(
         string CardName,
         string CardNumber,
         string Expiration,
         string Cvv,
         int PaymentMethod);
-    
+
     public record OrderItem(
         string Id,
         string? OrderId,
@@ -32,8 +32,3 @@ public record OrderDto(
         int? Quantity,
         decimal? Price);
 }
-
-
-
-
-

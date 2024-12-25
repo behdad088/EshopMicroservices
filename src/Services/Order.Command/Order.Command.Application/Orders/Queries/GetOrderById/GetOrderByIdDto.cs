@@ -3,8 +3,7 @@ using System.Text.Json.Serialization;
 namespace Order.Command.Application.Orders.Queries.GetOrderById;
 
 public record GetOrderByIdDto(
-    [property: JsonPropertyName("id")] 
-    Ulid Id,
+    [property: JsonPropertyName("id")] Ulid Id,
     [property: JsonPropertyName("customer_id")]
     Guid? CustomerId,
     [property: JsonPropertyName("order_name")]
@@ -15,9 +14,7 @@ public record GetOrderByIdDto(
     AddressDto BillingAddress,
     [property: JsonPropertyName("payment")]
     PaymentDto Payment,
-    [property: JsonPropertyName("status")]
-    string Status,
-    [property: JsonPropertyName("version")]
-    int Version,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("etag")] int Version,
     [property: JsonPropertyName("order_items")]
     List<OrderItems> OrderItems);

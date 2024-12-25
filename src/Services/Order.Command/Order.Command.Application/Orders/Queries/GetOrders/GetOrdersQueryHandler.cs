@@ -18,6 +18,7 @@ public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHand
 
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
+            .Where(x => x.DeleteDate == null)
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)

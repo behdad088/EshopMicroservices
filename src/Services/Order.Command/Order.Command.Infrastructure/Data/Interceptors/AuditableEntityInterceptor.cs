@@ -21,7 +21,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void UpdateEntities(DbContext? context)
+    private static void UpdateEntities(DbContext? context, string username = "test user")
     {
         if (context is null) return;
 
@@ -30,14 +30,14 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.Now;
-                entry.Entity.CreatedBy = "test user";
+                entry.Entity.CreatedBy = username;
             }
 
             if (entry.State == EntityState.Added || entry.State == EntityState.Modified ||
                 entry.HasChangedOwnedEntities())
             {
                 entry.Entity.LastModified = DateTime.Now;
-                entry.Entity.LastModifiedBy = "test user";
+                entry.Entity.LastModifiedBy = username;
             }
         }
     }
@@ -50,6 +50,6 @@ public static class Extensions
         return entry.References.Any(x =>
             x.TargetEntry != null &&
             x.TargetEntry.Metadata.IsOwned() &&
-            (x.TargetEntry.State == EntityState.Added || x.TargetEntry.State == EntityState.Modified));
+            x.TargetEntry.State is EntityState.Added or EntityState.Modified);
     }
 }
