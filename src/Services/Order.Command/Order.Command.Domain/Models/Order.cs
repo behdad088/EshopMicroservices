@@ -13,14 +13,14 @@ public class Order : Aggregate<OrderId>
     public Address BillingAddress { get; private set; } = default!;
     public Payment Payment { get; private set; } = default!;
     public OrderStatus Status { get; private set; } = default!;
+    public DeleteDate? DeleteDate { get; private set; }
 
-    [ConcurrencyCheck]
-    public VersionId RowVersion { get; set; } = default!;
-    
+    [ConcurrencyCheck] public VersionId RowVersion { get; set; } = default!;
+
     public Price TotalPrice
     {
         get { return Price.From(OrderItems.Sum(x => x.Price.Value * x.Quantity)); }
-        set{ }
+        set { }
     }
 
     public Order Create(
@@ -43,26 +43,27 @@ public class Order : Aggregate<OrderId>
             Status = OrderStatus.Pending,
             RowVersion = VersionId.InitialVersion
         };
-        order._orderItems.AddRange(orderItems?.Select(x => new OrderItem(id, x.ProductId, x.Quantity, x.Price)).ToArray() ?? []);
-        order.AddDomainEvent(new OrderCreatedEvent(order));
-        
+        order._orderItems.AddRange(orderItems?.Select(x => new OrderItem(id, x.ProductId, x.Quantity, x.Price))
+            .ToArray() ?? []);
         return order;
     }
-    
+
     public void Update(
         OrderName orderName,
         Address shippingAddress,
         Address billingAddress,
         Payment payment,
-        OrderStatus orderStatus)
+        OrderStatus orderStatus,
+        VersionId versionId,
+        List<OrderItem>? orderItems = null)
     {
         OrderName = orderName;
         ShippingAddress = shippingAddress;
         BillingAddress = billingAddress;
         Payment = payment;
         Status = orderStatus;
-        
-        AddDomainEvent(new OrderUpdatedEvent(this));
+        RowVersion = versionId;
+        _orderItems.AddRange(orderItems?.Select(x => new OrderItem(Id, x.ProductId, x.Quantity, x.Price)).ToArray() ?? []);
     }
 
     public void Add(ProductId productId, int quantity, Price price)
@@ -72,17 +73,11 @@ public class Order : Aggregate<OrderId>
 
         var orderItem = new OrderItem(Id, productId, quantity, price);
         _orderItems.Add(orderItem);
-        
-        AddDomainEvent(new OrderItemAddedEvent(orderItem));
-
     }
 
-    public void Remove(ProductId productId)
+    public void Delete(VersionId versionId)
     {
-        var orderItem = _orderItems.FirstOrDefault(x => x.ProductId == productId);
-        if (orderItem is null) return;
-        
-        _orderItems.Remove(orderItem);
-        AddDomainEvent(new OrderItemDeletedEvent(orderItem));
+        DeleteDate = DeleteDate.ToIso8601UtcFormat(DateTimeOffset.UtcNow);
+        RowVersion = versionId;
     }
 }

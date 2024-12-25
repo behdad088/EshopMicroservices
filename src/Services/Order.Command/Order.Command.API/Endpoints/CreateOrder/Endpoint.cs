@@ -38,31 +38,26 @@ public class Endpoint : EndpointBase<Request, Response>
                     ShippingAddress: MapAddress(request.ShippingAddress),
                     BillingAddress: MapAddress(request.BillingAddress),
                     OrderPayment: MapPayment(request.Payment),
-                    OrderItems: request.OrderItems.Select(x =>
-                        new OrderDto.OrderItem(
-                            x.Id,
-                            x.OrderId,
-                            x.ProductId,
-                            x.Quantity,
-                            x.Price
-                        )).ToList()));
+                    OrderItems: MapOrderItems(request.OrderItems)));
     }
 
-    private static OrderDto.Address MapAddress(AddressDto addressDto)
+    private static OrderDto.Address? MapAddress(AddressDto? addressDto)
     {
-        return new OrderDto.Address(
-            Firstname: addressDto.Firstname,
-            Lastname: addressDto.Lastname,
-            EmailAddress: addressDto.EmailAddress,
-            AddressLine: addressDto.AddressLine,
-            Country: addressDto.Country,
-            State: addressDto.State,
-            ZipCode: addressDto.ZipCode);
+        return addressDto is null
+            ? null
+            : new OrderDto.Address(
+                Firstname: addressDto.Firstname,
+                Lastname: addressDto.Lastname,
+                EmailAddress: addressDto.EmailAddress,
+                AddressLine: addressDto.AddressLine,
+                Country: addressDto.Country,
+                State: addressDto.State,
+                ZipCode: addressDto.ZipCode);
     }
 
-    private static OrderDto.Payment MapPayment(PaymentDto paymentDto)
+    private static OrderDto.Payment? MapPayment(PaymentDto? paymentDto)
     {
-        return new OrderDto.Payment(
+        return paymentDto is null ? null :  new OrderDto.Payment(
             paymentDto.CardName,
             paymentDto.CardNumber,
             paymentDto.Expiration,
@@ -70,6 +65,17 @@ public class Endpoint : EndpointBase<Request, Response>
             paymentDto.PaymentMethod);
     }
 
+    private static List<OrderDto.OrderItem>? MapOrderItems(List<OrderItemsDto>? orderItems)
+    {
+        return orderItems?.Select(x =>
+            new OrderDto.OrderItem(
+                x.Id,
+                x.OrderId,
+                x.ProductId,
+                x.Quantity,
+                x.Price
+            )).ToList();
+    }
 
     private static Response MapResult(CreateOrderResult result)
     {

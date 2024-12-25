@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
+using BuildingBlocks.Exceptions;
 using ValueOf;
 
 namespace Order.Command.Domain.Models.ValueObjects;
@@ -15,7 +17,55 @@ public class OrderId : ValueOf<Ulid, OrderId>
 {
 }
 
+public class OutboxId : ValueOf<Ulid, OutboxId>
+{
+}
+
+public class AggregateId : ValueOf<Ulid, AggregateId>
+{
+}
+
+public class EventType : ValueOf<string, EventType>
+{
+}
+
+public class NumberOfDispatchTry : ValueOf<int, NumberOfDispatchTry>
+{
+    public static NumberOfDispatchTry InitialValue => From(0);
+    public NumberOfDispatchTry Increment() => From(Value + 1);
+}
+
+public class Payload : ValueOf<string, Payload>
+{
+}
+
+public class DeleteDate : ValueOf<string, DeleteDate>
+{
+    public static DeleteDate ToIso8601UtcFormat(DateTimeOffset dateTimeOffset)
+    {
+        return From(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
+    }
+}
+
+public class DispatchDateTime : ValueOf<string, DispatchDateTime>
+{
+    public static DispatchDateTime ToIso8601UtcFormat(DateTimeOffset dateTimeOffset)
+    {
+        return From(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
+    }
+}
+
+public class IsDispatched : ValueOf<bool, IsDispatched>
+{
+    public static IsDispatched Yes => From(true);
+    public static IsDispatched No => From(false);
+}
+
 public class OrderItemId : ValueOf<Ulid, OrderItemId>
+{
+}
+
+public class AggregateType : ValueOf<string, AggregateType>
 {
 }
 
@@ -27,14 +77,14 @@ public partial class VersionId : ValueOf<int, VersionId>
     {
         if (string.IsNullOrWhiteSpace(etag) || !EtagRegex().IsMatch(etag))
         {
-            throw new InvalidOperationException($"Invalid Etag value: {etag}.");
+            throw new InvalidEtagException($"Invalid Etag value: {etag}.");
         }
 
         return From(int.Parse(etag[3..^1]));
     }
 
     public VersionId Increment() => From(Value + 1);
-    
+
     [GeneratedRegex("""^W\/"\d+"$""")]
     private static partial Regex EtagRegex();
 }

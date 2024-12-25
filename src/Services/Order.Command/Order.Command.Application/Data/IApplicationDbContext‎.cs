@@ -8,8 +8,9 @@ public interface IApplicationDbContext
 {
     DbSet<Domain.Models.Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
-    
+    DbSet<Outbox> Outboxes { get; }
+
     DatabaseFacade Database { get; }
-    
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

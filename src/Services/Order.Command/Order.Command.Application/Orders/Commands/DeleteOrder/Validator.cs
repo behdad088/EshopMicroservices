@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentValidation;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;
@@ -8,6 +9,8 @@ public class Validator : AbstractValidator<DeleteOrderCommand>
     {
         RuleFor(x => x.OrderId)
             .NotEmpty()
-            .Must(x => Guid.TryParse(x, out _)).WithMessage("Valid OrderId is required.");
+            .MustBeValidUlid();
+
+        RuleFor(x => x.Version).NotEmpty().MustBeValidEtag();
     }
 }

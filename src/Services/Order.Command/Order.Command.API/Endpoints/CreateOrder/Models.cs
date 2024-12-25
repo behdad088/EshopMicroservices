@@ -2,25 +2,26 @@ namespace Order.Command.API.Endpoints.CreateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")] public string Id { get; set; }
+    [property: JsonPropertyName("id")] 
+    public string? Id { get; set; }
 
     [property: JsonPropertyName("customer_id")]
-    public string CustomerId { get; set; }
+    public string? CustomerId { get; set; }
 
     [property: JsonPropertyName("order_name")]
-    public string OrderName { get; set; }
+    public string? OrderName { get; set; }
 
     [property: JsonPropertyName("shipping_Address")]
-    public AddressDto ShippingAddress { get; set; }
+    public AddressDto? ShippingAddress { get; set; }
 
     [property: JsonPropertyName("billing_address")]
-    public AddressDto BillingAddress { get; set; }
+    public AddressDto? BillingAddress { get; set; }
 
     [property: JsonPropertyName("payment")]
-    public PaymentDto Payment { get; set; }
+    public PaymentDto? Payment { get; set; }
 
     [property: JsonPropertyName("order_items")]
-    public List<OrderItemsDto> OrderItems { get; set; }
+    public List<OrderItemsDto>? OrderItems { get; set; }
 };
 
 public record AddressDto(
@@ -34,7 +35,8 @@ public record AddressDto(
     string AddressLine,
     [property: JsonPropertyName("country")]
     string Country,
-    [property: JsonPropertyName("state")] string State,
+    [property: JsonPropertyName("state")] 
+    string State,
     [property: JsonPropertyName("zip_code")]
     string ZipCode);
 
@@ -57,7 +59,8 @@ public record OrderItemsDto(
     string ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")] decimal? Price);
+    [property: JsonPropertyName("price")] 
+    decimal? Price);
 
 public record Response(
     [property: JsonPropertyName("order_id")]
