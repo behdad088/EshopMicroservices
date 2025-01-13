@@ -1,10 +1,11 @@
 using System.Text.Json;
 using BuildingBlocks.Exceptions;
+using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;
 
-public record DeleteOrderCommand(string OrderId, string? Version) : ICommand<DeleteOrderResult>;
+public record DeleteOrderCommand(string? OrderId, string? Version) : ICommand<DeleteOrderResult>;
 
 public record DeleteOrderResult(bool IsSuccess);
 
@@ -13,27 +14,41 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
 {
     public async Task<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
     {
-        var orderId = OrderId.From(Ulid.Parse(command.OrderId));
-        var version = VersionId.FromWeakEtag(command.Version!).Value;
+        try
+        {
+            var orderId = OrderId.From(Ulid.Parse(command.OrderId));
+            var version = VersionId.FromWeakEtag(command.Version!).Value;
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        var order = await dbContext.Orders.FindAsync([orderId], cancellationToken).ConfigureAwait(false);
+            var order = await dbContext.Orders
+                .FirstOrDefaultAsync(x => x.Id.Equals(orderId) && x.DeleteDate == null, cancellationToken)
+                .ConfigureAwait(false);
 
-        AssertOrder(order, command.OrderId, version);
-        var outbox = MapOutbox(order!);
+            AssertOrder(order, command.OrderId!, version);
+            var outbox = MapOutbox(order!);
 
-        order!.Delete(order.RowVersion.Increment());
+            order!.Delete(order.RowVersion.Increment());
 
-        dbContext.Orders.Update(order);
-        dbContext.Outboxes.Add(outbox);
+            dbContext.Orders.Update(order);
+            dbContext.Outboxes.Add(outbox);
 
-        AddOrderDeletedEvent(order);
+            AddOrderDeletedEvent(order);
 
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-        return new DeleteOrderResult(true);
+            return new DeleteOrderResult(true);
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException is SqlException { Number: 2627 or 2601 })
+            {
+                throw new InvalidEtagException(command.Version!);
+            }
+
+            throw;
+        }
     }
 
     private static void AssertOrder(Domain.Models.Order? orderDb, string orderId, int version)

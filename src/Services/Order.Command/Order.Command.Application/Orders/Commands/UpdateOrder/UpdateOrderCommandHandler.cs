@@ -1,5 +1,6 @@
 using System.Text.Json;
 using BuildingBlocks.Exceptions;
+using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.UpdateOrder;
@@ -13,23 +14,35 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
 {
     public async Task<UpdateOrderResult> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
     {
-        var orderId = OrderId.From(Ulid.Parse(command.Order.Id));
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var orderDb = await dbContext.Orders.FindAsync([orderId], cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        try
+        {
+            var orderId = OrderId.From(Ulid.Parse(command.Order.Id));
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var orderDb = await dbContext.Orders.FindAsync([orderId], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
-        AssertOrder(orderDb, command.Order);
-        UpdateOrderWithNewValues(command.Order, orderDb!);
-        AddOrderUpdatedEvent(orderDb!);
-        var outbox = MapOutbox(orderDb!);
+            AssertOrder(orderDb, command.Order);
+            UpdateOrderWithNewValues(command.Order, orderDb!);
+            AddOrderUpdatedEvent(orderDb!);
+            var outbox = MapOutbox(orderDb!);
 
-        dbContext.Orders.Update(orderDb!);
-        dbContext.Outboxes.Add(outbox);
+            dbContext.Orders.Update(orderDb!);
+            dbContext.Outboxes.Add(outbox);
 
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-        return new UpdateOrderResult(true);
+            return new UpdateOrderResult(true);
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException is SqlException { Number: 2627 or 2601 })
+            {
+                throw new InvalidEtagException(command.Order.Version!);
+            }
+
+            throw;
+        }
     }
 
     private static void AssertOrder(Domain.Models.Order? orderDb, UpdateOrderDto orderDto)
@@ -47,7 +60,9 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
         order.AddDomainEvent(new OrderUpdatedEvent(order));
     }
 
-    private static void UpdateOrderWithNewValues(UpdateOrderDto orderDto, Domain.Models.Order orderDb)
+    private static void UpdateOrderWithNewValues(
+        UpdateOrderDto orderDto,
+        Domain.Models.Order orderDb)
     {
         var shippingAddress = MapAddress(orderDto.ShippingAddress);
         var billingAddress = MapAddress(orderDto.BillingAddress);
@@ -60,7 +75,7 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
             billingAddress,
             payment,
             MapOrderStatus(orderDto.Status),
-            versionId: orderDb.RowVersion.Increment(),
+            versionId: VersionId.FromWeakEtag(orderDto.Version!).Increment(),
             orderItems: orderItems);
     }
 

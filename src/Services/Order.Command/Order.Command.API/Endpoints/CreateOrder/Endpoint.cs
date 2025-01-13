@@ -31,21 +31,21 @@ public class Endpoint : EndpointBase<Request, Response>
         return request is null
             ? null
             : new CreateOrderCommand(
-                new OrderDto(
+                new OrderParameter(
                     Id: request.Id,
                     CustomerId: request.CustomerId,
                     OrderName: request.OrderName,
                     ShippingAddress: MapAddress(request.ShippingAddress),
                     BillingAddress: MapAddress(request.BillingAddress),
                     OrderPayment: MapPayment(request.Payment),
-                    OrderItems: MapOrderItems(request.OrderItems)));
+                    OrderItems: MapOrderItems(request.OrderItems, request.Id)));
     }
 
-    private static OrderDto.Address? MapAddress(AddressDto? addressDto)
+    private static OrderParameter.Address? MapAddress(Request.ModuleAddress? addressDto)
     {
         return addressDto is null
             ? null
-            : new OrderDto.Address(
+            : new OrderParameter.Address(
                 Firstname: addressDto.Firstname,
                 Lastname: addressDto.Lastname,
                 EmailAddress: addressDto.EmailAddress,
@@ -55,9 +55,9 @@ public class Endpoint : EndpointBase<Request, Response>
                 ZipCode: addressDto.ZipCode);
     }
 
-    private static OrderDto.Payment? MapPayment(PaymentDto? paymentDto)
+    private static OrderParameter.Payment? MapPayment(Request.ModulePayment? paymentDto)
     {
-        return paymentDto is null ? null :  new OrderDto.Payment(
+        return paymentDto is null ? null :  new OrderParameter.Payment(
             paymentDto.CardName,
             paymentDto.CardNumber,
             paymentDto.Expiration,
@@ -65,12 +65,12 @@ public class Endpoint : EndpointBase<Request, Response>
             paymentDto.PaymentMethod);
     }
 
-    private static List<OrderDto.OrderItem>? MapOrderItems(List<OrderItemsDto>? orderItems)
+    private static List<OrderParameter.OrderItem>? MapOrderItems(List<Request.ModuleOrderItem>? orderItems, string? orderId)
     {
         return orderItems?.Select(x =>
-            new OrderDto.OrderItem(
+            new OrderParameter.OrderItem(
                 x.Id,
-                x.OrderId,
+                orderId,
                 x.ProductId,
                 x.Quantity,
                 x.Price

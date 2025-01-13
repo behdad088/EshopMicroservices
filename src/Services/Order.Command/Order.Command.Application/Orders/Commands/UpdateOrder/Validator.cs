@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using FluentValidation;
 
 namespace Order.Command.Application.Orders.Commands.UpdateOrder;
@@ -25,7 +24,6 @@ public class Validator : AbstractValidator<UpdateOrderCommand>
     {
         public OrderItemValidator()
         {
-            RuleFor(x => x.OrderId).NotNull();
             RuleFor(x => x.ProductId).NotNull();
             RuleFor(x => x.Price).NotNull();
             RuleFor(x => x.Quantity).NotNull();

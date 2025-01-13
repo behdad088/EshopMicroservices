@@ -5,7 +5,8 @@ namespace Order.Command.API.Endpoints.UpdateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")] public string Id { get; set; }
+    [property: JsonPropertyName("id")] 
+    public string Id { get; set; }
 
     [property: JsonPropertyName("customer_id")]
     public string? CustomerId { get; set; }
@@ -14,21 +15,22 @@ public record Request
     public string OrderName { get; set; }
 
     [property: JsonPropertyName("shipping_Address")]
-    public Address ShippingAddress { get; set; }
+    public ModuleAddress ShippingAddress { get; set; }
 
     [property: JsonPropertyName("billing_address")]
-    public Address BillingAddress { get; set; }
+    public ModuleAddress BillingAddress { get; set; }
 
     [property: JsonPropertyName("payment")]
-    public Payment Payment { get; set; }
+    public ModulePayment Payment { get; set; }
 
-    [property: JsonPropertyName("status")] public string Status { get; set; }
+    [property: JsonPropertyName("status")]
+    public string Status { get; set; }
 
     [property: JsonPropertyName("order_items")]
-    public List<OrderItem> OrderItems { get; set; }
+    public List<ModuleOrderItem> OrderItems { get; set; }
 }
 
-public record Address(
+public record ModuleAddress(
     [property: JsonPropertyName("firstname")]
     string Firstname,
     [property: JsonPropertyName("lastname")]
@@ -43,7 +45,7 @@ public record Address(
     [property: JsonPropertyName("zip_code")]
     string ZipCode);
 
-public record Payment(
+public record ModulePayment(
     [property: JsonPropertyName("card_name")]
     string CardName,
     [property: JsonPropertyName("card_number")]
@@ -54,7 +56,7 @@ public record Payment(
     [property: JsonPropertyName("payment_method")]
     int PaymentMethod);
 
-public record OrderItem(
+public record ModuleOrderItem(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("order_id")]
     string OrderId,
