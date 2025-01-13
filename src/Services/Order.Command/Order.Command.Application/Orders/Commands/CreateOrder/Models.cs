@@ -1,13 +1,13 @@
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
-public record OrderDto(
+public record OrderParameter(
     string? Id,
     string? CustomerId,
     string? OrderName,
-    OrderDto.Address? ShippingAddress,
-    OrderDto.Address? BillingAddress,
-    OrderDto.Payment? OrderPayment,
-    List<OrderDto.OrderItem>? OrderItems)
+    OrderParameter.Address? ShippingAddress,
+    OrderParameter.Address? BillingAddress,
+    OrderParameter.Payment? OrderPayment,
+    List<OrderParameter.OrderItem>? OrderItems)
 {
     public record Address(
         string Firstname,

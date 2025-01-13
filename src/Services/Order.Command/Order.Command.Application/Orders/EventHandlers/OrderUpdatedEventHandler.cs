@@ -5,7 +5,7 @@ public class OrderUpdatedEventHandler(ILogger<OrderUpdatedEventHandler> logger)
 {
     public async Task Handle(OrderUpdatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Domain event handled: {DomanEvent}", notification.GetType());
+        logger.LogInformation("Domain event handled: {DomainEvent}", notification.GetType());
 
         await Task.CompletedTask;
     }

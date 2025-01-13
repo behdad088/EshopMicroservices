@@ -32,6 +32,40 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static Response MapToResponse(GetOrdersByIdResult result)
     {
-        return new Response(result.Order);
+        return new Response(
+            result.Order.Id,
+            result.Order.CustomerId,
+            result.Order.OrderName,
+            MapModelAddress(result.Order.ShippingAddress),
+            MapModelAddress(result.Order.BillingAddress),
+            ModulePayment(result.Order.Payment),
+            result.Order.Status,
+            MapModuleOrderItem(result.Order.OrderItems));
+    }
+    
+    private static List<ModuleOrderItem> MapModuleOrderItem(List<OrderItemParameter> orderItemParameters)
+    {
+        return orderItemParameters.Select(x => new ModuleOrderItem(x.Id, x.ProductId, x.Quantity, x.Price)).ToList();
+    }
+    private static ModuleAddress MapModelAddress(AddressParameter addressParameter)
+    {
+        return new ModuleAddress(
+            addressParameter.Firstname,
+            addressParameter.Lastname,
+            addressParameter.EmailAddress,
+            addressParameter.AddressLine,
+            addressParameter.Country,
+            addressParameter.State,
+            addressParameter.ZipCode);
+    }
+
+    private static ModulePayment ModulePayment(PaymentParameter paymentParameter)
+    {
+        return new ModulePayment(
+            paymentParameter.CardName,
+            paymentParameter.CardNumber,
+            paymentParameter.Expiration,
+            paymentParameter.Cvv,
+            paymentParameter.PaymentMethod);
     }
 }

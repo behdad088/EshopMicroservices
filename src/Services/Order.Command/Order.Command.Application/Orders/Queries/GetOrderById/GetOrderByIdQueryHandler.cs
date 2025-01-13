@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BuildingBlocks.Exceptions;
 using Order.Command.Application.Exceptions;
 
@@ -5,7 +6,7 @@ namespace Order.Command.Application.Orders.Queries.GetOrderById;
 
 public record GetOrdersByIdQuery(string? Id) : IQuery<GetOrdersByIdResult>;
 
-public record GetOrdersByIdResult(GetOrderByIdDto Order);
+public record GetOrdersByIdResult(GetOrderByIdParameter Order);
 
 public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandler<GetOrdersByIdQuery, GetOrdersByIdResult>
 {
@@ -15,7 +16,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
         var order = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)), cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.DeleteDate != null , cancellationToken);
 
         if (order is null)
             throw new OrderNotFoundExceptions(orderId);
@@ -24,9 +25,9 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
         return new GetOrdersByIdResult(result);
     }
     
-    private static GetOrderByIdDto MapResult(Domain.Models.Order order)
+    private static GetOrderByIdParameter MapResult(Domain.Models.Order order)
     {
-        var result = new GetOrderByIdDto(
+        var result = new GetOrderByIdParameter(
             order.Id.Value,
             order.CustomerId.Value,
             order.OrderName.Value,
@@ -39,24 +40,36 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
 
         return result;
     }
-
-    private static AddressDto MapAddress(Address address)
+    
+    private static AddressParameter MapAddress(Address address)
     {
-        return new AddressDto(address.FirstName, address.LastName, address.EmailAddress, address.AddressLine,
+        return new AddressParameter(
+            address.FirstName,
+            address.LastName,
+            address.EmailAddress,
+            address.AddressLine,
             address.Country,
-            address.State, address.ZipCode);
+            address.State,
+            address.ZipCode);
     }
 
-    private static PaymentDto MapPayment(Payment payment)
+    private static PaymentParameter MapPayment(Payment payment)
     {
-        return new PaymentDto(payment.CardName, payment.CardNumber, payment.Expiration, payment.CVV,
+        return new PaymentParameter(
+            payment.CardName,
+            payment.CardNumber, 
+            payment.Expiration,
+            payment.CVV,
             payment.PaymentMethod);
     }
 
-    private static List<OrderItems> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+    private static List<OrderItemParameter> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
     {
         return orderItems.Select(x =>
-            new OrderItems(x.Id.Value.ToString(), x.OrderId.Value.ToString(), x.ProductId.Value.ToString(), x.Quantity,
+            new OrderItemParameter(
+                x.Id.Value.ToString(),
+                x.ProductId.Value.ToString(),
+                x.Quantity,
                 x.Price.Value)).ToList();
     }
 }

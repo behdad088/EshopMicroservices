@@ -1,5 +1,4 @@
 using Order.Command.Application.Orders.Commands.DeleteOrder;
-using Order.Command.Domain.Models.ValueObjects;
 
 namespace Order.Command.API.Endpoints.DeleteOrder;
 

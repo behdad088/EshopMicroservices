@@ -3,7 +3,7 @@ using Order.Command.Application.Orders.Commands.UpdateOrder;
 
 namespace Order.Command.API.Endpoints.UpdateOrder;
 
-public class Endpoint : EndpointBase<Request, Response>
+public class Endpoint : EndpointBase<Request>
 {
     public override void MapEndpoint()
     {
@@ -40,14 +40,13 @@ public class Endpoint : EndpointBase<Request, Response>
             eTag,
             request.OrderItems.Select(x => new OrderItems(
                 x.Id,
-                x.OrderId,
                 x.ProductId,
                 x.Quantity,
                 x.Price)).ToList()
         ));
     }
 
-    private static AddressDto MapAddress(Address addressDto)
+    private static AddressDto MapAddress(ModuleAddress addressDto)
     {
         return new AddressDto(
             Firstname: addressDto.Firstname,
@@ -59,7 +58,7 @@ public class Endpoint : EndpointBase<Request, Response>
             ZipCode: addressDto.ZipCode);
     }
 
-    private static PaymentDto MapPayment(Payment paymentDto)
+    private static PaymentDto MapPayment(ModulePayment paymentDto)
     {
         return new PaymentDto(
             paymentDto.CardName,
@@ -67,11 +66,5 @@ public class Endpoint : EndpointBase<Request, Response>
             paymentDto.Expiration,
             paymentDto.Cvv,
             paymentDto.PaymentMethod);
-    }
-
-
-    private static Response MapToResponse(UpdateOrderResult result)
-    {
-        return new Response(result.IsSuccess);
     }
 }

@@ -7,18 +7,18 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 {
     public CreateOrderCommandValidator()
     {
-        RuleFor(x => x.OrderDto.Id).MustBeValidUlid();
-        RuleFor(x => x.OrderDto.OrderName).NotEmpty().WithMessage("Name is required.");
-        RuleFor(x => x.OrderDto.CustomerId).MustBeValidGuid();
-        RuleFor(x => x.OrderDto.OrderItems).NotEmpty().WithMessage("OrderItems should not be empty.");
+        RuleFor(x => x.OrderParameter.Id).MustBeValidUlid();
+        RuleFor(x => x.OrderParameter.OrderName).NotEmpty().WithMessage("Name is required.");
+        RuleFor(x => x.OrderParameter.CustomerId).MustBeValidGuid();
+        RuleFor(x => x.OrderParameter.OrderItems).NotEmpty().WithMessage("OrderItems should not be empty.");
 
-        RuleForEach(x => x.OrderDto.OrderItems).SetValidator(new OrderItemValidator());
-        RuleFor(x => x.OrderDto.BillingAddress!).NotNull().SetValidator(new AddressValidator());
-        RuleFor(x => x.OrderDto.ShippingAddress!).NotNull().SetValidator(new AddressValidator());
-        RuleFor(x => x.OrderDto.OrderPayment!).NotNull().SetValidator(new PaymentValidator());
+        RuleForEach(x => x.OrderParameter.OrderItems).SetValidator(new OrderItemValidator());
+        RuleFor(x => x.OrderParameter.BillingAddress!).NotNull().SetValidator(new AddressValidator());
+        RuleFor(x => x.OrderParameter.ShippingAddress!).NotNull().SetValidator(new AddressValidator());
+        RuleFor(x => x.OrderParameter.OrderPayment!).NotNull().SetValidator(new PaymentValidator());
     }
     
-    private class AddressValidator : AbstractValidator<OrderDto.Address>
+    private class AddressValidator : AbstractValidator<OrderParameter.Address>
     {
         public AddressValidator()
         {
@@ -38,7 +38,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         }
     }
     
-    private class OrderItemValidator : AbstractValidator<OrderDto.OrderItem>
+    private class OrderItemValidator : AbstractValidator<OrderParameter.OrderItem>
     {
         public OrderItemValidator()
         {
@@ -50,7 +50,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         }
     }
     
-    private class PaymentValidator : AbstractValidator<OrderDto.Payment>
+    private class PaymentValidator : AbstractValidator<OrderParameter.Payment>
     {
         public PaymentValidator()
         {

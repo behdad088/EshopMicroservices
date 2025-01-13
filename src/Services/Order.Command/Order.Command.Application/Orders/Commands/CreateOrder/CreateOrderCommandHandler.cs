@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
-public record CreateOrderCommand(OrderDto OrderDto) : ICommand<CreateOrderResult>;
+public record CreateOrderCommand(OrderParameter OrderParameter) : ICommand<CreateOrderResult>;
 
 public record CreateOrderResult(Ulid Id);
 
@@ -11,7 +11,7 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
 {
     public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
-        var order = MapOrder(command.OrderDto);
+        var order = MapOrder(command.OrderParameter);
         var outbox = MapOutbox(order);
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -27,18 +27,18 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
         return new CreateOrderResult(order.Id.Value);
     }
 
-    private static Domain.Models.Order MapOrder(OrderDto orderDtoDto)
+    private static Domain.Models.Order MapOrder(OrderParameter orderParameterParameter)
     {
         var order = new Domain.Models.Order().Create(
-            id: OrderId.From(Ulid.Parse(orderDtoDto.Id)),
-            customerId: CustomerId.From(Guid.Parse(orderDtoDto.CustomerId!)),
-            orderName: OrderName.From(orderDtoDto.OrderName!),
-            shippingAddress: MapAddress(orderDtoDto.ShippingAddress!),
-            billingAddress: MapAddress(orderDtoDto.BillingAddress!),
-            payment: MapPayment(orderDtoDto.OrderPayment!),
-            orderItems: orderDtoDto.OrderItems!.Select(x =>
+            id: OrderId.From(Ulid.Parse(orderParameterParameter.Id)),
+            customerId: CustomerId.From(Guid.Parse(orderParameterParameter.CustomerId!)),
+            orderName: OrderName.From(orderParameterParameter.OrderName!),
+            shippingAddress: MapAddress(orderParameterParameter.ShippingAddress!),
+            billingAddress: MapAddress(orderParameterParameter.BillingAddress!),
+            payment: MapPayment(orderParameterParameter.OrderPayment!),
+            orderItems: orderParameterParameter.OrderItems!.Select(x =>
                 new OrderItem(
-                    orderId: OrderId.From(Ulid.Parse(orderDtoDto.Id)),
+                    orderId: OrderId.From(Ulid.Parse(orderParameterParameter.Id)),
                     productId: ProductId.From(Ulid.Parse(x.ProductId!)),
                     quantity: x.Quantity!.Value,
                     price: Price.From(x.Price!.Value))).ToList());
@@ -46,7 +46,7 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
         return order;
     }
 
-    private static Address MapAddress(OrderDto.Address addressDto)
+    private static Address MapAddress(OrderParameter.Address addressDto)
         => new(
             firstName: addressDto.Firstname,
             lastName: addressDto.Lastname,
@@ -56,7 +56,7 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
             state: addressDto.State,
             zipCode: addressDto.ZipCode);
 
-    private static Payment MapPayment(OrderDto.Payment paymentDto) =>
+    private static Payment MapPayment(OrderParameter.Payment paymentDto) =>
         new(
             cardName: paymentDto.CardName,
             cardNumber: paymentDto.CardName,

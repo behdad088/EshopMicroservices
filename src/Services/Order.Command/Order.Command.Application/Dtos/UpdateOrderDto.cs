@@ -14,7 +14,9 @@ public record UpdateOrderDto(
     AddressDto BillingAddress,
     [property: JsonPropertyName("payment")]
     PaymentDto Payment,
-    [property: JsonPropertyName("status")] string Status,
-    [property: JsonPropertyName("etag")] string? Version,
+    [property: JsonPropertyName("status")] 
+    string Status,
+    [property: JsonPropertyName("etag")] 
+    string? Version,
     [property: JsonPropertyName("order_items")]
     List<OrderItems> OrderItems);

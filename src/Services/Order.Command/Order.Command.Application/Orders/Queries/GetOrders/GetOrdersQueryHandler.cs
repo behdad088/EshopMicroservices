@@ -6,15 +6,17 @@ public record GetOrdersQuery(
     int PageSize = 10,
     int PageIndex = 0) : IQuery<GetOrdersResult>;
 
-public record GetOrdersResult(PaginatedItems<OrderDto> Orders);
+public record GetOrdersResult(PaginatedItems<GetOrderParameter> Orders);
 
 public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHandler<GetOrdersQuery, GetOrdersResult>
 {
-    public async Task<GetOrdersResult> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<GetOrdersResult> Handle(GetOrdersQuery query, CancellationToken cancellationToken)
     {
-        var pageIndex = request.PageIndex;
-        var pageSize = request.PageSize;
-        var totalCount = await dbContext.Orders.LongCountAsync(cancellationToken);
+        var pageIndex = query.PageIndex;
+        var pageSize = query.PageSize;
+        var totalCount = await dbContext.Orders
+            .Where(x => x.DeleteDate == null)
+            .LongCountAsync(cancellationToken).ConfigureAwait(false);
 
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
@@ -29,15 +31,15 @@ public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHand
         return new GetOrdersResult(orderItems);
     }
 
-    private static PaginatedItems<OrderDto> MapResult(
+    private static PaginatedItems<GetOrderParameter> MapResult(
         IReadOnlyCollection<Domain.Models.Order> orders,
         int pageIndex,
         int pageSize,
         long totalCount)
     {
-        var ordersDto = orders.Select(x => new OrderDto(
+        var ordersDto = orders.Select(x => new GetOrderParameter(
             x.Id.Value,
-            x.CustomerId!.Value,
+            x.CustomerId.Value,
             x.OrderName.Value,
             MapAddress(x.ShippingAddress),
             MapAddress(x.BillingAddress),
@@ -45,26 +47,38 @@ public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHand
             x.Status.Value,
             MapOrderItems(x.OrderItems))).ToArray();
 
-        return new PaginatedItems<OrderDto>(pageIndex, pageSize, totalCount, ordersDto);
+        return new PaginatedItems<GetOrderParameter>(pageIndex, pageSize, totalCount, ordersDto);
     }
 
-    private static AddressDto MapAddress(Address address)
+    private static AddressParameter MapAddress(Address address)
     {
-        return new AddressDto(address.FirstName, address.LastName, address.EmailAddress, address.AddressLine,
+        return new AddressParameter(
+            address.FirstName,
+            address.LastName,
+            address.EmailAddress,
+            address.AddressLine,
             address.Country,
-            address.State, address.ZipCode);
+            address.State,
+            address.ZipCode);
     }
 
-    private static PaymentDto MapPayment(Payment payment)
+    private static PaymentParameter MapPayment(Payment payment)
     {
-        return new PaymentDto(payment.CardName, payment.CardNumber, payment.Expiration, payment.CVV,
+        return new PaymentParameter(
+            payment.CardName,
+            payment.CardNumber,
+            payment.Expiration,
+            payment.CVV,
             payment.PaymentMethod);
     }
 
-    private static List<OrderItems> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+    private static List<OrderItemParameter> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
     {
         return orderItems.Select(x =>
-            new OrderItems(x.Id.Value.ToString(), x.OrderId.Value.ToString(), x.ProductId.Value.ToString(), x.Quantity,
+            new OrderItemParameter(
+                x.Id.Value.ToString(),
+                x.ProductId.Value.ToString(),
+                x.Quantity,
                 x.Price.Value)).ToList();
     }
 }
