@@ -7,6 +7,9 @@ services:
   basketDb:
     image: postgres
   
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+  
   distributedCache:
     image: redis:alpine
     
@@ -41,3 +44,4 @@ services:
 volumes:
   postgres_catalog_db:
   postgres_basket_db:
+  rabbitmq_data:
