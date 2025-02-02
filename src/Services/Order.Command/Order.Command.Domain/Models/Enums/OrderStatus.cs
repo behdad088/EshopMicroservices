@@ -6,4 +6,3 @@ namespace Order.Command.Domain.Models.Enums;
 //     Completed = 3,
 //     Cancelled = 4
 // }
-

@@ -57,15 +57,18 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static OrderParameter.Payment? MapPayment(Request.ModulePayment? paymentDto)
     {
-        return paymentDto is null ? null :  new OrderParameter.Payment(
-            paymentDto.CardName,
-            paymentDto.CardNumber,
-            paymentDto.Expiration,
-            paymentDto.Cvv,
-            paymentDto.PaymentMethod);
+        return paymentDto is null
+            ? null
+            : new OrderParameter.Payment(
+                paymentDto.CardName,
+                paymentDto.CardNumber,
+                paymentDto.Expiration,
+                paymentDto.Cvv,
+                paymentDto.PaymentMethod);
     }
 
-    private static List<OrderParameter.OrderItem>? MapOrderItems(List<Request.ModuleOrderItem>? orderItems, string? orderId)
+    private static List<OrderParameter.OrderItem>? MapOrderItems(List<Request.ModuleOrderItem>? orderItems,
+        string? orderId)
     {
         return orderItems?.Select(x =>
             new OrderParameter.OrderItem(

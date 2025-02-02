@@ -1,3 +1,6 @@
+using System.Reflection;
+using System.Text.Json;
+
 namespace Order.Command.Domain.Models;
 
 public class Outbox : Aggregate<OutboxId>
@@ -37,9 +40,35 @@ public class Outbox : Aggregate<OutboxId>
 
     public void Update(
         IsDispatched isDispatched,
+        DispatchDateTime dispatchDateTime,
         NumberOfDispatchTry numberOfDispatchTry)
     {
         NumberOfDispatchTry = numberOfDispatchTry;
         IsDispatched = isDispatched;
+        DispatchDateTime = dispatchDateTime;
+    }
+
+    public void FailedDispatch()
+    {
+        NumberOfDispatchTry = NumberOfDispatchTry.Increment();
+        IsDispatched = IsDispatched.No;
+        DispatchDateTime = DispatchDateTime.InTwoMinutes();
+    }
+
+    public void SuccessfulDispatch()
+    {
+        NumberOfDispatchTry = NumberOfDispatchTry.Increment();
+        IsDispatched = IsDispatched.Yes;
+        DispatchDateTime = DispatchDateTime.Now();
+    }
+
+    private static readonly JsonSerializerOptions
+        SCaseInsensitiveOptions = new() { PropertyNameCaseInsensitive = true };
+
+    public T? GetEvent<T>() where T : IDomainEvent
+    {
+        var domainEvent =
+            JsonSerializer.Deserialize<T>(Payload.Value, SCaseInsensitiveOptions);
+        return domainEvent;
     }
 }

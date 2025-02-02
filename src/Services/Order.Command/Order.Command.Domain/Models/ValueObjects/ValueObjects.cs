@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using BuildingBlocks.Exceptions;
 using ValueOf;
@@ -37,6 +38,13 @@ public class NumberOfDispatchTry : ValueOf<int, NumberOfDispatchTry>
 
 public class Payload : ValueOf<string, Payload>
 {
+    private static readonly JsonSerializerOptions
+        SCaseInsensitiveOptions = new() { PropertyNameCaseInsensitive = true };
+
+    public static Payload Serialize(IDomainEvent @event)
+    {
+        return From(JsonSerializer.Serialize(@event, @event.GetType(), SCaseInsensitiveOptions));
+    }
 }
 
 public class DeleteDate : ValueOf<string, DeleteDate>
@@ -47,11 +55,52 @@ public class DeleteDate : ValueOf<string, DeleteDate>
     }
 }
 
-public class DispatchDateTime : ValueOf<string, DispatchDateTime>
+public class DispatchDateTime : ValueOf<DateTimeOffset, DispatchDateTime>
 {
-    public static DispatchDateTime ToIso8601UtcFormat(DateTimeOffset dateTimeOffset)
+    public static string ToIso8601UtcFormat(DateTimeOffset dateTimeOffset)
     {
-        return From(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
+        return dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
+    }
+
+    public static DispatchDateTime Now()
+    {
+        return From(DateTimeOffset.Now);
+    }
+
+    public static DispatchDateTime InTwoMinutes()
+    {
+        return From(DateTimeOffset.UtcNow.AddMinutes(2));
+    }
+
+    public static bool operator <=(DispatchDateTime? a, DispatchDateTime? b)
+    {
+        switch (a)
+        {
+            case null when b is null:
+            case null:
+                return true;
+        }
+
+        if (b is null)
+            return false;
+
+        return a.Value <= b.Value;
+    }
+
+    public static bool operator >=(DispatchDateTime? a, DispatchDateTime? b)
+    {
+        switch (a)
+        {
+            case null when b is null:
+                return true;
+            case null:
+                return false;
+        }
+
+        if (b is null)
+            return true;
+
+        return a.Value >= b.Value;
     }
 }
 

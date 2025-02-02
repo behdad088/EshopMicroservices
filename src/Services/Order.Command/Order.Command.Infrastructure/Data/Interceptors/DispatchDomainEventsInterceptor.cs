@@ -1,3 +1,4 @@
+using System.Data.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -5,21 +6,27 @@ using Order.Command.Domain.Abstractions;
 
 namespace Order.Command.Infrastructure.Data.Interceptors;
 
-public class DispatchDomainEventsInterceptor(IMediator mediator) : SaveChangesInterceptor
+public class DispatchDomainEventsInterceptor(IMediator mediator) : DbTransactionInterceptor
 {
-    public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
-        CancellationToken cancellationToken = new ())
+    public override void TransactionCommitted(
+        DbTransaction transaction,
+        TransactionEndEventData eventData)
     {
         var eventToDispatch = GetDomainEvents(eventData.Context);
         DispatchDomainEvents(eventToDispatch).GetAwaiter().GetResult();
-        return base.SavedChangesAsync(eventData, result, cancellationToken);
+        
+        base.TransactionCommitted(transaction, eventData);
     }
 
-    public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
+    public override Task TransactionCommittedAsync(
+        DbTransaction transaction,
+        TransactionEndEventData eventData,
+        CancellationToken cancellationToken = new())
     {
         var eventToDispatch = GetDomainEvents(eventData.Context);
         DispatchDomainEvents(eventToDispatch).GetAwaiter().GetResult();
-        return base.SavedChanges(eventData, result);
+        
+        return base.TransactionCommittedAsync(transaction, eventData, cancellationToken);
     }
 
     private async Task DispatchDomainEvents(List<IDomainEvent>? domainEvents)

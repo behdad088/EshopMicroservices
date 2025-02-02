@@ -51,16 +51,17 @@ public class Endpoint : EndpointBase<Request, Response>
             MapModuleOrderItem(x.OrderItems)
         )).ToList();
     }
-    
+
     private static List<ModuleOrderItem> MapModuleOrderItem(List<OrderItemParameter> orderItemParameters)
     {
-        return orderItemParameters.Select(x => 
+        return orderItemParameters.Select(x =>
             new ModuleOrderItem(
                 x.Id,
                 x.ProductId,
                 x.Quantity,
                 x.Price)).ToList();
     }
+
     private static ModuleAddress MapModelAddress(AddressParameter addressParameter)
     {
         return new ModuleAddress(

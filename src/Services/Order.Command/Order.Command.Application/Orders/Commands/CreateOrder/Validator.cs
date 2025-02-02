@@ -17,7 +17,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         RuleFor(x => x.OrderParameter.ShippingAddress!).NotNull().SetValidator(new AddressValidator());
         RuleFor(x => x.OrderParameter.OrderPayment!).NotNull().SetValidator(new PaymentValidator());
     }
-    
+
     private class AddressValidator : AbstractValidator<OrderParameter.Address>
     {
         public AddressValidator()
@@ -29,7 +29,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
                 .EmailAddress()
                 .WithMessage("Email is required.")
                 .When(x => !string.IsNullOrWhiteSpace(x.EmailAddress));
-            
+
             RuleFor(x => x.AddressLine).NotNull().NotEmpty().WithMessage("address_line is required.");
             RuleFor(x => x.Country)
                 .MustBeValidCountryName();
@@ -37,19 +37,19 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
             RuleFor(x => x.ZipCode).NotNull().NotEmpty().Length(5).WithMessage("zip_code is not valid.");
         }
     }
-    
+
     private class OrderItemValidator : AbstractValidator<OrderParameter.OrderItem>
     {
         public OrderItemValidator()
         {
             RuleFor(x => x.OrderId).MustBeValidUlid();
-            
+
             RuleFor(x => x.ProductId).MustBeValidUlid();
             RuleFor(x => x.Price).NotNull();
             RuleFor(x => x.Quantity).NotNull();
         }
     }
-    
+
     private class PaymentValidator : AbstractValidator<OrderParameter.Payment>
     {
         public PaymentValidator()

@@ -14,7 +14,7 @@ public class Endpoint : EndpointBase<Request, Response>
         Summary("Gets orders by Id.");
         Description("Gets orders by Id");
     }
-    
+
     public override async Task<IResult> HandleAsync(Request request)
     {
         var query = MapToQuery(request);
@@ -42,11 +42,12 @@ public class Endpoint : EndpointBase<Request, Response>
             result.Order.Status,
             MapModuleOrderItem(result.Order.OrderItems));
     }
-    
+
     private static List<ModuleOrderItem> MapModuleOrderItem(List<OrderItemParameter> orderItemParameters)
     {
         return orderItemParameters.Select(x => new ModuleOrderItem(x.Id, x.ProductId, x.Quantity, x.Price)).ToList();
     }
+
     private static ModuleAddress MapModelAddress(AddressParameter addressParameter)
     {
         return new ModuleAddress(

@@ -19,9 +19,10 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders.Where(
-            x => x.CustomerId.Equals(CustomerId.From(customerId)) && x.DeleteDate == null).LongCountAsync(cancellationToken);
-        
-        
+                x => x.CustomerId.Equals(CustomerId.From(customerId)) && x.DeleteDate == null)
+            .LongCountAsync(cancellationToken);
+
+
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
@@ -69,7 +70,7 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
     private static PaymentParameter MapPayment(Payment payment)
     {
         return new PaymentParameter(
-            payment.CardName, 
+            payment.CardName,
             payment.CardNumber,
             payment.Expiration,
             payment.CVV,

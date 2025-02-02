@@ -4,14 +4,14 @@ services:
   catalogDb:
     container_name: catalogDb
     environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=postgres
-        - POSTGRES_DB=CatalogDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=CatalogDb
     restart: always
     ports:
-        - "5432:5432"
+      - "5432:5432"
     volumes:
-        - postgres_catalog_db:/var/lib/postgresql/data/
+      - postgres_catalog_db:/var/lib/postgresql/data/
   
   basketDb:
     container_name: basketDb
@@ -24,7 +24,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_basket_db:/var/lib/postgresql/data/
-    
+  
   distributedCache:
     container_name: distributedCache
     restart: always
@@ -49,7 +49,7 @@ services:
     restart: always
     ports:
       - "1433:1433"
-    
+  
   catalog.api:
     container_name: catalog.api
     environment:
@@ -68,7 +68,7 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-    
+  
   basket.api:
     container_name: basket.api
     environment:
