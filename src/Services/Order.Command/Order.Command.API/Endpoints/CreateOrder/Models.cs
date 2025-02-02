@@ -2,8 +2,7 @@ namespace Order.Command.API.Endpoints.CreateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")] 
-    public string? Id { get; set; }
+    [property: JsonPropertyName("id")] public string? Id { get; set; }
 
     [property: JsonPropertyName("customer_id")]
     public string? CustomerId { get; set; }
@@ -22,7 +21,7 @@ public record Request
 
     [property: JsonPropertyName("order_items")]
     public List<ModuleOrderItem>? OrderItems { get; set; }
-    
+
     public record ModuleAddress(
         [property: JsonPropertyName("firstname")]
         string Firstname,
@@ -34,8 +33,7 @@ public record Request
         string AddressLine,
         [property: JsonPropertyName("country")]
         string Country,
-        [property: JsonPropertyName("state")] 
-        string State,
+        [property: JsonPropertyName("state")] string State,
         [property: JsonPropertyName("zip_code")]
         string ZipCode);
 
@@ -46,20 +44,17 @@ public record Request
         string CardNumber,
         [property: JsonPropertyName("expiration")]
         string Expiration,
-        [property: JsonPropertyName("cvv")] 
-        string Cvv,
+        [property: JsonPropertyName("cvv")] string Cvv,
         [property: JsonPropertyName("payment_method")]
         int PaymentMethod);
 
     public record ModuleOrderItem(
-        [property: JsonPropertyName("id")]
-        string Id,
+        [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("product_id")]
         string ProductId,
         [property: JsonPropertyName("quantity")]
         int? Quantity,
-        [property: JsonPropertyName("price")] 
-        decimal? Price);
+        [property: JsonPropertyName("price")] decimal? Price);
 };
 
 public record Response(

@@ -5,7 +5,7 @@ namespace Order.Command.API.Endpoints.UpdateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")] 
+    [property: JsonPropertyName("id")]
     public string Id { get; set; }
 
     [property: JsonPropertyName("customer_id")]
@@ -23,8 +23,7 @@ public record Request
     [property: JsonPropertyName("payment")]
     public ModulePayment Payment { get; set; }
 
-    [property: JsonPropertyName("status")]
-    public string Status { get; set; }
+    [property: JsonPropertyName("status")] public string Status { get; set; }
 
     [property: JsonPropertyName("order_items")]
     public List<ModuleOrderItem> OrderItems { get; set; }

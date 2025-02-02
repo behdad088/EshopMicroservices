@@ -5,9 +5,9 @@ info:
 
 servers:
   - url: https://localhost:5053/
-    
+
 paths:
-  /api/v1/order/command/orders/{order_id}:  
+  /api/v1/order/command/orders/{order_id}:
     delete:
       tags:
         - Order Command API
@@ -119,7 +119,7 @@ paths:
           $ref: '#/components/responses/bad-request-error'
         '404':
           $ref: '#/components/responses/not-found-error'
-          
+    
     post:
       tags:
         - Order Command API
@@ -142,8 +142,8 @@ paths:
           $ref: '#/components/responses/bad-request-error'
         '404':
           $ref: '#/components/responses/not-found-error'
-          
-          
+
+
 components:
   schemas:
     AddressDto:
@@ -213,7 +213,7 @@ components:
       properties:
         order:
           $ref: '#/components/schemas/CreateOrderDto'
-          
+    
     
     CreateOrderDto:
       type: object
@@ -266,7 +266,7 @@ components:
           items:
             $ref: '#/components/schemas/OrderItemsDto'
           nullable: true
-          
+    
     OrderDto:
       type: object
       properties:
@@ -374,8 +374,8 @@ components:
         instance:
           type: string
           nullable: true
-      additionalProperties: {}
-      
+      additionalProperties: { }
+    
     UpdateOrderRequest:
       type: object
       properties:

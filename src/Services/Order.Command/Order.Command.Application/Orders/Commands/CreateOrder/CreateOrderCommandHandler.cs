@@ -22,7 +22,6 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
         AddOrderCreatedEvent(order);
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
         await transaction.CommitAsync(cancellationToken);
         return new CreateOrderResult(order.Id.Value);
     }
@@ -66,18 +65,18 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
 
     private static void AddOrderCreatedEvent(Domain.Models.Order order)
     {
-        order.AddDomainEvent(new OrderCreatedEvent(order));
+        order.AddDomainEvent(order.ToOrderCreatedEvent());
     }
 
-    private static Outbox MapOutbox(Domain.Models.Order order)
+    private static Domain.Models.Outbox MapOutbox(Domain.Models.Order order)
     {
-        var outbox = new Outbox().Create(
+        var outbox = new Domain.Models.Outbox().Create(
             aggregateId: AggregateId.From(order.Id.Value),
             aggregateType: AggregateType.From(order.GetType().Name),
             versionId: VersionId.From(order.RowVersion.Value),
-            dispatchDateTime: DispatchDateTime.ToIso8601UtcFormat(DateTimeOffset.UtcNow.AddMinutes(2)),
+            dispatchDateTime: DispatchDateTime.InTwoMinutes(),
             eventType: EventType.From(nameof(OrderCreatedEvent)),
-            payload: Payload.From(JsonSerializer.Serialize(order)));
+            payload: Payload.Serialize(order.ToOrderCreatedEvent()));
 
         return outbox;
     }

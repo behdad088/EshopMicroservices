@@ -8,7 +8,8 @@ public record GetOrdersByIdQuery(string? Id) : IQuery<GetOrdersByIdResult>;
 
 public record GetOrdersByIdResult(GetOrderByIdParameter Order);
 
-public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandler<GetOrdersByIdQuery, GetOrdersByIdResult>
+public class GetOrderByIdHandler(IApplicationDbContext dbContext)
+    : IQueryHandler<GetOrdersByIdQuery, GetOrdersByIdResult>
 {
     public async Task<GetOrdersByIdResult> Handle(GetOrdersByIdQuery request, CancellationToken cancellationToken)
     {
@@ -16,7 +17,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
         var order = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.DeleteDate != null , cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.DeleteDate == null, cancellationToken);
 
         if (order is null)
             throw new OrderNotFoundExceptions(orderId);
@@ -24,7 +25,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
         var result = MapResult(order);
         return new GetOrdersByIdResult(result);
     }
-    
+
     private static GetOrderByIdParameter MapResult(Domain.Models.Order order)
     {
         var result = new GetOrderByIdParameter(
@@ -40,7 +41,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
 
         return result;
     }
-    
+
     private static AddressParameter MapAddress(Address address)
     {
         return new AddressParameter(
@@ -57,7 +58,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext) : IQueryHandle
     {
         return new PaymentParameter(
             payment.CardName,
-            payment.CardNumber, 
+            payment.CardNumber,
             payment.Expiration,
             payment.CVV,
             payment.PaymentMethod);

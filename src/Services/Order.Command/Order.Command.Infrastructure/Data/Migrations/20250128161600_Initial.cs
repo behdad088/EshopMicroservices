@@ -19,6 +19,7 @@ namespace Order.Command.Infrastructure.Data.Migrations
                     CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeleteDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RowVersion = table.Column<int>(type: "int", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     BillingAddress_AddressLine = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: false),
@@ -48,6 +49,29 @@ namespace Order.Command.Infrastructure.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Outboxes",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AggregateId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DispatchDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    VersionId = table.Column<int>(type: "int", nullable: false),
+                    IsDispatched = table.Column<bool>(type: "bit", nullable: false),
+                    NumberOfDispatchTry = table.Column<int>(type: "int", nullable: false),
+                    EventType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Payload = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Outboxes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -90,6 +114,12 @@ namespace Order.Command.Infrastructure.Data.Migrations
                 name: "IX_OrderItems_OrderId1",
                 table: "OrderItems",
                 column: "OrderId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Outboxes_AggregateId_VersionId",
+                table: "Outboxes",
+                columns: new[] { "AggregateId", "VersionId" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -97,6 +127,9 @@ namespace Order.Command.Infrastructure.Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "OrderItems");
+
+            migrationBuilder.DropTable(
+                name: "Outboxes");
 
             migrationBuilder.DropTable(
                 name: "Orders");

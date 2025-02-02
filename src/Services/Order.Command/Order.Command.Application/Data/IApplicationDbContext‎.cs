@@ -8,7 +8,7 @@ public interface IApplicationDbContext
 {
     DbSet<Domain.Models.Order> Orders { get; }
     DbSet<OrderItem> OrderItems { get; }
-    DbSet<Outbox> Outboxes { get; }
+    DbSet<Domain.Models.Outbox> Outboxes { get; }
 
     DatabaseFacade Database { get; }
 

@@ -13,15 +13,15 @@ public static class DependencyInjection
         this IServiceCollection services,
         string connectionString)
     {
-        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<IDbTransactionInterceptor, DispatchDomainEventsInterceptor>();
 
         services.AddDbContext<ApplicationDbContext>((sp, option) =>
         {
-            option.AddInterceptors(sp.GetRequiredService<ISaveChangesInterceptor>(), new AuditableEntityInterceptor());
+            option.AddInterceptors(sp.GetRequiredService<IDbTransactionInterceptor>(), new AuditableEntityInterceptor());
             option.UseSqlServer(connectionString);
         });
 
-        services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+        services.AddTransient<IApplicationDbContext, ApplicationDbContext>();
 
         return services;
     }

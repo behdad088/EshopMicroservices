@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
-
 public record GetOrderByCustomerParameter(
     [property: JsonPropertyName("id")] 
     Ulid Id,
@@ -28,33 +27,33 @@ public record OrderItemParameter(
     string? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")]
+    [property: JsonPropertyName("price")] 
     decimal? Price);
-    
+
 public record AddressParameter(
-    [property: JsonPropertyName("firstname")] 
+    [property: JsonPropertyName("firstname")]
     string Firstname,
-    [property: JsonPropertyName("lastname")] 
+    [property: JsonPropertyName("lastname")]
     string Lastname,
-    [property: JsonPropertyName("email_address")] 
+    [property: JsonPropertyName("email_address")]
     string EmailAddress,
     [property: JsonPropertyName("address_line")]
     string AddressLine,
-    [property: JsonPropertyName("country")] 
+    [property: JsonPropertyName("country")]
     string Country,
     [property: JsonPropertyName("state")] 
     string State,
-    [property: JsonPropertyName("zip_code")] 
+    [property: JsonPropertyName("zip_code")]
     string ZipCode);
-    
+
 public record PaymentParameter(
-    [property: JsonPropertyName("card_name")] 
+    [property: JsonPropertyName("card_name")]
     string CardName,
-    [property: JsonPropertyName("card_number")] 
+    [property: JsonPropertyName("card_number")]
     string CardNumber,
-    [property: JsonPropertyName("expiration")] 
+    [property: JsonPropertyName("expiration")]
     string Expiration,
     [property: JsonPropertyName("cvv")] 
     string Cvv,
-    [property: JsonPropertyName("payment_method")] 
+    [property: JsonPropertyName("payment_method")]
     int PaymentMethod);

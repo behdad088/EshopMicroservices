@@ -13,14 +13,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
+        <PackageReference Include="ReHackt.Extensions.Options.Validation" Version="8.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-        <ProjectReference Include="..\..\Shared\Shared.csproj" />
-        <ProjectReference Include="..\Order.Command.Application\Order.Command.Application.csproj" />
-        <ProjectReference Include="..\Order.Command.Infrastructure\Order.Command.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\..\Shared\Shared.csproj"/>
+        <ProjectReference Include="..\Order.Command.Application\Order.Command.Application.csproj"/>
+        <ProjectReference Include="..\Order.Command.Infrastructure\Order.Command.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

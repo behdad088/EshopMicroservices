@@ -11,7 +11,7 @@ public static partial class ValidationExtensions
     ) => ruleBuilder.Must(x => x is not null && CardNumberRegex().IsMatch(x))
         .WithMessage("card_number is not valid.");
 
-    public static void MustBeValidExpiryDate<T>(this IRuleBuilder<T, string?> ruleBuilder) 
+    public static void MustBeValidExpiryDate<T>(this IRuleBuilder<T, string?> ruleBuilder)
         => ruleBuilder.Must(x => x is not null && ExpiryDateRegex().IsMatch(x))
             .WithMessage("payment expiration is not valid.");
 
@@ -24,11 +24,11 @@ public static partial class ValidationExtensions
         this IRuleBuilder<T, string?> ruleBuilder
     ) => ruleBuilder.Must(x => x is not null && CountryNames.Contains(x))
         .WithMessage($"country header is not valid.");
-    
-    public static void MustBeValidUlid<T>(this IRuleBuilder<T, string?> ruleBuilder) => 
+
+    public static void MustBeValidUlid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Ulid.TryParse(x, out _))
-        .WithMessage((_, propertyName)=> $"{propertyName} is not a invalid Ulid.");
-    
+            .WithMessage((_, propertyName) => $"{propertyName} is not a invalid Ulid.");
+
     public static IRuleBuilderOptions<T, string?> MustBeValidGuid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Guid.TryParse(x, out _))
             .WithMessage((_, propertyName) => $"{propertyName} is not a valid UUID");

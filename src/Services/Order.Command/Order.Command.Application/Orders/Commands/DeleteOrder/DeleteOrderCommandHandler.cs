@@ -26,9 +26,8 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
                 .ConfigureAwait(false);
 
             AssertOrder(order, command.OrderId!, version);
-            var outbox = MapOutbox(order!);
-
             order!.Delete(order.RowVersion.Increment());
+            var outbox = MapOutbox(order!);
 
             dbContext.Orders.Update(order);
             dbContext.Outboxes.Add(outbox);
@@ -66,14 +65,14 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
         order.AddDomainEvent(@event);
     }
 
-    private static Outbox MapOutbox(Domain.Models.Order order)
+    private static Domain.Models.Outbox MapOutbox(Domain.Models.Order order)
     {
-        var payload = Payload.From(JsonSerializer.Serialize(MapOrderDeletedEvent(order)));
-        var outbox = new Outbox().Create(
+        var payload = Payload.Serialize(MapOrderDeletedEvent(order));
+        var outbox = new Domain.Models.Outbox().Create(
             aggregateId: AggregateId.From(order.Id.Value),
             aggregateType: AggregateType.From(order.GetType().Name),
-            versionId: VersionId.From(order.RowVersion.Value).Increment(),
-            dispatchDateTime: DispatchDateTime.ToIso8601UtcFormat(DateTimeOffset.UtcNow.AddMinutes(2)),
+            versionId: VersionId.From(order.RowVersion.Value),
+            dispatchDateTime: DispatchDateTime.InTwoMinutes(),
             eventType: EventType.From(nameof(OrderDeletedEvent)),
             payload: payload);
 
@@ -82,6 +81,6 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
 
     private static OrderDeletedEvent MapOrderDeletedEvent(Domain.Models.Order order)
     {
-        return new OrderDeletedEvent(order.Id, order.DeleteDate!, order.RowVersion);
+        return new OrderDeletedEvent(order.Id.Value, order.DeleteDate!.Value, order.RowVersion.Value);
     }
 }

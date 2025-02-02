@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Order.Command.Application.Orders.Queries.GetOrdersByName;
 
-
 public record GetOrderByNameParameter(
     [property: JsonPropertyName("id")] 
     Ulid Id,
@@ -19,7 +18,8 @@ public record GetOrderByNameParameter(
     [property: JsonPropertyName("status")] 
     string Status,
     [property: JsonPropertyName("order_items")]
-    List<OrderItemParameter> OrderItems);
+    List<OrderItemParameter> OrderItems
+);
 
 public record OrderItemParameter(
     [property: JsonPropertyName("id")] 
@@ -28,33 +28,36 @@ public record OrderItemParameter(
     string? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")]
-    decimal? Price);
-    
+    [property: JsonPropertyName("price")] 
+    decimal? Price
+);
+
 public record AddressParameter(
-    [property: JsonPropertyName("firstname")] 
+    [property: JsonPropertyName("firstname")]
     string Firstname,
-    [property: JsonPropertyName("lastname")] 
+    [property: JsonPropertyName("lastname")]
     string Lastname,
-    [property: JsonPropertyName("email_address")] 
+    [property: JsonPropertyName("email_address")]
     string EmailAddress,
     [property: JsonPropertyName("address_line")]
     string AddressLine,
-    [property: JsonPropertyName("country")] 
+    [property: JsonPropertyName("country")]
     string Country,
-    [property: JsonPropertyName("state")] 
+    [property: JsonPropertyName("state")]
     string State,
-    [property: JsonPropertyName("zip_code")] 
-    string ZipCode);
-    
+    [property: JsonPropertyName("zip_code")]
+    string ZipCode
+);
+
 public record PaymentParameter(
-    [property: JsonPropertyName("card_name")] 
+    [property: JsonPropertyName("card_name")]
     string CardName,
-    [property: JsonPropertyName("card_number")] 
+    [property: JsonPropertyName("card_number")]
     string CardNumber,
-    [property: JsonPropertyName("expiration")] 
+    [property: JsonPropertyName("expiration")]
     string Expiration,
     [property: JsonPropertyName("cvv")] 
     string Cvv,
-    [property: JsonPropertyName("payment_method")] 
-    int PaymentMethod);
+    [property: JsonPropertyName("payment_method")]
+    int PaymentMethod
+    );

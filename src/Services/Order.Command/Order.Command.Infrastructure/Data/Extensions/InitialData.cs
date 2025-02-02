@@ -8,10 +8,10 @@ internal static class InitialData
     internal static IEnumerable<Order.Command.Domain.Models.Order> OrdersWithItems()
     {
         var address1 = new Address("customer firstname", "customer1 lastname", "customer1@test.com",
-            "customer 1 address line", "customer 1 country" ,"customer 1 state", "13245");
-        
+            "customer 1 address line", "customer 1 country", "customer 1 state", "13245");
+
         var address2 = new Address("customer firstname", "customer2 lastname", "customer2@test.com",
-            "customer 2 address line", "customer 2 country" ,"customer 2 state", "13245");
+            "customer 2 address line", "customer 2 country", "customer 2 state", "13245");
 
         var payment1 = new Payment("Customer 1", "123456789123123123123321", "12/3", "123", 1);
         var payment2 = new Payment("Customer 2", "123456789123123123123321", "12/3", "123", 2);
@@ -23,10 +23,10 @@ internal static class InitialData
             address1,
             address1,
             payment1);
-        
+
         order1.Add(ProductId.From(Ulid.NewUlid()), 1, Price.From(500));
         order1.Add(ProductId.From(Ulid.NewUlid()), 1, Price.From(400));
-        
+
         var order2 = new Domain.Models.Order().Create(
             OrderId.From(Ulid.NewUlid()),
             CustomerId.From(new Guid("d232b9e2-d2dc-4356-95a4-fc7aec1b3028")),
@@ -34,7 +34,7 @@ internal static class InitialData
             address2,
             address2,
             payment2);
-        
+
         order2.Add(ProductId.From(Ulid.NewUlid()), 1, Price.From(650));
         order2.Add(ProductId.From(Ulid.NewUlid()), 1, Price.From(450));
 
