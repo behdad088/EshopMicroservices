@@ -12,11 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.6.0"/>
-        <PackageReference Include="MassTransit" Version="8.3.4"/>
-        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4"/>
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.4"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2"/>
+        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson"/>
+        <PackageReference Include="MassTransit"/>
+        <PackageReference Include="MassTransit.RabbitMQ"/>
+        <PackageReference Include="Microsoft.Data.SqlClient"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     </ItemGroup>
 
     <ItemGroup>

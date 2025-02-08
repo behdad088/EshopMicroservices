@@ -2,7 +2,6 @@ using BuildingBlocks.Exceptions.Handler;
 using Catalog.API.Common;
 using Catalog.API.Data;
 using eshop.Shared;
-using Marten.Schema.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDefaultOpenApi();

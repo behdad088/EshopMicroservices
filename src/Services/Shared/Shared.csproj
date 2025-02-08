@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AssemblyName>eshop.$(MSBuildProjectName)</AssemblyName>
-    <RootNamespace>eshop.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>eshop.$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace>eshop.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-	
-  <ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3" />
-	  <PackageReference Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="ReHackt.Extensions.Options.Validation"/>
+        <PackageReference Include="Swashbuckle.AspNetCore"/>
+    </ItemGroup>
 
 </Project>
