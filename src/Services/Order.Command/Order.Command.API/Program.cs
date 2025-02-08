@@ -4,10 +4,10 @@ using BuildingBlocks.HealthChecks;
 using eshop.Shared;
 using Order.Command.API.Common;
 using Order.Command.API.Configurations;
-using Order.Command.API.Endpoints.CreateOrder;
 using Order.Command.Application;
 using Order.Command.Infrastructure;
 using Order.Command.Infrastructure.Data.Extensions;
+using Order.Command.Application.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,12 +19,20 @@ builder.Services
 
 var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 
+builder.Services
+    .AddOptions<RabbitMqConfigurations>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
+
+var rabbitMqConfigurations = builder.Configuration.TryGetValidatedOptions<RabbitMqConfigurations>();
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddDefaultHealthChecks();
+builder.Services.AddHealthChecks(databaseConfigurations.SqlDatabase);
 builder.Services
-    .AddApplicationServices()
+    .AddApplicationServices(rabbitMqConfigurations)
     .AddInfrastructureServices(databaseConfigurations.SqlDatabase);
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());

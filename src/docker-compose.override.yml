@@ -118,6 +118,9 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/order-command-api.pfx
       - ConnectionStrings__Database=Server=order.command.db;Database=OrderDb;User Id=sa;Password=BeH007826790;Trusted_Connection=False;TrustServerCertificate=True
+      - RabbitMQ__URI=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
     depends_on:
       - order.command.db
     ports:

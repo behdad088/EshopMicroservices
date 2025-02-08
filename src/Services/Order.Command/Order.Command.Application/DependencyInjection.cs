@@ -2,6 +2,7 @@ using System.Reflection;
 using BuildingBlocks.CQRS.Extensions;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
+using Order.Command.Application.Configurations;
 using Order.Command.Application.Outbox;
 using Order.Command.Application.Rmq;
 using Order.Command.Application.Rmq.CloudEvent;
@@ -14,13 +15,16 @@ public static class DependencyInjection
     private static readonly Dictionary<string, Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>>
         Configurations = new();
 
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection services,
+        RabbitMqConfigurations rabbitMqConfigurations
+        )
     {
         services
             .AddEventPublisher<OrderCreatedEvent, OrderCreatedCloudEventFactory>()
             .AddEventPublisher<OrderUpdatedEvent, OrderUpdatedCloudEventFactory>()
             .AddEventPublisher<OrderDeletedEvent, OrderDeletedCloudEventFactory>()
-            .AddRmq();
+            .AddRmq(rabbitMqConfigurations);
         services.RegisterMediateR(Assembly.GetExecutingAssembly());
         services.AddHostedService<OutboxService>();
         return services;
@@ -50,16 +54,18 @@ public static class DependencyInjection
     }
 
 
-    private static IServiceCollection AddRmq(this IServiceCollection services)
+    private static IServiceCollection AddRmq(
+        this IServiceCollection services,
+        RabbitMqConfigurations rabbitMqConfigurations)
     {
         services.AddMassTransit(x =>
         {
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host("localhost", "/", h =>
+                cfg.Host(rabbitMqConfigurations.Uri, "/", h =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
+                    h.Username(rabbitMqConfigurations.Username);
+                    h.Password(rabbitMqConfigurations.Password);
                 });
 
                 foreach (var configuration in Configurations)
