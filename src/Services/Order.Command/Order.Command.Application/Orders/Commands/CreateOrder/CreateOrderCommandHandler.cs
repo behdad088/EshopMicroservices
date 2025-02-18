@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Data.SqlClient;
+using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
@@ -11,19 +13,30 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
 {
     public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
     {
-        var order = MapOrder(command.OrderParameter);
-        var outbox = MapOutbox(order);
+        try
+        {
+            var order = MapOrder(command.OrderParameter);
+            var outbox = MapOutbox(order);
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        dbContext.Orders.Add(order);
-        dbContext.Outboxes.Add(outbox);
+            dbContext.Orders.Add(order);
+            dbContext.Outboxes.Add(outbox);
 
-        AddOrderCreatedEvent(order);
+            AddOrderCreatedEvent(order);
 
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await transaction.CommitAsync(cancellationToken);
-        return new CreateOrderResult(order.Id.Value);
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken);
+            return new CreateOrderResult(order.Id.Value);
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2627)
+            {
+                throw new DuplicatedOrderIdException($"Order Id already exists: {command.OrderParameter.Id}"); 
+            }
+            throw;
+        }
     }
 
     private static Domain.Models.Order MapOrder(OrderParameter orderParameterParameter)
