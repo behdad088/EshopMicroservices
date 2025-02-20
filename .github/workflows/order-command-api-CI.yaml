@@ -23,6 +23,7 @@ env:
   SERVICE: order-command.api
   IMAGE: order-command.api
   ProjectPath: src/Services/Order.Command/Order.Command.API
+  ProjectTestPath: src/Services/Order.Command/Order.Command.API.IntegrationTests
 
 jobs:
 
@@ -37,6 +38,7 @@ jobs:
         service: ${{ env.SERVICE }}
         image_name: ${{ env.IMAGE }}
         project_path: ${{ env.ProjectPath }}
+        test_path: ${{ env.ProjectTestPath }}
         registry_username: ${{ vars.REGISTRYUSERNAME }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}

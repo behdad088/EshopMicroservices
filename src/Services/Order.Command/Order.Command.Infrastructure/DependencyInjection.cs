@@ -14,9 +14,6 @@ public static class DependencyInjection
         this IServiceCollection services,
         string connectionString)
     {
-        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-        
         services.AddScoped<IDbTransactionInterceptor, DispatchDomainEventsInterceptor>();
 
         services.AddDbContext<ApplicationDbContext>((sp, option) =>
