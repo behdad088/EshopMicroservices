@@ -54,3 +54,11 @@ app.MapEndpoints(routeGroupBuilder);
 
 app.UseProblemDetailsResponseExceptionHandler();
 app.Run();
+
+namespace Order.Command.API
+{
+    public class Program
+    {
+        
+    }
+}
