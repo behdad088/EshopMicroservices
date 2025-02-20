@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Order.Command.API\Order.Command.API.csproj" />
+        <ProjectReference Include="..\Order.Command.API\Order.Command.API.csproj" />
     </ItemGroup>
 
 </Project>
