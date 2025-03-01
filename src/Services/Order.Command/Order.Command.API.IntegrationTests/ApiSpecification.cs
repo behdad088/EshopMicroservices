@@ -19,11 +19,14 @@ public class ApiSpecification(WebApiContainerFactory containerFactory) : IAsyncL
     internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;
 
     internal SqlDbGiven SqlDbGiven => new(_factory!.Services.GetRequiredService<IApplicationDbContext>() ??
-                                          throw new Exception("IApplicationDbContext is not initialized."));
+        throw new Exception("IApplicationDbContext is not initialized."));
 
     private IApplicationDbContext? _dbContext;
-    internal IApplicationDbContext DbContext => _dbContext ??= _factory!.Services.GetRequiredService<IApplicationDbContext>() ??
-                                                          throw new Exception("IApplicationDbContext is not initialized.");
+
+    internal IApplicationDbContext DbContext => _dbContext ??=
+        _factory!.Services.GetRequiredService<IApplicationDbContext>() ??
+        throw new Exception("IApplicationDbContext is not initialized.");
+    
     public async Task InitializeAsync()
     {
         _factory = new ApiFactory(containerFactory.MssqlConnectionString, containerFactory.RmqConfiguration);
