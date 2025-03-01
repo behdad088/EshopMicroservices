@@ -37,7 +37,7 @@ public static class DependencyInjection
     {
         var exchange = GetExchange<TEvent>();
         
-        Configurations.Add(typeof(TEvent).Name, (_, cfg) =>
+        Configurations[typeof(TEvent).Name] = (_, cfg) =>
         {
             cfg.Message<CloudEvent<TEvent>>(config =>
             {
@@ -47,7 +47,8 @@ public static class DependencyInjection
             {
                 publishConfig.ExchangeType = RabbitMQ.Client.ExchangeType.Direct;
             });
-        });
+        };
+        
         services.AddTransient<IEventPublisher<TEvent>, EventPublisher<TEvent>>();
         services.AddTransient<ICloudEventFactory<TEvent>, TCloudEventFactory>();
         return services;

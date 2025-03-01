@@ -17,7 +17,7 @@ public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders.Where(
-                x => x.CustomerId.Equals(OrderName.From(query.Name)) && x.DeleteDate == null)
+                x => x.OrderName.Equals(OrderName.From(query.Name)) && x.DeleteDate == null)
             .LongCountAsync(cancellationToken);
 
         var orders = await dbContext.Orders

@@ -2,7 +2,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Infrastructure.Data;
 
@@ -33,6 +32,7 @@ public class ApiFactory(string mssqlConnectionString, RmqConfiguration rmqConfig
             });
             
             var sp = services.BuildServiceProvider().GetRequiredService<ApplicationDbContext>();
+            sp.Database.EnsureDeletedAsync().GetAwaiter().GetResult();
             sp.Database.MigrateAsync().GetAwaiter().GetResult();
         }).UseEnvironment("Test");
     }
