@@ -9,9 +9,9 @@ public record Request
 }
 
 public record Response(
-    [property: JsonPropertyName("id")] Ulid Id,
+    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("customer_id")]
-    Guid? CustomerId,
+    string? CustomerId,
     [property: JsonPropertyName("order_name")]
     string OrderName,
     [property: JsonPropertyName("shipping_Address")]
@@ -25,7 +25,6 @@ public record Response(
     List<ModuleOrderItem> OrderItems);
 
 public record ModuleOrderItem(
-    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("product_id")]
     string? ProductId,
     [property: JsonPropertyName("quantity")]

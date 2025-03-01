@@ -56,7 +56,6 @@ public class Endpoint : EndpointBase<Request, Response>
     {
         return orderItemParameters.Select(x =>
             new ModuleOrderItem(
-                x.Id,
                 x.ProductId,
                 x.Quantity,
                 x.Price)).ToList();

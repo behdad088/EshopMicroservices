@@ -6,7 +6,8 @@ namespace Order.Command.API.Endpoints.GetOrdersByName;
 
 public record Request
 {
-    [FromQuery(Name = "name")] public string Name { get; set; }
+    [property: FromQuery(Name = "name")] 
+    public string Name { get; set; }
 
     [property: FromQuery(Name = "page_size")]
     public int PageSize { get; set; } = 10;
@@ -14,6 +15,7 @@ public record Request
     [property: FromQuery(Name = "page_index")]
     public int PageIndex { get; set; } = 0;
 }
+
 
 public record Response([property: JsonPropertyName("orders")] PaginatedItems<ModuleOrder> Orders);
 
@@ -34,7 +36,6 @@ public record ModuleOrder(
     List<ModuleOrderItem> OrderItems);
 
 public record ModuleOrderItem(
-    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("product_id")]
     string? ProductId,
     [property: JsonPropertyName("quantity")]

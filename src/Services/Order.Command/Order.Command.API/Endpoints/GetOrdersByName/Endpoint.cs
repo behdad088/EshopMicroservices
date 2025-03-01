@@ -26,7 +26,7 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static GetOrdersByNameQuery MapToQuery(Request request)
     {
-        return new GetOrdersByNameQuery(request.Name);
+        return new GetOrdersByNameQuery(request.Name, request.PageSize, request.PageIndex);
     }
 
     private static Response MapToResponse(GetOrdersByNameResult result)
@@ -57,7 +57,6 @@ public class Endpoint : EndpointBase<Request, Response>
     {
         return orderItemParameters.Select(x =>
             new ModuleOrderItem(
-                x.Id,
                 x.ProductId,
                 x.Quantity,
                 x.Price)).ToList();

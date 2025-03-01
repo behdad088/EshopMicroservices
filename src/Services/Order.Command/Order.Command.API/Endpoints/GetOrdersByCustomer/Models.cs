@@ -34,7 +34,6 @@ public record ModuleOrder(
     List<ModuleOrderItem> OrderItems);
 
 public record ModuleOrderItem(
-    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("product_id")]
     string? ProductId,
     [property: JsonPropertyName("quantity")]

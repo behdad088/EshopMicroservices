@@ -137,15 +137,12 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     {
         foreach (var property in properties)
         {
-            // Get custom names from attributes if present
             var queryName = GetAttributeName<FromQueryAttribute>(property);
             var routeName = GetAttributeName<FromRouteAttribute>(property);
 
-            // Fallback to the property name if no custom name found
             var queryValue = context.Request.Query[queryName ?? property.Name];
             var routeValue = context.Request.RouteValues[routeName ?? property.Name];
 
-            // Set value from query or route if available
             if (!string.IsNullOrEmpty(queryValue))
                 property.SetValue(request, Convert.ChangeType(queryValue.ToString(), property.PropertyType));
             else if (routeValue != null)
@@ -168,7 +165,6 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
         if (string.IsNullOrWhiteSpace(jsonBody))
             return new TRequest();
 
-        // var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         try
         {
             var bodyData = JsonSerializer.Deserialize<TRequest>(jsonBody, JsonSerializerOptions);
