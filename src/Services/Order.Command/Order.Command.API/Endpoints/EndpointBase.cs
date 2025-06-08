@@ -126,9 +126,8 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
 
     private static async Task<TRequest> BindRequestAsync(HttpContext context)
     {
-        var request = new TRequest();
         var properties = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        request = await BindRequestBody(properties, context, request);
+        var request = await BindRequestBody(context);
         BindQueryAndRoute(properties, context, request);
         return request;
     }
@@ -150,8 +149,7 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
         }
     }
 
-    private static async Task<TRequest> BindRequestBody(PropertyInfo[] properties, HttpContext context,
-        TRequest request)
+    private static async Task<TRequest> BindRequestBody(HttpContext context)
     {
         if (!context.Request.HasJsonContentType() || !(context.Request.ContentLength > 0)) return new TRequest();
 
