@@ -11,4 +11,13 @@ public class SqlDbGiven(IApplicationDbContext dbContext)
         dbContext.Orders.Add(order.ToOrderDb());
         await dbContext.SaveChangesAsync(default);
     }
+    
+    public async Task AnOutbox(Action<OutboxConfiguration>? configure = null)
+    {
+        var outbox = new OutboxConfiguration();
+        configure?.Invoke(outbox);
+
+        dbContext.Outboxes.Add(outbox.ToOutboxDb());
+        await dbContext.SaveChangesAsync(default);
+    }
 }

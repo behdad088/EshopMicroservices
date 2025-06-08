@@ -1,13 +1,15 @@
-namespace Order.Command.Application.Orders.Commands.CreateOrder;
+namespace Order.Command.Application.Orders.Commands.UpdateOrder;
 
-public record OrderParameter(
+public record UpdateOrderParameter(
     string? Id,
     string? CustomerId,
     string? OrderName,
-    OrderParameter.Address? ShippingAddress,
-    OrderParameter.Address? BillingAddress,
-    OrderParameter.Payment? OrderPayment,
-    List<OrderParameter.OrderItem>? OrderItems)
+    UpdateOrderParameter.Address? ShippingAddress,
+    UpdateOrderParameter.Address? BillingAddress,
+    UpdateOrderParameter.Payment? OrderPayment,
+    string? Status,
+    string? Version,
+    List<UpdateOrderParameter.OrderItem>? OrderItems)
 {
     public record Address(
         string? Firstname,

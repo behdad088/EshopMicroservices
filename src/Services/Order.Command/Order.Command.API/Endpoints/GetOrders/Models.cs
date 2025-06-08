@@ -13,7 +13,9 @@ public record Request
     public int PageIndex { get; set; } = 0;
 }
 
-public record Response([property: JsonPropertyName("orders")] PaginatedItems<ModuleOrder> Orders);
+public record Response(
+    [property: JsonPropertyName("orders")] 
+    PaginatedItems<ModuleOrder> Orders);
 
 public record ModuleOrder(
     [property: JsonPropertyName("id")] string Id,

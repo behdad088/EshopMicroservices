@@ -1,4 +1,3 @@
-using System.Text.Json;
 using BuildingBlocks.Exceptions;
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
@@ -27,7 +26,7 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
 
             AssertOrder(order, command.OrderId!, version);
             order!.Delete(order.RowVersion.Increment());
-            var outbox = MapOutbox(order!);
+            var outbox = MapOutbox(order);
 
             dbContext.Orders.Update(order);
             dbContext.Outboxes.Add(outbox);

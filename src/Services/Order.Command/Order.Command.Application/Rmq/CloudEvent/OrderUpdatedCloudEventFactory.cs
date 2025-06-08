@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using Order.Command.Application.Rmq.CloudEvent.Models;
 
 namespace Order.Command.Application.Rmq.CloudEvent;
 

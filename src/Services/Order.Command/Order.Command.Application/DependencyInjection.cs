@@ -6,6 +6,7 @@ using Order.Command.Application.Configurations;
 using Order.Command.Application.Outbox;
 using Order.Command.Application.Rmq;
 using Order.Command.Application.Rmq.CloudEvent;
+using Order.Command.Application.Rmq.CloudEvent.Models;
 using Order.Command.Domain.Abstractions;
 
 namespace Order.Command.Application;
@@ -49,8 +50,8 @@ public static class DependencyInjection
             });
         };
         
-        services.AddTransient<IEventPublisher<TEvent>, EventPublisher<TEvent>>();
-        services.AddTransient<ICloudEventFactory<TEvent>, TCloudEventFactory>();
+        services.AddScoped<IEventPublisher<TEvent>, EventPublisher<TEvent>>();
+        services.AddSingleton<ICloudEventFactory<TEvent>, TCloudEventFactory>();
         return services;
     }
 

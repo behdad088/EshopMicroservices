@@ -29,7 +29,8 @@ public record ModuleOrderItem(
     string? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")] decimal? Price);
+    [property: JsonPropertyName("price")] 
+    decimal? Price);
 
 public record ModuleAddress(
     [property: JsonPropertyName("firstname")]
