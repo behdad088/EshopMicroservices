@@ -1,63 +1,37 @@
-using System.Text.Json.Serialization;
-
 namespace Order.Command.Application.Orders.Queries.GetOrdersByName;
 
-public record GetOrderByNameParameter(
-    [property: JsonPropertyName("id")] 
+public record GetOrderByNameResponse(
     Ulid Id,
-    [property: JsonPropertyName("customer_id")]
     Guid CustomerId,
-    [property: JsonPropertyName("order_name")]
     string OrderName,
-    [property: JsonPropertyName("shipping_Address")]
-    AddressParameter ShippingAddress,
-    [property: JsonPropertyName("billing_address")]
-    AddressParameter BillingAddress,
-    [property: JsonPropertyName("payment")]
-    PaymentParameter Payment,
-    [property: JsonPropertyName("status")] 
+    GetOrderByNameResponse.AddressResponse ShippingAddress,
+    GetOrderByNameResponse.AddressResponse BillingAddress,
+    GetOrderByNameResponse.PaymentResponse Payment,
     string Status,
-    [property: JsonPropertyName("order_items")]
-    List<OrderItemParameter> OrderItems
-);
-
-public record OrderItemParameter(
-    [property: JsonPropertyName("id")] 
-    string Id,
-    [property: JsonPropertyName("product_id")]
-    string? ProductId,
-    [property: JsonPropertyName("quantity")]
-    int? Quantity,
-    [property: JsonPropertyName("price")] 
-    decimal? Price
-);
-
-public record AddressParameter(
-    [property: JsonPropertyName("firstname")]
-    string Firstname,
-    [property: JsonPropertyName("lastname")]
-    string Lastname,
-    [property: JsonPropertyName("email_address")]
-    string EmailAddress,
-    [property: JsonPropertyName("address_line")]
-    string AddressLine,
-    [property: JsonPropertyName("country")]
-    string Country,
-    [property: JsonPropertyName("state")]
-    string State,
-    [property: JsonPropertyName("zip_code")]
-    string ZipCode
-);
-
-public record PaymentParameter(
-    [property: JsonPropertyName("card_name")]
-    string CardName,
-    [property: JsonPropertyName("card_number")]
-    string CardNumber,
-    [property: JsonPropertyName("expiration")]
-    string Expiration,
-    [property: JsonPropertyName("cvv")] 
-    string Cvv,
-    [property: JsonPropertyName("payment_method")]
-    int PaymentMethod
+    List<GetOrderByNameResponse.OrderItemResponse> OrderItems
+)
+{
+    public record OrderItemResponse(
+        string? ProductId,
+        int? Quantity,
+        decimal? Price
     );
+
+    public record AddressResponse(
+        string Firstname,
+        string Lastname,
+        string EmailAddress,
+        string AddressLine,
+        string Country,
+        string State,
+        string ZipCode
+    );
+
+    public record PaymentResponse(
+        string CardName,
+        string CardNumber,
+        string Expiration,
+        string Cvv,
+        int PaymentMethod
+    );
+}

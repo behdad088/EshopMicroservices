@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Order.Command.Domain.Abstractions;
 
-namespace Order.Command.Application.Rmq;
+namespace Order.Command.Application.Rmq.CloudEvent.Models;
 
 public record CloudEvent<TEvent> where TEvent : IDomainEvent
 {

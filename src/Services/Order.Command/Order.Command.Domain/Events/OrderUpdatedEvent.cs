@@ -2,8 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Order.Command.Domain.Events;
 
-// public record OrderUpdatedEvent(Models.Order Order) : IDomainEvent;
-
 public record OrderUpdatedEvent(
     [property: JsonPropertyName("id")] Ulid Id,
     [property: JsonPropertyName("created_by")]
@@ -14,6 +12,8 @@ public record OrderUpdatedEvent(
     Guid CustomerId,
     [property: JsonPropertyName("order_name")]
     string? OrderName,
+    [property: JsonPropertyName("order_items")]
+    List<OrderCreatedEvent.OrderItem> OrderItems,
     [property: JsonPropertyName("shipping_address")]
     OrderUpdatedEvent.Address ShippingAddress,
     [property: JsonPropertyName("billing_address")]

@@ -29,7 +29,7 @@ public class Endpoint : EndpointBase<Request>
 
     private static UpdateOrderCommand MapToCommand(Request request, string? eTag)
     {
-        return new UpdateOrderCommand(new UpdateOrderDto(
+        return new UpdateOrderCommand(new UpdateOrderParameter(
             request.Id,
             request.CustomerId,
             request.OrderName,
@@ -38,33 +38,34 @@ public class Endpoint : EndpointBase<Request>
             MapPayment(request.Payment),
             request.Status,
             eTag,
-            request.OrderItems.Select(x => new OrderItems(
-                x.Id,
+            request.OrderItems?.Select(x => new UpdateOrderParameter.OrderItem(
                 x.ProductId,
                 x.Quantity,
                 x.Price)).ToList()
         ));
     }
 
-    private static AddressDto MapAddress(ModuleAddress addressDto)
+    private static UpdateOrderParameter.Address? MapAddress(ModuleAddress? address)
     {
-        return new AddressDto(
-            Firstname: addressDto.Firstname,
-            Lastname: addressDto.Lastname,
-            EmailAddress: addressDto.EmailAddress,
-            AddressLine: addressDto.AddressLine,
-            Country: addressDto.Country,
-            State: addressDto.State,
-            ZipCode: addressDto.ZipCode);
+        return address is null? 
+            null 
+            : new UpdateOrderParameter.Address(
+            Firstname: address.Firstname,
+            Lastname: address.Lastname,
+            EmailAddress: address.EmailAddress,
+            AddressLine: address.AddressLine,
+            Country: address.Country,
+            State: address.State,
+            ZipCode: address.ZipCode);
     }
 
-    private static PaymentDto MapPayment(ModulePayment paymentDto)
+    private static UpdateOrderParameter.Payment? MapPayment(ModulePayment? payment)
     {
-        return new PaymentDto(
-            paymentDto.CardName,
-            paymentDto.CardNumber,
-            paymentDto.Expiration,
-            paymentDto.Cvv,
-            paymentDto.PaymentMethod);
+        return payment is null? null : new UpdateOrderParameter.Payment(
+            payment.CardName,
+            payment.CardNumber,
+            payment.Expiration,
+            payment.Cvv,
+            payment.PaymentMethod);
     }
 }

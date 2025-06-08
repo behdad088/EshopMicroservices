@@ -38,42 +38,39 @@ public class Endpoint : EndpointBase<Request, Response>
                     ShippingAddress: MapAddress(request.ShippingAddress),
                     BillingAddress: MapAddress(request.BillingAddress),
                     OrderPayment: MapPayment(request.Payment),
-                    OrderItems: MapOrderItems(request.OrderItems, request.Id)));
+                    OrderItems: MapOrderItems(request.OrderItems)));
     }
 
-    private static OrderParameter.Address? MapAddress(Request.ModuleAddress? addressDto)
+    private static OrderParameter.Address? MapAddress(Request.ModuleAddress? address)
     {
-        return addressDto is null
+        return address is null
             ? null
             : new OrderParameter.Address(
-                Firstname: addressDto.Firstname,
-                Lastname: addressDto.Lastname,
-                EmailAddress: addressDto.EmailAddress,
-                AddressLine: addressDto.AddressLine,
-                Country: addressDto.Country,
-                State: addressDto.State,
-                ZipCode: addressDto.ZipCode);
+                Firstname: address.Firstname,
+                Lastname: address.Lastname,
+                EmailAddress: address.EmailAddress,
+                AddressLine: address.AddressLine,
+                Country: address.Country,
+                State: address.State,
+                ZipCode: address.ZipCode);
     }
 
-    private static OrderParameter.Payment? MapPayment(Request.ModulePayment? paymentDto)
+    private static OrderParameter.Payment? MapPayment(Request.ModulePayment? payment)
     {
-        return paymentDto is null
+        return payment is null
             ? null
             : new OrderParameter.Payment(
-                paymentDto.CardName,
-                paymentDto.CardNumber,
-                paymentDto.Expiration,
-                paymentDto.Cvv,
-                paymentDto.PaymentMethod);
+                payment.CardName,
+                payment.CardNumber,
+                payment.Expiration,
+                payment.Cvv,
+                payment.PaymentMethod);
     }
 
-    private static List<OrderParameter.OrderItem>? MapOrderItems(List<Request.ModuleOrderItem>? orderItems,
-        string? orderId)
+    private static List<OrderParameter.OrderItem>? MapOrderItems(List<Request.ModuleOrderItem>? orderItems)
     {
         return orderItems?.Select(x =>
             new OrderParameter.OrderItem(
-                x.Id,
-                orderId,
                 x.ProductId,
                 x.Quantity,
                 x.Price
@@ -82,6 +79,6 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static Response MapResult(CreateOrderResult result)
     {
-        return new Response(result.Id);
+        return new Response(result.Id.ToString());
     }
 }

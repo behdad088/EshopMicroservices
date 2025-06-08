@@ -7,7 +7,7 @@ public record GetOrderByCustomerQuery(
     int PageSize = 10,
     int PageIndex = 0) : IQuery<GetOrderByCustomerResult>;
 
-public record GetOrderByCustomerResult(PaginatedItems<GetOrderByCustomerParameter> Orders);
+public record GetOrderByCustomerResult(PaginatedItems<GetOrderByCustomerResponse> Orders);
 
 public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
     : IQueryHandler<GetOrderByCustomerQuery, GetOrderByCustomerResult>
@@ -36,13 +36,13 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
         return new GetOrderByCustomerResult(result);
     }
 
-    private static PaginatedItems<GetOrderByCustomerParameter> MapResult(
+    private static PaginatedItems<GetOrderByCustomerResponse> MapResult(
         IReadOnlyCollection<Domain.Models.Order> orders,
         int pageIndex,
         int pageSize,
         long totalCount)
     {
-        var result = orders.Select(x => new GetOrderByCustomerParameter(
+        var result = orders.Select(x => new GetOrderByCustomerResponse(
             x.Id.Value,
             x.CustomerId.Value,
             x.OrderName.Value,
@@ -52,12 +52,12 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
             x.Status.Value,
             MapOrderItems(x.OrderItems))).ToArray();
 
-        return new PaginatedItems<GetOrderByCustomerParameter>(pageIndex, pageSize, totalCount, result);
+        return new PaginatedItems<GetOrderByCustomerResponse>(pageIndex, pageSize, totalCount, result);
     }
 
-    private static AddressParameter MapAddress(Address address)
+    private static GetOrderByCustomerResponse.AddressResponse MapAddress(Address address)
     {
-        return new AddressParameter(
+        return new GetOrderByCustomerResponse.AddressResponse(
             address.FirstName,
             address.LastName,
             address.EmailAddress,
@@ -67,9 +67,9 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
             address.ZipCode);
     }
 
-    private static PaymentParameter MapPayment(Payment payment)
+    private static GetOrderByCustomerResponse.PaymentResponse MapPayment(Payment payment)
     {
-        return new PaymentParameter(
+        return new GetOrderByCustomerResponse.PaymentResponse(
             payment.CardName,
             payment.CardNumber,
             payment.Expiration,
@@ -77,11 +77,10 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
             payment.PaymentMethod);
     }
 
-    private static List<OrderItemParameter> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+    private static List<GetOrderByCustomerResponse.OrderItemResponse> MapOrderItems(IReadOnlyCollection<OrderItem> orderItems)
     {
         return orderItems.Select(x =>
-            new OrderItemParameter(
-                x.Id.Value.ToString(),
+            new GetOrderByCustomerResponse.OrderItemResponse(
                 x.ProductId.Value.ToString(),
                 x.Quantity,
                 x.Price.Value)).ToList();

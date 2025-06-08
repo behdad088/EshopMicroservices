@@ -38,7 +38,7 @@ public class Endpoint : EndpointBase<Request, Response>
         ));
     }
 
-    private static List<ModuleOrder> MapOrders(IEnumerable<GetOrderByCustomerParameter> orders)
+    private static List<ModuleOrder> MapOrders(IEnumerable<GetOrderByCustomerResponse> orders)
     {
         return orders.Select(x => new ModuleOrder(
             x.Id.ToString(),
@@ -52,7 +52,8 @@ public class Endpoint : EndpointBase<Request, Response>
         )).ToList();
     }
 
-    private static List<ModuleOrderItem> MapModuleOrderItem(List<OrderItemParameter> orderItemParameters)
+    private static List<ModuleOrderItem> MapModuleOrderItem(
+        List<GetOrderByCustomerResponse.OrderItemResponse> orderItemParameters)
     {
         return orderItemParameters.Select(x =>
             new ModuleOrderItem(
@@ -61,7 +62,8 @@ public class Endpoint : EndpointBase<Request, Response>
                 x.Price)).ToList();
     }
 
-    private static ModuleAddress MapModelAddress(AddressParameter addressParameter)
+    private static ModuleAddress MapModelAddress(
+        GetOrderByCustomerResponse.AddressResponse addressParameter)
     {
         return new ModuleAddress(
             addressParameter.Firstname,
@@ -73,7 +75,8 @@ public class Endpoint : EndpointBase<Request, Response>
             addressParameter.ZipCode);
     }
 
-    private static ModulePayment ModulePayment(PaymentParameter paymentParameter)
+    private static ModulePayment ModulePayment(
+        GetOrderByCustomerResponse.PaymentResponse paymentParameter)
     {
         return new ModulePayment(
             paymentParameter.CardName,

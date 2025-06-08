@@ -1,3 +1,4 @@
+using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Order.Command.API.IntegrationTests;
@@ -7,13 +8,23 @@ public class ApiSpecification(WebApiContainerFactory containerFactory) : IAsyncL
     private readonly CancellationTokenSource _timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
     private ApiFactory? _factory;
     private HttpClient? _httpClient;
-
+    private ITestHarness? _testHarness;
+    
     internal HttpClient HttpClient()
     {
         _httpClient ??= _factory!.CreateClient();
         _httpClient.BaseAddress = new Uri($"{_httpClient.BaseAddress}api/v1/order/command/");
         
-        return _httpClient;    
+        return _httpClient;
+    }
+    
+    internal ITestHarness TestHarness
+    {
+        get
+        {
+            _testHarness ??= _factory!.Services.GetRequiredService<ITestHarness>();
+            return _testHarness;
+        }
     }
     
     internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using FluentValidation;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
@@ -22,19 +21,19 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         public AddressValidator()
         {
-            RuleFor(x => x.Firstname).NotNull().NotEmpty().WithMessage("firstname is required.");
-            RuleFor(x => x.Lastname).NotNull().NotEmpty().WithMessage("lastname is required.");
-            RuleFor(x => x.EmailAddress).NotNull().NotEmpty().WithMessage("email_address is required.");
+            RuleFor(x => x.Firstname).NotEmpty().WithMessage("firstname is required.");
+            RuleFor(x => x.Lastname).NotEmpty().WithMessage("lastname is required.");
+            RuleFor(x => x.EmailAddress).NotEmpty().WithMessage("email_address is required.");
             RuleFor(x => x.EmailAddress)
                 .EmailAddress()
-                .WithMessage("Email is required.")
+                .WithMessage("email_address is not valid.")
                 .When(x => !string.IsNullOrWhiteSpace(x.EmailAddress));
 
-            RuleFor(x => x.AddressLine).NotNull().NotEmpty().WithMessage("address_line is required.");
+            RuleFor(x => x.AddressLine).NotEmpty().WithMessage("address_line is required.");
             RuleFor(x => x.Country)
                 .MustBeValidCountryName();
-            RuleFor(x => x.State).NotNull().NotEmpty().WithMessage("state is required.");
-            RuleFor(x => x.ZipCode).NotNull().NotEmpty().Length(5).WithMessage("zip_code is not valid.");
+            RuleFor(x => x.State).NotEmpty().WithMessage("state is required.");
+            RuleFor(x => x.ZipCode).NotEmpty().Length(5).WithMessage("zip_code is not valid.");
         }
     }
 
@@ -42,11 +41,9 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         public OrderItemValidator()
         {
-            RuleFor(x => x.OrderId).MustBeValidUlid();
-
             RuleFor(x => x.ProductId).MustBeValidUlid();
-            RuleFor(x => x.Price).NotNull();
-            RuleFor(x => x.Quantity).NotNull();
+            RuleFor(x => x.Price).NotNull().GreaterThan(0);
+            RuleFor(x => x.Quantity).NotNull().GreaterThan(0);
         }
     }
 
@@ -54,10 +51,13 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         public PaymentValidator()
         {
-            RuleFor(x => x.Cvv).NotNull().NotEmpty().Length(3).WithMessage("CVV is not valid.");
-            RuleFor(x => x.CardName).NotNull().NotEmpty().WithMessage("card_name is required.");
-            RuleFor(x => x.CardNumber).NotNull().MustBeValidCardNumber();
-            RuleFor(x => x.Expiration).NotNull().MustBeValidExpiryDate();
+            RuleFor(x => x.Cvv).NotEmpty()
+                .Must(x => int.TryParse(x, out _)).WithMessage("CVV is not valid.")
+                .Length(3).WithMessage("CVV is not valid.");
+            RuleFor(x => x.CardName).NotEmpty().WithMessage("card_name is required.");
+            RuleFor(x => x.CardNumber).MustBeValidCardNumber();
+            RuleFor(x => x.Expiration).MustBeValidExpiryDate();
+            RuleFor(x => x.PaymentMethod).NotNull();
         }
     }
 }

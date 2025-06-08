@@ -187,4 +187,9 @@ public class OrderStatus : ValueOf<string, OrderStatus>
             _ => throw new ArgumentOutOfRangeException(nameof(orderStatusRaw))
         };
     }
+
+    protected override void Validate()
+    {
+        Parse(Value);
+    }
 }

@@ -1,11 +1,10 @@
-using System.Text.Json;
 using BuildingBlocks.Exceptions;
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.UpdateOrder;
 
-public record UpdateOrderCommand(UpdateOrderDto Order) : ICommand<UpdateOrderResult>;
+public record UpdateOrderCommand(UpdateOrderParameter Order) : ICommand<UpdateOrderResult>;
 
 public record UpdateOrderResult(bool IsSuccess);
 
@@ -45,14 +44,14 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
         }
     }
 
-    private static void AssertOrder(Domain.Models.Order? orderDb, UpdateOrderDto orderDto)
+    private static void AssertOrder(Domain.Models.Order? orderDb, UpdateOrderParameter orderParameter)
     {
         if (orderDb is null)
-            throw new OrderNotFoundExceptions(Ulid.Parse(orderDto.Id));
+            throw new OrderNotFoundExceptions(Ulid.Parse(orderParameter.Id));
 
-        var version = VersionId.FromWeakEtag(orderDto.Version!).Value;
+        var version = VersionId.FromWeakEtag(orderParameter.Version!).Value;
         if (version != orderDb.RowVersion.Value)
-            throw new InvalidEtagException(orderDto.Version!);
+            throw new InvalidEtagException(orderParameter.Version!);
     }
 
     private static void AddOrderUpdatedEvent(Domain.Models.Order order)
@@ -61,54 +60,54 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
     }
 
     private static void UpdateOrderWithNewValues(
-        UpdateOrderDto orderDto,
+        UpdateOrderParameter orderParameter,
         Domain.Models.Order orderDb)
     {
-        var shippingAddress = MapAddress(orderDto.ShippingAddress);
-        var billingAddress = MapAddress(orderDto.BillingAddress);
-        var payment = MapPayment(orderDto.Payment);
-        var orderItems = GetOrderItems(orderDto);
+        var shippingAddress = MapAddress(orderParameter.ShippingAddress!);
+        var billingAddress = MapAddress(orderParameter.BillingAddress!);
+        var payment = MapPayment(orderParameter.OrderPayment!);
+        var orderItems = GetOrderItems(orderParameter);
 
         orderDb.Update(
-            OrderName.From(orderDto.OrderName),
+            OrderName.From(orderParameter.OrderName!),
             shippingAddress,
             billingAddress,
             payment,
-            MapOrderStatus(orderDto.Status),
-            versionId: VersionId.FromWeakEtag(orderDto.Version!).Increment(),
+            MapOrderStatus(orderParameter.Status!),
+            versionId: VersionId.FromWeakEtag(orderParameter.Version!).Increment(),
             orderItems: orderItems);
     }
 
-    private static List<OrderItem> GetOrderItems(UpdateOrderDto orderDto)
+    private static List<OrderItem> GetOrderItems(UpdateOrderParameter orderParameter)
     {
-        return orderDto.OrderItems.Select(x =>
+        return orderParameter.OrderItems!.Select(x =>
             new OrderItem(
-                orderId: OrderId.From(Ulid.Parse(orderDto.Id)),
+                orderId: OrderId.From(Ulid.Parse(orderParameter.Id)),
                 productId: ProductId.From(Ulid.Parse(x.ProductId!)),
                 quantity: x.Quantity!.Value,
                 price: Price.From(x.Price!.Value))).ToList();
     }
 
-    private static Address MapAddress(AddressDto addressDto)
+    private static Address MapAddress(UpdateOrderParameter.Address addressParameter)
     {
         return new Address(
-            addressDto.Firstname,
-            addressDto.Lastname,
-            addressDto.EmailAddress,
-            addressDto.AddressLine,
-            addressDto.Country,
-            addressDto.State,
-            addressDto.ZipCode);
+            addressParameter.Firstname!,
+            addressParameter.Lastname!,
+            addressParameter.EmailAddress!,
+            addressParameter.AddressLine!,
+            addressParameter.Country!,
+            addressParameter.State!,
+            addressParameter.ZipCode!);
     }
 
-    private static Payment MapPayment(PaymentDto paymentDto)
+    private static Payment MapPayment(UpdateOrderParameter.Payment paymentParameter)
     {
         return new Payment(
-            paymentDto.CardName,
-            paymentDto.CardName,
-            paymentDto.Expiration,
-            paymentDto.Cvv,
-            paymentDto.PaymentMethod);
+            paymentParameter.CardName!,
+            paymentParameter.CardNumber!,
+            paymentParameter.Expiration!,
+            paymentParameter.Cvv!,
+            paymentParameter.PaymentMethod!.Value);
     }
 
     private static OrderStatus MapOrderStatus(string status)

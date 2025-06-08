@@ -19,8 +19,8 @@ public class Endpoint : EndpointBase<Request>
     public override async Task<IResult> HandleAsync(Request request)
     {
         var eTag = Context.Request.Headers.IfMatch;
-
         var command = MapToCommand(request, eTag);
+        
         await SendAsync(command).ConfigureAwait(false);
         return TypedResults.NoContent();
     }

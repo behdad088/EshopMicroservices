@@ -2,7 +2,8 @@ namespace Order.Command.API.Endpoints.CreateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")] public string? Id { get; set; }
+    [property: JsonPropertyName("id")] 
+    public string? Id { get; set; }
 
     [property: JsonPropertyName("customer_id")]
     public string? CustomerId { get; set; }
@@ -24,39 +25,41 @@ public record Request
 
     public record ModuleAddress(
         [property: JsonPropertyName("firstname")]
-        string Firstname,
+        string? Firstname,
         [property: JsonPropertyName("lastname")]
-        string Lastname,
+        string? Lastname,
         [property: JsonPropertyName("email_address")]
-        string EmailAddress,
+        string? EmailAddress,
         [property: JsonPropertyName("address_line")]
-        string AddressLine,
+        string? AddressLine,
         [property: JsonPropertyName("country")]
-        string Country,
-        [property: JsonPropertyName("state")] string State,
+        string? Country,
+        [property: JsonPropertyName("state")]
+        string? State,
         [property: JsonPropertyName("zip_code")]
-        string ZipCode);
+        string? ZipCode);
 
     public record ModulePayment(
         [property: JsonPropertyName("card_name")]
-        string CardName,
+        string? CardName,
         [property: JsonPropertyName("card_number")]
-        string CardNumber,
+        string? CardNumber,
         [property: JsonPropertyName("expiration")]
-        string Expiration,
-        [property: JsonPropertyName("cvv")] string Cvv,
+        string? Expiration,
+        [property: JsonPropertyName("cvv")] 
+        string? Cvv,
         [property: JsonPropertyName("payment_method")]
-        int PaymentMethod);
+        int? PaymentMethod);
 
     public record ModuleOrderItem(
-        [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("product_id")]
         string ProductId,
         [property: JsonPropertyName("quantity")]
         int? Quantity,
-        [property: JsonPropertyName("price")] decimal? Price);
+        [property: JsonPropertyName("price")]
+        decimal? Price);
 };
 
 public record Response(
     [property: JsonPropertyName("order_id")]
-    Ulid Id);
+    string Id);

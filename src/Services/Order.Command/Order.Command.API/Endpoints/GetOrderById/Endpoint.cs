@@ -43,12 +43,14 @@ public class Endpoint : EndpointBase<Request, Response>
             MapModuleOrderItem(result.Order.OrderItems));
     }
 
-    private static List<ModuleOrderItem> MapModuleOrderItem(List<OrderItemParameter> orderItemParameters)
+    private static List<ModuleOrderItem> MapModuleOrderItem(
+        List<GetOrderByIdResponse.OrderItemResponse> orderItemParameters)
     {
         return orderItemParameters.Select(x => new ModuleOrderItem(x.ProductId, x.Quantity, x.Price)).ToList();
     }
 
-    private static ModuleAddress MapModelAddress(AddressParameter addressParameter)
+    private static ModuleAddress MapModelAddress(
+        GetOrderByIdResponse.AddressResponse addressParameter)
     {
         return new ModuleAddress(
             addressParameter.Firstname,
@@ -60,7 +62,8 @@ public class Endpoint : EndpointBase<Request, Response>
             addressParameter.ZipCode);
     }
 
-    private static ModulePayment ModulePayment(PaymentParameter paymentParameter)
+    private static ModulePayment ModulePayment(
+        GetOrderByIdResponse.PaymentResponse paymentParameter)
     {
         return new ModulePayment(
             paymentParameter.CardName,

@@ -12,6 +12,8 @@ public record OrderCreatedEvent(
     Guid CustomerId,
     [property: JsonPropertyName("order_name")]
     string? OrderName,
+    [property: JsonPropertyName("order_items")]
+    List<OrderCreatedEvent.OrderItem> OrderItems,
     [property: JsonPropertyName("shipping_address")]
     OrderCreatedEvent.Address ShippingAddress,
     [property: JsonPropertyName("billing_address")]

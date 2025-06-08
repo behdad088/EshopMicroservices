@@ -23,11 +23,11 @@ public static partial class ValidationExtensions
     public static void MustBeValidCountryName<T>(
         this IRuleBuilder<T, string?> ruleBuilder
     ) => ruleBuilder.Must(x => x is not null && CountryNames.Contains(x))
-        .WithMessage($"country header is not valid.");
+        .WithMessage($"country is not valid.");
 
     public static void MustBeValidUlid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Ulid.TryParse(x, out _))
-            .WithMessage((_, propertyName) => $"{propertyName} is not a invalid Ulid.");
+            .WithMessage((_, propertyName) => $"{propertyName} is not a valid Ulid.");
 
     public static IRuleBuilderOptions<T, string?> MustBeValidGuid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Guid.TryParse(x, out _))

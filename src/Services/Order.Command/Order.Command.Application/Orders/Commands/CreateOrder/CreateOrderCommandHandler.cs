@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 
@@ -11,7 +10,9 @@ public record CreateOrderResult(Ulid Id);
 public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
     : ICommandHandler<CreateOrderCommand, CreateOrderResult>
 {
-    public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
+    public async Task<CreateOrderResult> Handle(
+        CreateOrderCommand command, 
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -31,7 +32,7 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
         }
         catch (DbUpdateException ex)
         {
-            if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2627)
+            if (ex.InnerException is SqlException { Number: 2627 })
             {
                 throw new DuplicatedOrderIdException($"Order Id already exists: {command.OrderParameter.Id}"); 
             }
@@ -58,23 +59,23 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
         return order;
     }
 
-    private static Address MapAddress(OrderParameter.Address addressDto)
+    private static Address MapAddress(OrderParameter.Address addressParameter)
         => new(
-            firstName: addressDto.Firstname,
-            lastName: addressDto.Lastname,
-            emailAddress: addressDto.EmailAddress,
-            addressLine: addressDto.AddressLine,
-            country: addressDto.Country,
-            state: addressDto.State,
-            zipCode: addressDto.ZipCode);
+            firstName: addressParameter.Firstname!,
+            lastName: addressParameter.Lastname!,
+            emailAddress: addressParameter.EmailAddress!,
+            addressLine: addressParameter.AddressLine!,
+            country: addressParameter.Country!,
+            state: addressParameter.State!,
+            zipCode: addressParameter.ZipCode!);
 
-    private static Payment MapPayment(OrderParameter.Payment paymentDto) =>
+    private static Payment MapPayment(OrderParameter.Payment paymentParameter) =>
         new(
-            cardName: paymentDto.CardName,
-            cardNumber: paymentDto.CardName,
-            expiration: paymentDto.Expiration,
-            cvv: paymentDto.Cvv,
-            paymentMethod: paymentDto.PaymentMethod);
+            cardName: paymentParameter.CardName!,
+            cardNumber: paymentParameter.CardNumber!,
+            expiration: paymentParameter.Expiration!,
+            cvv: paymentParameter.Cvv!,
+            paymentMethod: paymentParameter.PaymentMethod!.Value);
 
     private static void AddOrderCreatedEvent(Domain.Models.Order order)
     {

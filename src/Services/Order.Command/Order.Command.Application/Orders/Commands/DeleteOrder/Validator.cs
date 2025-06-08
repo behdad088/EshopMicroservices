@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using FluentValidation;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;

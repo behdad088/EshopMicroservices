@@ -10,7 +10,9 @@ public class OrderRequestAutoDataAttribute() : AutoDataAttribute(OrderRequestFix
         public static IFixture Create()
         {
             var fixture = new Fixture();
-            // fixture.Customize(new GetOrderByCustomerRequestCustomization());
+            fixture.Customize(new CreateOrderRequestCustomization());
+            fixture.Customize(new UpdateOrderRequestCustomization());
+            fixture.Customize(new DeleteOrderRequestCustomization());
             return fixture;
         }
     }

@@ -1,3 +1,5 @@
+using Order.Command.Domain.Models;
+
 namespace Order.Command.Domain.Events;
 
 public static class Extensions
@@ -10,6 +12,7 @@ public static class Extensions
             LastModified: order.LastModified,
             CustomerId: order.CustomerId.Value,
             OrderName: order.OrderName.Value,
+            OrderItems: ToEventOrderItems(order.OrderItems),
             ShippingAddress: ToEventAddress(order.ShippingAddress),
             BillingAddress: ToEventAddress(order.BillingAddress),
             PaymentMethod: ToEventPayment(order.Payment),
@@ -18,6 +21,17 @@ public static class Extensions
             TotalPrice: order.TotalPrice.Value,
             Version: order.RowVersion.Value);
 
+        List<OrderCreatedEvent.OrderItem> ToEventOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+        {
+            return orderItems.Select(item => new OrderCreatedEvent.OrderItem(
+                Id: item.Id.Value,
+                LastModifiedBy: item.LastModifiedBy,
+                OrderId: item.OrderId.Value,
+                ProductId: item.ProductId.Value,
+                Quantity: item.Quantity,
+                Price: item.Price.Value)).ToList();
+        }
+        
         OrderCreatedEvent.Address ToEventAddress(Address address)
         {
             return new OrderCreatedEvent.Address(
@@ -49,6 +63,7 @@ public static class Extensions
             LastModified: order.LastModified,
             CustomerId: order.CustomerId.Value,
             OrderName: order.OrderName.Value,
+            OrderItems: ToEventOrderItems(order.OrderItems),
             ShippingAddress: ToEventAddress(order.ShippingAddress),
             BillingAddress: ToEventAddress(order.BillingAddress),
             PaymentMethod: ToEventPayment(order.Payment),
@@ -57,6 +72,17 @@ public static class Extensions
             TotalPrice: order.TotalPrice.Value,
             Version: order.RowVersion.Value);
 
+        List<OrderCreatedEvent.OrderItem> ToEventOrderItems(IReadOnlyCollection<OrderItem> orderItems)
+        {
+            return orderItems.Select(item => new OrderCreatedEvent.OrderItem(
+                Id: item.Id.Value,
+                LastModifiedBy: item.LastModifiedBy,
+                OrderId: item.OrderId.Value,
+                ProductId: item.ProductId.Value,
+                Quantity: item.Quantity,
+                Price: item.Price.Value)).ToList();
+        }
+        
         OrderUpdatedEvent.Address ToEventAddress(Address address)
         {
             return new OrderUpdatedEvent.Address(

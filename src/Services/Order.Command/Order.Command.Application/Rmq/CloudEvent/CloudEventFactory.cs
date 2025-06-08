@@ -1,3 +1,4 @@
+using Order.Command.Application.Rmq.CloudEvent.Models;
 using Order.Command.Domain.Abstractions;
 
 namespace Order.Command.Application.Rmq.CloudEvent;
