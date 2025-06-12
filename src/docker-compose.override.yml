@@ -130,3 +130,20 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
+  
+  identity.api:
+    container_name: identity.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/identity.pfx
+      - ConnectionStrings__DefaultConnection=Data Source=AspIdUsers.db
+    ports:
+      - "7000:8080"
+      - "7063:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ./certificates:/app/certificates
