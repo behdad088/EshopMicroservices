@@ -41,6 +41,12 @@ services:
       context: .
       dockerfile: Services/Order.Command/Order.Command.API/Dockerfile
 
+  identity.api:
+    image: ${DOCKER_REGISTRY-}identity.api
+    build:
+      context: .
+      dockerfile: Services/Identity/Identity.API/Dockerfile
+      
 volumes:
   postgres_catalog_db:
   postgres_basket_db:
