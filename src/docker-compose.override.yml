@@ -25,6 +25,18 @@ services:
     volumes:
       - postgres_basket_db:/var/lib/postgresql/data/
   
+  identityDb:
+    container_name: identityDb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=IdentityDb
+    restart: always
+    ports:
+      - "5434:5432"
+    volumes:
+      - identity_catalog_db:/var/lib/postgresql/data/
+  
   distributedCache:
     container_name: distributedCache
     restart: always
@@ -139,7 +151,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/identity.pfx
-      - ConnectionStrings__DefaultConnection=Data Source=AspIdUsers.db
+      - ConnectionStrings__DefaultConnection=Host=identityDb;Port=5434;Database=IdentityDb;User Id=postgres;Password=postgres
     ports:
       - "7000:8080"
       - "7063:8081"

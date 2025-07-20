@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Text;
-using Duende.IdentityServer.Licensing;
 using Identity.API;
 using Serilog;
 
@@ -25,15 +23,7 @@ try
     var app = builder
         .ConfigureServices()
         .ConfigurePipeline();
-
-    // this seeding is only for the template to bootstrap the DB and users.
-    // in production you will likely want a different approach.
-    if (builder.Environment.IsDevelopment())
-    {
-        Log.Information("Seeding database...");
-        SeedData.EnsureSeedData(app);
-        Log.Information("Done seeding database. Exiting.");
-    }
+    
     app.Run();
 }
 catch (Exception ex) when (ex is not HostAbortedException)

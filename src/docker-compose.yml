@@ -7,6 +7,9 @@ services:
   basketDb:
     image: postgres
   
+  identityDb:
+    image: postgres
+    
   rabbitmq:
     image: rabbitmq:3-management-alpine
   
@@ -50,4 +53,5 @@ services:
 volumes:
   postgres_catalog_db:
   postgres_basket_db:
+  identity_catalog_db:
   rabbitmq_data:
