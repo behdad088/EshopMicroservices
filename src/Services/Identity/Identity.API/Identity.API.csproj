@@ -9,20 +9,23 @@
 
     <ItemGroup>
         <PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
-
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+        <PackageReference Include="Microsoft.Build.Framework" />
         <PackageReference Include="Serilog.AspNetCore" />
-
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Data\Migrations\" />
     </ItemGroup>
 </Project>

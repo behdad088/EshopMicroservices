@@ -1,6 +1,8 @@
 using Duende.IdentityServer;
+using Duende.IdentityServer.Services;
 using Identity.API.Data;
 using Identity.API.Models;
+using Identity.API.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -14,8 +16,10 @@ internal static class HostingExtensions
         builder.Services.AddRazorPages();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDB")));
 
+        builder.Services.AddMigration<ApplicationDbContext, UsersSeed>();
+        
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -36,6 +40,8 @@ internal static class HostingExtensions
             .AddInMemoryClients(Config.Clients)
             .AddAspNetIdentity<ApplicationUser>();
 
+        builder.Services.AddTransient<IProfileService, ProfileService>();
+        
         builder.Services.AddAuthentication()
             .AddGoogle(options =>
             {

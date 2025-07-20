@@ -8,84 +8,178 @@ using Serilog;
 
 namespace Identity.API;
 
-public class SeedData
+public class UsersSeed(
+    ILogger<UsersSeed> logger,
+    UserManager<ApplicationUser> userManager, 
+    RoleManager<IdentityRole> roleManager) : IDbSeeder<ApplicationDbContext>
 {
-    public static void EnsureSeedData(WebApplication app)
+    public async Task SeedAsync(ApplicationDbContext context)
     {
-        using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+        AddRoles();
+        var alice = await userManager.FindByNameAsync("alice");
+
+        if (alice == null)
         {
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            context.Database.Migrate();
-
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var alice = userMgr.FindByNameAsync("alice").Result;
-            if (alice == null)
+            alice = new ApplicationUser
             {
-                alice = new ApplicationUser
-                {
-                    UserName = "alice",
-                    Email = "AliceSmith@example.com",
-                    EmailConfirmed = true,
-                };
-                var result = userMgr.CreateAsync(alice, "Pass123$").Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
+                UserName = "alice",
+                Email = "AliceSmith@email.com",
+                EmailConfirmed = true,
+                CardHolderName = "Alice Smith",
+                CardNumber = "XXXXXXXXXXXX1881",
+                CardType = 1,
+                City = "Gothenburg",
+                Country = "Sweden",
+                Expiration = "12/24",
+                Id = Guid.NewGuid().ToString(),
+                LastName = "Smith",
+                Name = "Alice",
+                PhoneNumber = "0724423456",
+                ZipCode = "41390",
+                State = "Vastra Gotaland",
+                Street = "Medicinaregatan 20",
+                SecurityNumber = "123"
+            };
 
-                result = userMgr.AddClaimsAsync(alice, new Claim[]
-                {
-                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                    new Claim(JwtClaimTypes.GivenName, "Alice"),
-                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                    new Claim(JwtClaimTypes.WebSite, "http://alice.example.com"),
-                }).Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
+            var result = userManager.CreateAsync(alice, "Pass123$").Result;
 
-                Log.Debug("alice created");
-            }
-            else
+            if (!result.Succeeded)
             {
-                Log.Debug("alice already exists");
+                throw new Exception(result.Errors.First().Description);
             }
-
-            var bob = userMgr.FindByNameAsync("bob").Result;
-            if (bob == null)
+            result = userManager.AddToRoleAsync(alice, Config.Roles.Customer).Result;
+            if (!result.Succeeded)
             {
-                bob = new ApplicationUser
-                {
-                    UserName = "bob",
-                    Email = "BobSmith@example.com",
-                    EmailConfirmed = true
-                };
-                var result = userMgr.CreateAsync(bob, "Pass123$").Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
-
-                result = userMgr.AddClaimsAsync(bob, new Claim[]
-                {
-                    new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                    new Claim(JwtClaimTypes.GivenName, "Bob"),
-                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                    new Claim(JwtClaimTypes.WebSite, "http://bob.example.com"),
-                    new Claim("location", "somewhere")
-                }).Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
-
-                Log.Debug("bob created");
+                throw new Exception(result.Errors.First().Description);
             }
-            else
+            
+            result = AddClaims(alice, [
+                new Claim(JwtClaimTypes.Name, "Alice Smith"),
+                new Claim(JwtClaimTypes.GivenName, "Alice"),
+                new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                new Claim(JwtClaimTypes.WebSite, "http://alice.example.com")
+            ]);
+            
+            if (!result.Succeeded)
             {
-                Log.Debug("bob already exists");
+                throw new Exception(result.Errors.First().Description);
             }
+            
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("alice created");
+            }
+        }
+        else
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("alice already exists");
+            }
+        }
+
+        var bob = await userManager.FindByNameAsync("bob");
+
+        if (bob == null)
+        {
+            bob = new ApplicationUser
+            {
+                UserName = "bob",
+                Email = "BobSmith@email.com",
+                EmailConfirmed = true,
+                CardHolderName = "Bob Smith",
+                CardNumber = "XXXXXXXXXXXX1881",
+                CardType = 1,
+                City = "Redmond",
+                Country = "Sweden",
+                Expiration = "12/24",
+                Id = Guid.NewGuid().ToString(),
+                LastName = "Smith",
+                Name = "Bob",
+                PhoneNumber = "0724456789",
+                ZipCode = "41391",
+                State = "Vastra Gotaland",
+                Street = "Medicinaregatan 21",
+                SecurityNumber = "456"
+            };
+
+            var result = await userManager.CreateAsync(bob, "Pass123$");
+
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.First().Description);
+            }
+            
+            result = userManager.AddToRoleAsync(bob, Config.Roles.Admin).Result;
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.First().Description);
+            }
+            
+            result = AddClaims(bob, [
+                new(JwtClaimTypes.Name, "Bob Smith"),
+                new Claim(JwtClaimTypes.GivenName, "Bob"),
+                new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                new Claim(JwtClaimTypes.WebSite, "http://bob.example.com"),
+                new Claim("location", "somewhere")
+            ]);
+            
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.First().Description);
+            }
+
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("bob created");
+            }
+        }
+        else
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("bob already exists");
+            }
+        }
+    }
+    private IdentityResult AddClaims(
+        ApplicationUser user,
+        Claim[] claims)
+    {
+        return userManager.AddClaimsAsync(user, claims).Result;
+    }
+    
+    private void AddRoles()
+    {
+        
+        if (!roleManager.RoleExistsAsync(Config.Roles.Admin).Result)
+        {
+            var role = new IdentityRole(Config.Roles.Admin);
+            var result = roleManager.CreateAsync(role).Result;
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.First().Description);
+            }
+            Log.Debug("admin role created");
+        }
+        else
+        {
+            Log.Debug("admin role already exists");
+        }
+            
+        if (!roleManager.RoleExistsAsync(Config.Roles.Customer).Result)
+        {
+            var role = new IdentityRole(Config.Roles.Customer);
+            var result = roleManager.CreateAsync(role).Result;
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.First().Description);
+            }
+            Log.Debug("user role created");
+        }
+        else
+        {
+            Log.Debug("user role already exists");
         }
     }
 }

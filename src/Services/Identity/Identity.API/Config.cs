@@ -5,26 +5,30 @@ namespace Identity.API;
 
 public static class Config
 {
-    private class ScopeNames
+    public static class Roles
+    {
+        public const string Admin = "admin";
+        public const string Customer = "customer";
+    }
+    
+    private static class ScopeNames
     {
         public const string Basket = "basket";
         public const string OrdersCommand = "orders_command";
-        public const string Discount = "discount";
     }
     
     public static IEnumerable<IdentityResource> IdentityResources =>
         new IdentityResource[]
         {
             new IdentityResources.OpenId(),
-            new IdentityResources.Profile(),
+            new IdentityResources.Profile()
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
         new ApiScope[]
         {
             new ApiScope(ScopeNames.Basket, "Basket Service"),
-            new ApiScope(ScopeNames.OrdersCommand, "Orders Command Service"),
-            new ApiScope(ScopeNames.Discount, "Discount Service"),
+            new ApiScope(ScopeNames.OrdersCommand, "Orders Command Service")
         };
 
     public static IEnumerable<Client> Clients =>
@@ -41,8 +45,8 @@ public static class Config
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     ScopeNames.Basket,
-                    ScopeNames.OrdersCommand,
-                    ScopeNames.Discount },
+                    ScopeNames.OrdersCommand
+                },
                 AllowAccessTokensViaBrowser = true
             }
 
