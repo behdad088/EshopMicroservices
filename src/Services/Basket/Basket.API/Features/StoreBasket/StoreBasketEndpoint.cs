@@ -1,5 +1,6 @@
+using Basket.API.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Basket.API.Features.StoreBasket;
 
@@ -12,14 +13,29 @@ public static class StoreBasketEndpoint
             .Produces<StoreBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithSummary("Store Basket")
-            .WithDescription("Store Basket");
+            .WithDescription("Store Basket")
+            .RequireAuthorization();
 
         return app;
     }
 
-    private static async Task<Ok<StoreBasketResponse>> StoreBasketAsync(StoreBasketRequest request, ISender sender)
+    private static async Task<IResult> StoreBasketAsync(
+        StoreBasketRequest request,
+        ISender sender,
+        HttpContext httpContext,
+        IAuthorizationService authorizationService)
     {
+        var isAuthorized =
+            await authorizationService.CanStoreBasketAsync(httpContext, request.ShoppingCart?.Username ?? string.Empty);
+
+        if (!isAuthorized)
+        {
+            return TypedResults.Forbid();
+        }
+        
         var command = MapCommand(request);
         var result = await sender.Send(command).ConfigureAwait(false);
         return TypedResults.Ok(MapResult(result));

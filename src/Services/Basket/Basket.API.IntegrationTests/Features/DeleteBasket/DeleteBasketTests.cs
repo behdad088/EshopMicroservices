@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using Basket.API.Authorization;
 using Basket.API.Features.DeleteBasket;
+using Basket.API.IntegrationTests.AutoFixture;
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
 using Basket.API.Models;
-using Microsoft.AspNetCore.Mvc;
 using Shouldly;
 
 namespace Basket.API.IntegrationTests.Features.DeleteBasket;
@@ -35,22 +36,35 @@ public class DeleteBasketTests(WebApiContainerFactory webApiContainer) : IAsyncL
         await _apiSpecification.DisposeAsync().ConfigureAwait(false);
     }
 
-    [Fact]
-    public async Task DeleteBasket_Empty_Username_Returns_BadRequest()
+    [Theory]
+    [BasketRequestAutoData]
+    public async Task DeleteBasket_No_Token_Returns_Unauthorized(string username)
     {
         // Arrange
         var timeout = _apiSpecification.CancellationToken;
-        var username = "%20";
 
         // Act
-        var result = await _client.DeleteAsync($"api/v1/basket/{username}", timeout);
-        var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(timeout);
+        var result = await _client
+            .DeleteAsync($"api/v1/basket/{username}", timeout);
 
         // Assert
-        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        response.ShouldNotBeNull();
-        response.Detail.ShouldNotBeNull();
-        response.Detail.ShouldContain("Username is required");
+        result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Theory]
+    [BasketRequestAutoData]
+    public async Task DeleteBasket_No_Permission_Returns_Forbidden(string username)
+    {
+        // Arrange
+        var timeout = _apiSpecification.CancellationToken;
+
+        // Act
+        var result = await _client
+            .SetFakeBearerToken("sub")
+            .DeleteAsync($"api/v1/basket/{username}", timeout);
+
+        // Assert
+        result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -87,7 +101,12 @@ public class DeleteBasketTests(WebApiContainerFactory webApiContainer) : IAsyncL
         basketInPostgresDb.ShouldNotBeNull();
 
         // Act
-        var result = await _client.DeleteAsync($"api/v1/basket/{username}", timeout);
+        var result = await _client
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.BasketUserBasketDeletePermission],
+                    username: username))
+            .DeleteAsync($"api/v1/basket/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<DeleteBasketResponse>(timeout);
 
         // Assert

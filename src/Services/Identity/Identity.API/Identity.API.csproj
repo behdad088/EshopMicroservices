@@ -28,4 +28,10 @@
     <ItemGroup>
         <Folder Include="Data\Migrations\" />
     </ItemGroup>
+
+    <ItemGroup>
+        <None Update="tempkey.jwk">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>

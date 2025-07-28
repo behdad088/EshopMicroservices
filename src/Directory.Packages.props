@@ -7,8 +7,10 @@
     <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.57.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.65.0" />
     <PackageVersion Include="Grpc.Core" Version="2.46.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.7" />
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.4.0" />
     <PackageVersion Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
     <PackageVersion Include="Scrutor" Version="4.2.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
@@ -19,6 +21,7 @@
     <PackageVersion Include="Shouldly" Version="4.2.1" />
     <PackageVersion Include="Testcontainers" Version="3.8.0" />
     <PackageVersion Include="Testcontainers.RabbitMq" Version="3.8.0" />
+    <PackageVersion Include="WebMotions.Fake.Authentication.JwtBearer" Version="7.0.0" />
     <PackageVersion Include="WireMock.Net.StandAlone" Version="1.6.3" />
     <PackageVersion Include="xunit" Version="2.5.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
@@ -46,14 +49,14 @@
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.3.4" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
-    <PackageVersion Include="Duende.IdentityServer.AspNetIdentity" version="7.2.0"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.11"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.11"/>
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11"/>
+    <PackageVersion Include="Duende.IdentityServer.AspNetIdentity" version="7.2.4" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.8.3" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11"/>
-    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3"/>
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Basket.API.Authorization;
 using Basket.API.Features.GetBasket;
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
@@ -37,23 +38,36 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLife
     }
 
     [Fact]
-    public async Task GetBasket_Empty_Username_Returns_BadRequest()
+    public async Task GetBasket_No_Token_Returns_Unauthorized()
     {
         // Arrange
         var timeout = _apiSpecification.CancellationToken;
-        var username = "%20";
+        const string username = "test username 1";
 
         // Act
-        var result = await _client.GetAsync($"api/v1/basket/{username}", timeout);
-        var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(timeout);
+        var result = await _client
+            .GetAsync($"api/v1/basket/{username}", timeout);
 
         // Assert
-        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        response.ShouldNotBeNull();
-        response.Detail.ShouldNotBeNull();
-        response.Detail.ShouldContain("Username cannot be null");
+        result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
+    
+    [Fact]
+    public async Task GetBasket_No_Permission_Returns_Forbidden()
+    {
+        // Arrange
+        var timeout = _apiSpecification.CancellationToken;
+        const string username = "test username 1";
 
+        // Act
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([], username: username))
+            .GetAsync($"api/v1/basket/{username}", timeout);
+
+        // Assert
+        result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
     [Fact]
     public async Task GetBasket_Basket_NotFound_Returns_NotFound()
     {
@@ -62,7 +76,11 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLife
         const string username = "test username 1";
 
         // Act
-        var result = await _client.GetAsync($"api/v1/basket/{username}", timeout);
+        var result = await _client
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
+                    username: username))
+            .GetAsync($"api/v1/basket/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(timeout);
 
         // Assert
@@ -103,7 +121,10 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLife
 
 
         // Act
-        var result = await _client.GetAsync($"api/v1/basket/{username}", timeout);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
+                username: username))
+            .GetAsync($"api/v1/basket/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<GetBasketResponse>(timeout);
 
         // Assert
@@ -148,7 +169,10 @@ public class GetBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLife
 
 
         // Act
-        var result = await _client.GetAsync($"api/v1/basket/{username}", timeout);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
+                username: username))
+            .GetAsync($"api/v1/basket/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<GetBasketResponse>(timeout);
 
         // Assert

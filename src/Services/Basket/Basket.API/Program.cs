@@ -1,9 +1,11 @@
+using Basket.API.Authorization;
 using Basket.API.Common;
 using BuildingBlocks.CQRS.Extensions;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
 using Discount;
 using eshop.Shared;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
@@ -47,6 +49,9 @@ builder.Services.AddHealthChecks(builder.Configuration);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
+builder.AddDefaultAuthentication(Policies.ConfigureAuthorization);
 
 var app = builder.Build();
 app.MapDefaultHealthChecks();
