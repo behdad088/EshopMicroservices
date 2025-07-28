@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Basket.API.IntegrationTests;
 
@@ -24,6 +25,10 @@ public class ApiFactory(string postgresConnection, string redisConnectionString)
 
 
             service.AddStackExchangeRedisCache(options => { options.Configuration = redisConnectionString; });
+            
+            service
+                .AddAuthentication(FakeJwtBearerDefaults.AuthenticationScheme)
+                .AddFakeJwtBearer();
         });
     }
 }

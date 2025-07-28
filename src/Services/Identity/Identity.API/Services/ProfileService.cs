@@ -10,12 +10,14 @@ namespace Identity.API.Services;
 
 public class ProfileService : IProfileService
 {
-    public ProfileService(UserManager<ApplicationUser> userManager)
+    public ProfileService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
-        _userManager = userManager;
+        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
     }
     
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
@@ -26,9 +28,12 @@ public class ProfileService : IProfileService
         var user = await _userManager.FindByIdAsync(subjectId);
         if (user == null)
             throw new ArgumentException("Invalid subject identifier");
+        
+        var roles = await _userManager.GetRolesAsync(user);
 
-        var claims = GetClaimsFromUser(user);
-        context.IssuedClaims = claims.ToList();
+        var userClaims = GetClaimsFromUser(user);
+        var roleClaims = await GetClaimFromRole(roles.ToList());
+        context.IssuedClaims = userClaims.Concat(roleClaims).ToList();
     }
 
     public async Task IsActiveAsync(IsActiveContext context)
@@ -58,6 +63,30 @@ public class ProfileService : IProfileService
                 !user.LockoutEnd.HasValue ||
                 user.LockoutEnd <= DateTime.UtcNow;
         }
+    }
+
+    private async Task<IEnumerable<Claim>> GetClaimFromRole(List<string> roles)
+    {
+        var claims = new List<Claim>();
+        
+        foreach (var roleName in roles)
+        {
+            claims.Add(new Claim(JwtClaimTypes.Role, roleName));
+
+            var role = await _roleManager.FindByNameAsync(roleName);
+            if (role != null)
+            {
+                var roleClaims = await _roleManager.GetClaimsAsync(role);
+
+                // Only include "permission" claims, if desired
+                var permissionClaims = roleClaims
+                    .Where(c => c.Type == "permissions");
+
+                claims.AddRange(permissionClaims);
+            }
+        }
+
+        return claims;
     }
     
     private IEnumerable<Claim> GetClaimsFromUser(ApplicationUser user)

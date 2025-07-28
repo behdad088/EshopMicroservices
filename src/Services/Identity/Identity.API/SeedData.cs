@@ -15,7 +15,7 @@ public class UsersSeed(
 {
     public async Task SeedAsync(ApplicationDbContext context)
     {
-        AddRoles();
+        await AddRoles();
         var alice = await userManager.FindByNameAsync("alice");
 
         if (alice == null)
@@ -149,7 +149,7 @@ public class UsersSeed(
         return userManager.AddClaimsAsync(user, claims).Result;
     }
     
-    private void AddRoles()
+    private async Task AddRoles()
     {
         
         if (!roleManager.RoleExistsAsync(Config.Roles.Admin).Result)
@@ -180,6 +180,19 @@ public class UsersSeed(
         else
         {
             Log.Debug("user role already exists");
+        }
+        
+        foreach (var (policy, roles) in Config.RolePolicyDefinitions.PolicyToRoles)
+        {
+            foreach (var role in roles)
+            {
+                var availableRole = await roleManager.FindByNameAsync(role);
+                if (availableRole != null)
+                {
+                    await roleManager.AddClaimAsync(availableRole,
+                        new Claim("permissions", policy));
+                }
+            }
         }
     }
 }

@@ -92,6 +92,8 @@ services:
       - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
       - ConnectionStrings__Redis=distributedCache:6379
       - Grpc__Discount=https://discount.grpc:8080
+      - Identity__Url=https://localhost:7063
+      - Identity__Audience=basket
     depends_on:
       - basketDb
       - distributedCache
@@ -151,7 +153,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/identity.pfx
-      - ConnectionStrings__DefaultConnection=Host=identityDb;Port=5434;Database=IdentityDb;User Id=postgres;Password=postgres
+      - ConnectionStrings__IdentityDB=Host=identityDb;Port=5432;Database=IdentityDb;User Id=postgres;Password=postgres
     ports:
       - "7000:8080"
       - "7063:8081"
