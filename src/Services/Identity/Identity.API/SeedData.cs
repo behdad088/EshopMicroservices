@@ -22,7 +22,7 @@ public class UsersSeed(
         {
             alice = new ApplicationUser
             {
-                UserName = "alice",
+                UserName = "AliceSmith@email.com",
                 Email = "AliceSmith@email.com",
                 EmailConfirmed = true,
                 CardHolderName = "Alice Smith",
@@ -84,7 +84,7 @@ public class UsersSeed(
         {
             bob = new ApplicationUser
             {
-                UserName = "bob",
+                UserName = "BobSmith@email.com",
                 Email = "BobSmith@email.com",
                 EmailConfirmed = true,
                 CardHolderName = "Bob Smith",
