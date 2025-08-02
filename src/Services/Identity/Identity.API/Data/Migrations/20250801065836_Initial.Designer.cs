@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Identity.API.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250716153819_Initial")]
+    [Migration("20250801065836_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -34,18 +34,15 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("CardHolderName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CardNumber")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("CardType")
+                    b.Property<int?>("CardType")
                         .HasColumnType("integer");
 
                     b.Property<string>("City")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -53,7 +50,6 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Country")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Email")
@@ -64,11 +60,9 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Expiration")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("LockoutEnabled")
@@ -78,7 +72,6 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NormalizedEmail")
@@ -99,18 +92,15 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("SecurityNumber")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
                     b.Property<string>("State")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Street")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -121,7 +111,6 @@ namespace Identity.API.Data.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("ZipCode")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

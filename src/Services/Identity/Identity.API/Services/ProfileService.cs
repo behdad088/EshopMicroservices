@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Duende.IdentityModel;
+using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Identity.API.Models;
@@ -10,7 +11,9 @@ namespace Identity.API.Services;
 
 public class ProfileService : IProfileService
 {
-    public ProfileService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ProfileService(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
@@ -22,17 +25,21 @@ public class ProfileService : IProfileService
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
         var subject = context.Subject ?? throw new ArgumentNullException(nameof(context.Subject));
-
-        var subjectId = subject.Claims.FirstOrDefault(x => x.Type == "sub")?.Value ?? string.Empty;
+        var subjectId = subject.GetSubjectId() ?? string.Empty;
+        // Claims.FirstOrDefault(x => x.Type == "sub")?.Value ?? string.Empty;
 
         var user = await _userManager.FindByIdAsync(subjectId);
         if (user == null)
             throw new ArgumentException("Invalid subject identifier");
-        
-        var roles = await _userManager.GetRolesAsync(user);
-
         var userClaims = GetClaimsFromUser(user);
-        var roleClaims = await GetClaimFromRole(roles.ToList());
+
+        IEnumerable<Claim> roleClaims = [];
+        
+        if (_userManager.SupportsUserRole)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            roleClaims = await GetClaimFromRole(roles.ToList());
+        }
         context.IssuedClaims = userClaims.Concat(roleClaims).ToList();
     }
 
@@ -85,8 +92,9 @@ public class ProfileService : IProfileService
                 claims.AddRange(permissionClaims);
             }
         }
-
-        return claims;
+        
+        // Ensure distinct claims to avoid duplicates (some roles might have the same claims)
+        return claims.Distinct();
     }
     
     private IEnumerable<Claim> GetClaimsFromUser(ApplicationUser user)

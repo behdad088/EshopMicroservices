@@ -72,7 +72,7 @@ internal static class MigrateDbContextExtensions
     {
         using var activity = ActivitySource.StartActivity($"Migrating {typeof(TContext).Name}");
 
-        //await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureDeletedAsync();
         await context.Database.MigrateAsync();
         await seeder(context, services);
     }
