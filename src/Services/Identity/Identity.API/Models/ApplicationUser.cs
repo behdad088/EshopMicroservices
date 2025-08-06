@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Identity.API.Data;
 using Microsoft.AspNetCore.Identity;
 
 namespace Identity.API.Models;
@@ -18,4 +19,7 @@ public class ApplicationUser : IdentityUser
     public string? ZipCode { get; set; }
     public string? Name { get; set; }
     public string? LastName { get; set; }
+    
+    public ICollection<VerificationCode> EmailVerifications { get; set; } = new List<VerificationCode>();
+
 }

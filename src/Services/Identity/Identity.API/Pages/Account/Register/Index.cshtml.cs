@@ -1,20 +1,27 @@
 using System.Security.Claims;
 using Duende.IdentityModel;
+using Identity.API.ApiClients.Mailtrap;
+using Identity.API.Data;
 using Identity.API.Models;
+using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 
 namespace Identity.API.Pages.Account.Register;
 
 public class Index : PageModel
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    
+    private readonly IVerificationEmailService _verificationEmailService;
+
     public Index(
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        IVerificationEmailService verificationEmailService)
     {
         _userManager = userManager;
+        _verificationEmailService = verificationEmailService;
     }
     
     [BindProperty]
@@ -22,8 +29,12 @@ public class Index : PageModel
     
     [TempData]
     public string RegistrationMessage { get; set; } = string.Empty; // used to display messages on the page
+    
     [TempData]
     public string? RegisteredUserEmail { get; set; }
+    
+    [TempData]
+    public Guid? RegisteredUserId { get; set; }
     
     public async Task<IActionResult> OnGet()
     {
@@ -57,7 +68,7 @@ public class Index : PageModel
             {
                 UserName = Input.Email.ToLowerInvariant(),
                 Email = Input.Email.ToLowerInvariant(),
-                EmailConfirmed = true, // set it to true for simplicity
+                EmailConfirmed = false,
                 Name = Input.Email.Split('@')[0], // use the part before @ as name
             };
             
@@ -85,24 +96,36 @@ public class Index : PageModel
             {
                 throw new Exception(result.Errors.First().Description);
             }
+            
+            RegisteredUserId = Guid.Parse(user.Id);
+            RegisteredUserEmail = Input.Email.ToLowerInvariant();
+            
+            await _verificationEmailService.SendEmailAsync(user.Email, user.Id, EmailType.EmailVerification);
+            
+            RegistrationMessage = "User created successfully. Check your email for verification!";
+            return RedirectToPage(null, new { returnUrl = Input.ReturnUrl });
         }
         
-        RegistrationMessage = "User created successfully. Check your email for verification!";
-        RegisteredUserEmail = Input.Email.ToLowerInvariant();
-
-        return RedirectToPage();
+        return Page();
     }
     
-    public IActionResult OnPostResendEmail()
+    public async Task<IActionResult> OnPostResendEmail(string userId, string userEmail)
     {
-        if (string.IsNullOrEmpty(RegisteredUserEmail))
+        if (string.IsNullOrEmpty(userEmail))
         {
             return RedirectToPage();
         }
-
-        // Resend confirmation logic here
+        
+        RegisteredUserEmail = userEmail.ToLowerInvariant();
+        RegisteredUserId = Guid.Parse(userId);
+        
+        await _verificationEmailService.SendEmailAsync(
+            userEmail: RegisteredUserEmail!,
+            userId: RegisteredUserId!.ToString()!,
+            emailType: EmailType.EmailVerification).ConfigureAwait(false);
+        
         RegistrationMessage = $"A new confirmation email was sent to {RegisteredUserEmail}.";
-        return Page();
+        return RedirectToPage(null, new { returnUrl = Input.ReturnUrl });
     }
     
     private async Task<IdentityResult> AddClaimsAsync(
