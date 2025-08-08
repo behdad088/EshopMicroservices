@@ -11,6 +11,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.7" />
     <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.4.0" />
+    <PackageVersion Include="Refit" Version="8.0.0" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
     <PackageVersion Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
     <PackageVersion Include="Scrutor" Version="4.2.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />

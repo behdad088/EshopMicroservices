@@ -1,8 +1,10 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.Services;
+using Identity.API.ApiClients.Mailtrap;
 using Identity.API.Data;
 using Identity.API.Models;
 using Identity.API.Services;
+using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -13,8 +15,12 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddRazorPages();
-
+        builder.Services.AddRazorPages(options =>
+        {
+            options.Conventions.AddPageRoute("/Account/EmailVerification/Index", "/Account/email-verification");
+        });
+        builder.Services.AddMailTrapServicesApiClient(builder.Configuration);
+        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDB")));
 
@@ -43,6 +49,7 @@ internal static class HostingExtensions
             // .AddDeveloperSigningCredential(); // don't use in production;
 
         builder.Services.AddTransient<IProfileService, ProfileService>();
+        builder.Services.AddTransient<IVerificationEmailService, VerificationEmailService>();
         
         builder.Services.AddAuthentication()
             .AddGoogle(options =>

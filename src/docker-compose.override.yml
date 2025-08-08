@@ -92,7 +92,7 @@ services:
       - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
       - ConnectionStrings__Redis=distributedCache:6379
       - Grpc__Discount=https://discount.grpc:8080
-      - Identity__Url=https://localhost:7063
+      - Identity__Url=https://localhost:7063 # identity api url in docker 
       - Identity__Audience=basket
     depends_on:
       - basketDb
@@ -147,6 +147,8 @@ services:
   
   identity.api:
     container_name: identity.api
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -154,6 +156,10 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/identity.pfx
       - ConnectionStrings__IdentityDB=Host=identityDb;Port=5432;Database=IdentityDb;User Id=postgres;Password=postgres
+      - EmailService__base_url=https://send.api.mailtrap.io
+      - EmailService__sender=hello@behdad.dev
+      - EmailService__authentication_key # your mailtrap authentication key, I added mine to .env file
+      - service_url=https://localhost:7063 # identity api url in docker
     ports:
       - "7000:8080"
       - "7063:8081"

@@ -5,6 +5,10 @@ public class ViewModel
     public bool AllowRememberLogin { get; set; } = true;
     public bool EnableLocalLogin { get; set; } = true;
 
+    public SendVerificationCodeViewModel? SendVerificationCode { get; set; } = null;
+    
+    public string? ShowSendVerificationMessage { get; set; }
+
     public IEnumerable<ViewModel.ExternalProvider> ExternalProviders { get; set; } =
         Enumerable.Empty<ExternalProvider>();
 
@@ -26,5 +30,11 @@ public class ViewModel
 
         public string? DisplayName { get; set; }
         public string AuthenticationScheme { get; set; }
+    }
+    
+    public class SendVerificationCodeViewModel
+    {
+        public string? UserId { get; set; }
+        public string? Email { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Identity.API.Models;
 
 namespace Identity.API.Pages.Account.Register;
 
