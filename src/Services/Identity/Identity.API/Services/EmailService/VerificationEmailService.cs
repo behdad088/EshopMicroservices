@@ -10,8 +10,9 @@ public class VerificationEmailService(
     IOptions<MailTrapServicesSettings> mailTrapSettings,
     IConfiguration config) : IVerificationEmailService
 {
+    private string? _returnUrl = string.Empty;
     private string? _emailType = string.Empty;
-    public async Task<bool> SendEmailAsync(string userEmail, string userId, EmailType emailType)
+    public async Task<bool> SendEmailAsync(string userEmail, string userId, EmailType emailType, string? returnUrl = null)
     {
         _emailType = emailType switch
         {
@@ -20,6 +21,7 @@ public class VerificationEmailService(
             _ => throw new ArgumentOutOfRangeException(nameof(emailType), emailType, null)
         };
 
+        _returnUrl = returnUrl ?? string.Empty;
         var verificationCode = await SaveVerificationCodeAsync(userId);
         var result = await SendVerificationEmailAsync(verificationCode, userEmail)
             .ConfigureAwait(false);
@@ -70,6 +72,12 @@ public class VerificationEmailService(
     {
         var serviceUrl = config.GetValue<string>("service_url") ?? throw new Exception("ServiceUrl is not configured.");
         serviceUrl = $"{serviceUrl}/account/{GetPage()}?code={verificationCode}";
+
+        if (!string.IsNullOrEmpty(_returnUrl))
+        {
+            serviceUrl += $"&returnUrl={Uri.EscapeDataString(_returnUrl)}";
+        }
+        
         return serviceUrl;
     }
 
@@ -88,7 +96,7 @@ public class VerificationEmailService(
         return _emailType! switch
         {
             EmailServiceConstants.EmailVerificationType => "email-verification",
-            EmailServiceConstants.ForgotPasswordType => "forgot-password",
+            EmailServiceConstants.ForgotPasswordType => "reset-password",
             _ => throw new ArgumentOutOfRangeException(nameof(_emailType), _emailType, null)
         };
     }

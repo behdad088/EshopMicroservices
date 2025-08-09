@@ -5,7 +5,7 @@ namespace Identity.API.ApiClients.Mailtrap;
 public static class EmailServiceConstants
 {
     public const string VerifyEmailTemplateId = "fb8b709b-c640-4744-879b-11ec7ccf0f58";
-    public const string ForgotPasswordTemplateId = "fb8b709b-c640-4744-879b-11ec7ccf0f58";
+    public const string ForgotPasswordTemplateId = "95c0e528-95b5-4dd6-81c3-65ff802afa0f";
     public const string EmailVerificationType = "email_verification";
     public const string ForgotPasswordType = "forgot_password";
 }

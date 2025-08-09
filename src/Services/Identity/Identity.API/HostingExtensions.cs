@@ -18,6 +18,7 @@ internal static class HostingExtensions
         builder.Services.AddRazorPages(options =>
         {
             options.Conventions.AddPageRoute("/Account/EmailVerification/Index", "/Account/email-verification");
+            options.Conventions.AddPageRoute("/Account/ResetPassword/Index", "/Account/reset-password");
         });
         builder.Services.AddMailTrapServicesApiClient(builder.Configuration);
         
