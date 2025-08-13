@@ -10,6 +10,8 @@ public static class DeleteProductEndpoint
             .WithName("DeleteProduct")
             .Produces<DeleteProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithSummary("Delete Product")
             .WithDescription("Delete Product")
             .RequireAuthorization(Policies.CanDeleteProduct);

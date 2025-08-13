@@ -6,6 +6,7 @@ using Basket.API.IntegrationTests.AutoFixture;
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
 using Basket.API.Models;
+using IntegrationTests.Common;
 using Shouldly;
 
 namespace Basket.API.IntegrationTests.Features.DeleteBasket;

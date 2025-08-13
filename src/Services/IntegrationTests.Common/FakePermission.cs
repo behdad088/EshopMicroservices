@@ -1,6 +1,6 @@
-namespace Basket.API.IntegrationTests;
+namespace IntegrationTests.Common;
 
-public static class FakePermission
+public class FakePermission
 {
     public static object GetPermissions(
         string[] permissions,

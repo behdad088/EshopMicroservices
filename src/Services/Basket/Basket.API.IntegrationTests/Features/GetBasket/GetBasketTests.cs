@@ -5,6 +5,7 @@ using Basket.API.Features.GetBasket;
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
 using Basket.API.Models;
+using IntegrationTests.Common;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Shouldly;

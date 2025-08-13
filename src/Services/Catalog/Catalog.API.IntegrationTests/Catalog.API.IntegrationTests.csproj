@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\IntegrationTests.Common\IntegrationTests.Common.csproj" />
         <ProjectReference Include="..\Catalog.API\Catalog.API.csproj"/>
     </ItemGroup>
 
