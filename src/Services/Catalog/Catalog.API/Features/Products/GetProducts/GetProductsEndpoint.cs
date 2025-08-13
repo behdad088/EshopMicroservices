@@ -11,7 +11,8 @@ public static class GetProductsEndpoint
             .Produces<GetProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Products")
-            .WithDescription("Get Products");
+            .WithDescription("Get Products")
+            .AllowAnonymous();
         return app;
     }
 

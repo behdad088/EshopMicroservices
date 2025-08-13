@@ -1,7 +1,9 @@
 using BuildingBlocks.Exceptions.Handler;
+using Catalog.API.Authorization;
 using Catalog.API.Common;
 using Catalog.API.Data;
 using eshop.Shared;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDefaultOpenApi();
@@ -20,6 +22,9 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Services.InitializeMartenWith<CatalogInitialDataMigration>();
 }
+
+builder.Services.AddSingleton<IAuthorizationHandler, CatalogRequirementHandler>();
+builder.AddDefaultAuthentication(Policies.ConfigureAuthorization);
 
 var app = builder.Build();
 app.UseDefaultOpenApi();

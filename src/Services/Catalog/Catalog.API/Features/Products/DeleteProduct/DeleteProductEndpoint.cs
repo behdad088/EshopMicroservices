@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.DeleteProduct;
+﻿using Catalog.API.Authorization;
+
+namespace Catalog.API.Features.Products.DeleteProduct;
 
 public static class DeleteProductEndpoint
 {
@@ -9,7 +11,8 @@ public static class DeleteProductEndpoint
             .Produces<DeleteProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Delete Product")
-            .WithDescription("Delete Product");
+            .WithDescription("Delete Product")
+            .RequireAuthorization(Policies.CanDeleteProduct);
         return app;
     }
 
