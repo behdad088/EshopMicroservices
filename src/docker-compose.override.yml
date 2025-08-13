@@ -71,6 +71,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/aspnetapp.pfx
       - ConnectionStrings__Database=Server=catalogdb;Port=5432;Database=CatalogDb;User Id=postgres;Password=postgres
+      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Audience=catalog
     depends_on:
       - catalogDb
     ports:

@@ -1,4 +1,5 @@
-﻿using Microsoft.Net.Http.Headers;
+﻿using Catalog.API.Authorization;
+using Microsoft.Net.Http.Headers;
 
 namespace Catalog.API.Features.Products.CreateProduct;
 
@@ -10,8 +11,11 @@ public static class CreateProductEndpoint
             .WithName("CreateProduct")
             .Produces<CreateProductResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithSummary("Create Product")
-            .WithDescription("Create Product");
+            .WithDescription("Create Product")
+            .RequireAuthorization(Policies.CanCreateProduct);
         return app;
     }
 

@@ -1,6 +1,6 @@
 ﻿using System.Net;
+using Catalog.API.Authorization;
 using Catalog.API.Features.Products.UpdateProduct;
-using Catalog.API.IntegrationTests.AutoFixture;
 
 namespace Catalog.API.IntegrationTests.Features.UpdateProduct
 {
@@ -20,6 +20,29 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             _client = _apiSpecification.HttpClient;
             await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
+        
+        [Theory, CatalogRequestAutoData]
+        public async Task UpdateProduct_No_Token_Return_Unauthorized(UpdateProductRequest updateProductRequest)
+        {
+            // Act
+            var result = await _client
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+
+            // Assert
+            result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        }
+    
+        [Theory, CatalogRequestAutoData]
+        public async Task UpdateProduct_Invalid_Access_Policy_Return_Forbidden(UpdateProductRequest updateProductRequest)
+        {
+            // Act
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+
+            // Assert
+            result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        }
 
         [Theory, CatalogRequestAutoData]
         public async Task UpdateProduct_With_Null_Id_Returns_BadRequest(UpdateProductRequest updateProductRequest)
@@ -28,11 +51,13 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             updateProductRequest = updateProductRequest with { Id = default };
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("Product Id is required");
@@ -46,11 +71,13 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             updateProductRequest = updateProductRequest with { Name = "a" };
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("must be between 2 and 150 characters");
@@ -64,7 +91,9 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             updateProductRequest = updateProductRequest with { Category = [string.Empty] };
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
@@ -82,11 +111,13 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             updateProductRequest = updateProductRequest with { ImageFile = string.Empty };
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("ImageFile cannot be null");
@@ -100,11 +131,13 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             updateProductRequest = updateProductRequest with { Price = 0 };
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("Price must be greater than 0");
@@ -116,11 +149,13 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             // Arrange
             _client.DefaultRequestHeaders.Add("If-Match", "W/\"1\"");
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.NotFound);
+            result.StatusCode.ShouldBe(HttpStatusCode.NotFound);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain($"Entity \"Product\" ({updateProductRequest.Id}) was not found.");
@@ -145,7 +180,9 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             await _dataSeeder.SeedDataBaseAsync(product);
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
 
             // Assert
             result.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
@@ -169,7 +206,9 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             await _dataSeeder.SeedDataBaseAsync(product);
 
             // Act
-            var result = await _client.PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
+            var result = await _client
+                .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
+                .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
 
             // Assert
             result.StatusCode.ShouldBe(HttpStatusCode.NoContent);

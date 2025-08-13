@@ -1,5 +1,6 @@
-﻿using Catalog.API.Features.Products.CreateProduct;
-using Catalog.API.IntegrationTests.AutoFixture;
+﻿using System.Net;
+using Catalog.API.Authorization;
+using Catalog.API.Features.Products.CreateProduct;
 
 namespace Catalog.API.IntegrationTests.Features.CreateProducts;
 
@@ -17,6 +18,35 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         _client = _apiSpecification.HttpClient;
         await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
+    
+    [Theory, CatalogRequestAutoData]
+    public async Task CreateProduct_No_Token_Return_Unauthorized(CreateProductRequest createProductRequest)
+    {
+        // Arrange
+        createProductRequest = createProductRequest with { Name = string.Empty };
+
+        // Act
+        var result = await _client
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+
+        // Assert
+        result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Theory, CatalogRequestAutoData]
+    public async Task CreateProduct_Invalid_Access_Policy_Return_Forbidden(CreateProductRequest createProductRequest)
+    {
+        // Arrange
+        createProductRequest = createProductRequest with { Name = string.Empty };
+
+        // Act
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+
+        // Assert
+        result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
 
     [Theory, CatalogRequestAutoData]
     public async Task CreateProduct_Null_Name_Will_Return_BadRequest(CreateProductRequest createProductRequest)
@@ -25,11 +55,13 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         createProductRequest = createProductRequest with { Name = string.Empty };
 
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("Name is required");
@@ -40,13 +72,15 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     {
         // Arrange
         createProductRequest = createProductRequest with { Category = [] };
-
+        
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("Category is required");
@@ -59,11 +93,13 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         createProductRequest = createProductRequest with { ImageFile = string.Empty };
 
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("ImageFile is required");
@@ -76,11 +112,13 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         createProductRequest = createProductRequest with { Price = null };
 
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("Price is required");
@@ -93,7 +131,9 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         createProductRequest = createProductRequest with { Price = 0 };
 
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
@@ -107,7 +147,9 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
     public async Task CreateProduct_With_Valid_Object_Return_Created(CreateProductRequest createProductRequest)
     {
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
 
         // Assert
         result.Headers.Location.ShouldNotBeNull();
@@ -116,7 +158,7 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         Should.NotThrow(() => Ulid.Parse(productId));
 
 
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.Created);
+        result.StatusCode.ShouldBe(HttpStatusCode.Created);
         await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
         var valueInDb = session.Query<Product>().First(x => x.Id == createProductRequest.Id);
         valueInDb.ShouldNotBeNull();
@@ -130,11 +172,13 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
         createProductRequest = createProductRequest with { Id = default };
 
         // Act
-        var result = await _client.PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
+        var result = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductCreatePermission]))
+            .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("Id must be a valid Ulid");

@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.UpdateProduct;
+﻿using Catalog.API.Authorization;
+
+namespace Catalog.API.Features.Products.UpdateProduct;
 
 public static class UpdateProductEndpoint
 {
@@ -10,7 +12,8 @@ public static class UpdateProductEndpoint
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status412PreconditionFailed)
             .WithSummary("Update Product")
-            .WithDescription("Update Product");
+            .WithDescription("Update Product")
+            .RequireAuthorization(Policies.CanUpdateProduct);
         return app;
     }
 

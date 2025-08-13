@@ -10,7 +10,8 @@ public static class GetProductByIdEndpoint
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Get Product by id")
-            .WithDescription("Get Product by id");
+            .WithDescription("Get Product by id")
+            .AllowAnonymous();
 
         return app;
     }
