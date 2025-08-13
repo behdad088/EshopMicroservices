@@ -10,6 +10,8 @@ public static class GetProductsEndpoint
             .WithName("GetProducts")
             .Produces<GetProductResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithSummary("Get Products")
             .WithDescription("Get Products")
             .AllowAnonymous();

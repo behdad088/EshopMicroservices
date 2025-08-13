@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Catalog.API.Authorization;
 using Catalog.API.Features.Products.CreateProduct;
+using IntegrationTests.Common;
 
 namespace Catalog.API.IntegrationTests.Features.CreateProducts;
 

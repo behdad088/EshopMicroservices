@@ -2,6 +2,7 @@
 using Catalog.API.Authorization;
 using Catalog.API.Features.Products.DeleteProduct;
 using Catalog.API.Features.Products.GetProductById;
+using IntegrationTests.Common;
 
 namespace Catalog.API.IntegrationTests.Features.DeleteProduct;
 
