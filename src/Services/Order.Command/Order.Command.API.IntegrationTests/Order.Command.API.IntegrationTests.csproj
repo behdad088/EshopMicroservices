@@ -19,6 +19,7 @@
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio" />
         <PackageReference Include="Testcontainers" />
+        <PackageReference Include="WebMotions.Fake.Authentication.JwtBearer" />
     </ItemGroup>
 
     <ItemGroup>
@@ -26,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\IntegrationTests.Common\IntegrationTests.Common.csproj" />
         <ProjectReference Include="..\Order.Command.API\Order.Command.API.csproj" />
     </ItemGroup>
 

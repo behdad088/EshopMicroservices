@@ -5,7 +5,7 @@ namespace Order.Command.API.Endpoints.GetOrdersByCustomer;
 
 public record Request
 {
-    [property: FromQuery(Name = "customer_id")]
+    [property: FromRoute(Name = "customer_id")]
     public string CustomerId { get; set; }
 
     [property: FromQuery(Name = "page_size")]

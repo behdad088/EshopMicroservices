@@ -41,7 +41,6 @@ public class OutboxServiceTests(WebApiContainerFactory webApiContainerFactory) :
         });
         
         // Act
-
         Outbox? outboxMessage = null;
         while (!_cancellationToken.IsCancellationRequested)
         {

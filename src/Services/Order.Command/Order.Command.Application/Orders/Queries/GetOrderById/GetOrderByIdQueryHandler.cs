@@ -2,7 +2,7 @@ using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderById;
 
-public record GetOrdersByIdQuery(string? Id) : IQuery<GetOrdersByIdResult>;
+public record GetOrdersByIdQuery(string? Id, string? CustomerId) : IQuery<GetOrdersByIdResult>;
 
 public record GetOrdersByIdResult(GetOrderByIdResponse Order);
 
@@ -12,10 +12,11 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext)
     public async Task<GetOrdersByIdResult> Handle(GetOrdersByIdQuery request, CancellationToken cancellationToken)
     {
         var orderId = Ulid.Parse(request.Id);
+        var customerId = Guid.Parse(request.CustomerId!);
         var order = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.DeleteDate == null, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.CustomerId.Equals(CustomerId.From(customerId)) && x.DeleteDate == null, cancellationToken);
 
         if (order is null)
             throw new OrderNotFoundExceptions(orderId);

@@ -17,6 +17,15 @@ public static class Config
         public const string CatalogCanDeleteCatalog = "catalog:product:delete";
         public const string CatalogCanUpdateCatalog = "catalog:product:update";
         
+        // Define policies for orders command operations
+        public const string OrdersCommandCanCreateOrder = "orders_command:order:create";
+        public const string OrdersCommandCanDeleteOrder = "orders_command:order:delete";
+        public const string OrdersCommandCanGetOrder = "orders_command:order:get";
+        public const string OrdersCommandCanGetAllOrders = "orders_command:order:all";
+        public const string OrdersCommandCanGetOrdersListsByCustomerId = "orders_command:order:all-by-customer-id";
+        public const string OrdersCommandCanGetOrdersListsByOrderName = "orders_command:order:all-by-order-name";
+        public const string OrdersCommandCanUpdateOrder = "orders_command:order:update";
+        
     }
     public static class RolePolicyDefinitions
     {
@@ -25,9 +34,18 @@ public static class Config
             { Policies.BasketCanDeleteBasket, [Roles.Admin , Roles.Customer] },
             { Policies.BasketCanStoreBasket, [Roles.Admin, Roles.Customer] },
             { Policies.BasketCanGetBasket, [Roles.Admin , Roles.Customer] },
+            
             { Policies.CatalogCanCreateCatalog, [Roles.Admin] },
             { Policies.CatalogCanDeleteCatalog, [Roles.Admin] },
-            { Policies.CatalogCanUpdateCatalog, [Roles.Admin] }
+            { Policies.CatalogCanUpdateCatalog, [Roles.Admin] },
+            
+            { Policies.OrdersCommandCanCreateOrder, [ Roles.Customer] },
+            { Policies.OrdersCommandCanDeleteOrder, [Roles.Admin] },
+            { Policies.OrdersCommandCanGetOrder, [Roles.Admin] },
+            { Policies.OrdersCommandCanGetAllOrders, [Roles.Admin] },
+            { Policies.OrdersCommandCanGetOrdersListsByCustomerId, [Roles.Admin, Roles.Customer] },
+            { Policies.OrdersCommandCanGetOrdersListsByOrderName, [Roles.Admin] },
+            { Policies.OrdersCommandCanUpdateOrder, [Roles.Admin, Roles.Customer] }
         };
     }
     

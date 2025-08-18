@@ -1,3 +1,4 @@
+using Order.Command.API.Authorization;
 using Order.Command.Application.Orders.Queries.GetOrderById;
 
 namespace Order.Command.API.Endpoints.GetOrderById;
@@ -6,17 +7,26 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/orders/{id}", HandleAsync);
+        Get("/customers/{customer_id}/orders/{id}", HandleAsync);
         Name("GetOrdersById");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
         ProducesProblem(StatusCodes.Status404NotFound);
+        ProducesProblem(StatusCodes.Status403Forbidden);
+        ProducesProblem(StatusCodes.Status401Unauthorized);
         Summary("Gets orders by Id.");
         Description("Gets orders by Id");
+        Policies();
     }
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        var isAuthorize = await AuthorizationService.CanGetOrderByIdAsync(
+            Context, request.CustomerId).ConfigureAwait(false);
+        
+        if (!isAuthorize)
+            return Results.Forbid();
+        
         var query = MapToQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
         Context.Response.Headers.ETag = $"W/\"{result.Order.Version}\"";
@@ -27,7 +37,7 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static GetOrdersByIdQuery MapToQuery(Request request)
     {
-        return new GetOrdersByIdQuery(request.Id);
+        return new GetOrdersByIdQuery(request.Id, request.CustomerId);
     }
 
     private static Response MapToResponse(GetOrdersByIdResult result)

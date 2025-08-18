@@ -1,4 +1,5 @@
 using BuildingBlocks.Pagination;
+using Order.Command.API.Authorization;
 using Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
 namespace Order.Command.API.Endpoints.GetOrdersByCustomer;
@@ -7,16 +8,25 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/orders/customer", HandleAsync);
+        Get("/customers/{customer_id}/orders", HandleAsync);
         Name("GetOrdersByCustomer");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
+        ProducesProblem(StatusCodes.Status403Forbidden);
+        ProducesProblem(StatusCodes.Status401Unauthorized);
         Summary("Gets orders by customer.");
         Description("Gets orders by customer.");
+        Policies();
     }
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        var isAuthorize = await AuthorizationService.CanGetOrdersByCustomerIdAsync(
+            Context, request.CustomerId).ConfigureAwait(false);
+        
+        if (!isAuthorize)
+            return Results.Forbid();
+        
         var query = ToQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
         var response = MapResponse(result);

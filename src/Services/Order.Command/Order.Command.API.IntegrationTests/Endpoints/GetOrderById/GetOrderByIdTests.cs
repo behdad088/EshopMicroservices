@@ -1,4 +1,6 @@
 using System.Net;
+using IntegrationTests.Common;
+using Order.Command.API.Authorization;
 using Order.Command.Domain.Models;
 using Order.Command.API.Endpoints.GetOrderById;
 
@@ -24,13 +26,72 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
     }
 
     [Fact]
+    public async Task GetOrderById_when_no_token_should_return_unauthorized()
+    {
+        // Arrange
+        const string orderId = "invalid-order-id";
+        string customerId = Guid.NewGuid().ToString();
+        
+        // Act
+        var response = await _httpClient
+            .GetAsync($"customers/{customerId}/orders/{orderId}",
+                _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Fact]
+    public async Task GetOrderById_when_no_permission_should_return_forbidden()
+    {
+        // Arrange
+        const string orderId = "invalid-order-id";
+        string customerId = Guid.NewGuid().ToString();
+        
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions([],
+                sub: customerId))
+            .GetAsync($"customers/{customerId}/orders/{orderId}",
+                _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Fact]
+    public async Task GetOrderById_when_valid_token_but_user_tries_to_access_another_users_order_should_return_forbidden()
+    {
+        // Arrange
+        const string orderId = "invalid-order-id";
+        string customerId = Guid.NewGuid().ToString();
+        string anotherCustomerId = Guid.NewGuid().ToString();
+        
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetOrderPermission],
+                sub: customerId))
+            .GetAsync($"customers/{anotherCustomerId}/orders/{orderId}",
+                _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Fact]
     public async Task GetOrderById_when_invalid_order_id_should_return_bad_request()
     {
         // Arrange
         const string orderId = "invalid-order-id";
+        string customerId = Guid.NewGuid().ToString();
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/{orderId}",
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetOrderPermission],
+                sub: customerId))
+            .GetAsync($"customers/{customerId}/orders/{orderId}",
             _cancellationToken);
         
         // Assert
@@ -48,9 +109,10 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
     {
         // Arrange
         var orderId = Ulid.NewUlid();
-        
+        var customerId = Guid.NewGuid();
         await _sqlDbGiven.AnOrder(configure =>
         {
+            configure.CustomerId = CustomerId.From(customerId);
             configure.Id = OrderId.From(orderId);
             configure.OrderItems =
             [
@@ -63,7 +125,11 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
         });
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/{orderId}",
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetOrderPermission],
+                sub: customerId.ToString()))
+            .GetAsync($"customers/{customerId}/orders/{orderId}",
             _cancellationToken);
         
         // Assert

@@ -13,7 +13,7 @@ public class ApiSpecification(WebApiContainerFactory containerFactory) : IAsyncL
     internal HttpClient HttpClient()
     {
         _httpClient ??= _factory!.CreateClient();
-        _httpClient.BaseAddress = new Uri($"{_httpClient.BaseAddress}api/v1/order/command/");
+        _httpClient.BaseAddress = new Uri($"{_httpClient.BaseAddress}api/v1/");
         
         return _httpClient;
     }

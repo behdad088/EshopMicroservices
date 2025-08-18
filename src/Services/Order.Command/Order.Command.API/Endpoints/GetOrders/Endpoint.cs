@@ -7,13 +7,17 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/orders", HandleAsync);
+        Get("/orders/all", HandleAsync);
         Name("GetOrders");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
+        ProducesProblem(StatusCodes.Status403Forbidden);
+        ProducesProblem(StatusCodes.Status401Unauthorized);
         Summary("Gets the list of orders.");
         Description("Gets the list of orders.");
+        Policies(Authorization.Policies.CanGetAllOrders);
     }
+
 
     public override async Task<IResult> HandleAsync(Request request)
     {

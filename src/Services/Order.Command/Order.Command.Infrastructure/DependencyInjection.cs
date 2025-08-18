@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Application.Data;
+using Order.Command.Application.Identity;
 using Order.Command.Infrastructure.Data;
 using Order.Command.Infrastructure.Data.Interceptors;
 
@@ -18,7 +19,10 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>((sp, option) =>
         {
-            option.AddInterceptors(sp.GetRequiredService<IDbTransactionInterceptor>(), new AuditableEntityInterceptor());
+            var user = sp.GetRequiredService<IUser>();
+            option.AddInterceptors(
+                sp.GetRequiredService<IDbTransactionInterceptor>(),
+                new AuditableEntityInterceptor(user, TimeProvider.System.GetUtcNow));
             option.UseSqlServer(connectionString);
         });
 

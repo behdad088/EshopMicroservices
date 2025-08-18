@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
+using IntegrationTests.Common;
 using MassTransit.Testing;
+using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.DeleteOrder;
 using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.Application.Rmq.CloudEvent.Models;
@@ -34,7 +36,8 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -42,7 +45,11 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"2\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanDeleteOrderPermission],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -63,7 +70,8 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             OrderId = orderId.Value.ToString()
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -71,7 +79,11 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"2\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanDeleteOrderPermission],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
@@ -90,7 +102,8 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             x.Id = orderId;
         });
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -98,7 +111,11 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"1\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanDeleteOrderPermission],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);

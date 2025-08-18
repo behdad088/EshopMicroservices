@@ -4,6 +4,9 @@ namespace Order.Command.API.Endpoints.DeleteOrder;
 
 public record Request
 {
-    [FromRoute(Name = "order_id")] 
+    [FromRoute(Name = "order_id")]
     public string? OrderId { get; set; }
+    
+    [FromRoute(Name = "customer_id")]
+    public string? CustomerId { get; set; }
 }

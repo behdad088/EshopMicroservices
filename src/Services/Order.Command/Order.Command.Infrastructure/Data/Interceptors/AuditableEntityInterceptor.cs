@@ -1,12 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Order.Command.Application.Identity;
 using Order.Command.Domain.Abstractions;
 
 namespace Order.Command.Infrastructure.Data.Interceptors;
 
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
+    private readonly IUser _user;
+    private readonly Func<DateTimeOffset> _now;
+    public AuditableEntityInterceptor(IUser user, Func<DateTimeOffset> now)
+    {
+        _user = user;
+        _now = now;
+    }
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         UpdateEntities(eventData.Context);
@@ -21,7 +29,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private static void UpdateEntities(DbContext? context, string username = "test user")
+    private void UpdateEntities(DbContext? context)
     {
         if (context is null) return;
 
@@ -29,15 +37,15 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedAt = DateTime.Now;
-                entry.Entity.CreatedBy = username;
+                entry.Entity.CreatedAt = _now();
+                entry.Entity.CreatedBy = _user.Id;
             }
 
             if (entry.State == EntityState.Added || entry.State == EntityState.Modified ||
                 entry.HasChangedOwnedEntities())
             {
-                entry.Entity.LastModified = DateTime.Now;
-                entry.Entity.LastModifiedBy = username;
+                entry.Entity.LastModified = _now();
+                entry.Entity.LastModifiedBy = _user.Id;
             }
         }
     }
