@@ -1,3 +1,4 @@
+using Order.Command.API.Authorization;
 using Order.Command.Application.Dtos;
 using Order.Command.Application.Orders.Commands.UpdateOrder;
 
@@ -7,18 +8,27 @@ public class Endpoint : EndpointBase<Request>
 {
     public override void MapEndpoint()
     {
-        Put("/orders", HandleAsync);
+        Put("/customers/{customer_id}/orders/{order_id}", HandleAsync);
         Name("UpdateOrder");
         Produces(StatusCodes.Status204NoContent);
         ProducesProblem(StatusCodes.Status400BadRequest);
         ProducesProblem(StatusCodes.Status404NotFound);
         ProducesProblem(StatusCodes.Status412PreconditionFailed);
+        ProducesProblem(StatusCodes.Status403Forbidden);
+        ProducesProblem(StatusCodes.Status401Unauthorized);
         Summary("Update an existing order.");
         Description("Update an existing order");
+        Policies();
     }
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        var isAuthorize = await AuthorizationService.CanGetUpdateOrderAsync(
+            Context, request.CustomerId).ConfigureAwait(false);
+        
+        if (!isAuthorize)
+            return Results.Forbid();
+        
         var eTag = Context.Request.Headers.IfMatch;
 
         var command = MapToCommand(request, eTag);

@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Order.Command.API.Endpoints;
@@ -31,6 +32,7 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     private ISender _sender = default!;
     protected HttpContext Context { get; set; } = default!;
     protected CancellationToken CancellationToken { get; set; }
+    protected IAuthorizationService AuthorizationService { get; set; } = default!;
 
     private static JsonSerializerOptions JsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -67,8 +69,9 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     {
         _routeHandlerBuilder = _endpointRouteBuilder.MapPost(pattern, (
             HttpContext context,
+            IAuthorizationService authorizationService,
             CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, handler, sender, ct));
+            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
         _routeHandlerBuilder.WithRequestTimeout(TimeSpan.FromSeconds(10));
     }
 
@@ -76,42 +79,48 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
     {
         _routeHandlerBuilder = _endpointRouteBuilder.MapGet(pattern, (
             HttpContext context,
+            IAuthorizationService authorizationService,
             CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, handler, sender, ct));
+            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
     }
 
     protected void Delete(string pattern, Func<TRequest, Task<IResult>> handler)
     {
         _routeHandlerBuilder = _endpointRouteBuilder.MapDelete(pattern, (
             HttpContext context,
+            IAuthorizationService authorizationService,
             CancellationToken ct,
             [AsParameters] TRequest request,
-            ISender sender) => DelegateHandlerAsync(context, handler, sender, ct));
+            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
     }
 
     protected void Put(string pattern, Func<TRequest, Task<IResult>> handler)
     {
         _routeHandlerBuilder = _endpointRouteBuilder.MapPut(pattern, (
             HttpContext context,
+            IAuthorizationService authorizationService,
             CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, handler, sender, ct));
+            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
     }
 
     protected void Patch(string pattern, Func<TRequest, Task<IResult>> handler)
     {
         _routeHandlerBuilder = _endpointRouteBuilder.MapPatch(pattern, (
             HttpContext context,
+            IAuthorizationService authorizationService,
             CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, handler, sender, ct));
+            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
     }
 
     private async Task<IResult> DelegateHandlerAsync(
         HttpContext context,
+        IAuthorizationService authorizationService,
         Func<TRequest, Task<IResult>> handler,
         ISender sender,
         CancellationToken ct)
     {
         Context = context;
+        AuthorizationService = authorizationService;
         CancellationToken = ct;
         _sender = sender;
 

@@ -6,8 +6,8 @@ namespace Order.Command.API.Endpoints.GetOrdersByName;
 
 public record Request
 {
-    [property: FromQuery(Name = "name")] 
-    public string Name { get; set; }
+    [property: FromQuery(Name = "customer_name")] 
+    public string CustomerName { get; set; }
 
     [property: FromQuery(Name = "page_size")]
     public int PageSize { get; set; } = 10;

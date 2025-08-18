@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
+using IntegrationTests.Common;
 using MassTransit.Testing;
+using Order.Command.API.Authorization;
 using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.UpdateOrder;
 using Order.Command.Application.Rmq.CloudEvent.Models;
@@ -34,15 +36,19 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "orders")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
-
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"2\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanUpdateOrderPermission],
+                    sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -62,7 +68,7 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             Id = orderId.Value.ToString()
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "orders")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -70,7 +76,12 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"2\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanUpdateOrderPermission],
+                    sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.PreconditionFailed);
@@ -104,7 +115,7 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
                 "12345")
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "orders")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -112,7 +123,12 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"1\"", isWeak: true));
 
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanUpdateOrderPermission],
+                    sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);

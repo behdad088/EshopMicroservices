@@ -1,4 +1,6 @@
+using IntegrationTests.Common;
 using MassTransit.Testing;
+using Order.Command.API.Authorization;
 using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.CreateOrder;
 using Order.Command.Application.Rmq.CloudEvent.Models;
@@ -27,18 +29,23 @@ public class CreateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
     }
 
     [Theory, OrderRequestAutoData]
-    public async Task CreateOrder_when_valid_request_should_return_created(Request request)
+    public async Task CreateOrder_when_valid_request_should_return_created(
+        Request request)
     {
         // Arrange
         await _testHarness.Start();
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanCreateOrderPermission],
+                sub: request.CustomerId))
+            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<Response>(_cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-        response.Headers.Location!.ToString().ShouldContain($"orders/{request.Id}");
+        response.Headers.Location!.ToString().ShouldContain($"customers/{request.CustomerId}/orders/{request.Id}");
         result.ShouldNotBeNull();
         result.Id.ShouldNotBeNull();
         

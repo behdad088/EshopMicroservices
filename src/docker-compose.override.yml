@@ -137,6 +137,8 @@ services:
       - RabbitMQ__URI=rabbitmq
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest
+      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Audience=orders_command
     depends_on:
       - order.command.db
     ports:

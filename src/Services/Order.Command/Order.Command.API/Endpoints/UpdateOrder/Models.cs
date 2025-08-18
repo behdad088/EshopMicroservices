@@ -5,10 +5,10 @@ namespace Order.Command.API.Endpoints.UpdateOrder;
 
 public record Request
 {
-    [property: JsonPropertyName("id")]
+    [FromRoute(Name = "order_id")]
     public string? Id { get; set; }
-
-    [property: JsonPropertyName("customer_id")]
+    
+    [FromRoute(Name = "customer_id")]
     public string? CustomerId { get; set; }
 
     [property: JsonPropertyName("order_name")]

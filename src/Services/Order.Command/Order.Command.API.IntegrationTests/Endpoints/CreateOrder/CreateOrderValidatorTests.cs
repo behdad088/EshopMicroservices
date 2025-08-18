@@ -1,3 +1,5 @@
+using IntegrationTests.Common;
+using Order.Command.API.Authorization;
 using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.CreateOrder;
 
@@ -8,7 +10,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
 {
     private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken = default!;
+    private CancellationToken _cancellationToken;
     
     public async Task InitializeAsync()
     {
@@ -17,7 +19,45 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         _httpClient = _apiSpecification.HttpClient();
         _cancellationToken = _apiSpecification.CancellationToken;
     }
+    
+    [Theory, OrderRequestAutoData]
+    public async Task CreateOrderValidator_when_no_token_should_return_unauthorized(Request request)
+    {
+        // Act
+        var response = await _httpClient
+            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Theory, OrderRequestAutoData]
+    public async Task CreateOrderValidator_when_no_permission_should_return_forbidden(Request request)
+    {
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [],
+                sub: request.CustomerId))
+            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Theory, OrderRequestAutoData]
+    public async Task CreateOrderValidator_when_with_permission_but_wrong_customer_id_should_return_forbidden(Request request)
+    {
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanCreateOrderPermission]))
+            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
     [Theory, OrderRequestAutoData]
     public async Task CreateOrderValidator_when_invalid_order_id_should_return_bad_request(Request request)
     {
@@ -28,7 +68,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -48,7 +88,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -68,9 +108,9 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
-
+    
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         result.ShouldNotBeNull();
@@ -88,7 +128,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -108,7 +148,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -131,7 +171,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -154,7 +194,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -177,7 +217,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -200,7 +240,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -223,7 +263,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -246,7 +286,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -269,7 +309,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -292,7 +332,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -315,7 +355,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -338,7 +378,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -361,7 +401,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -384,7 +424,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -407,7 +447,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -430,7 +470,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -453,7 +493,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -476,7 +516,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -499,7 +539,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -522,7 +562,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -545,7 +585,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -568,7 +608,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -591,7 +631,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -611,7 +651,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -631,7 +671,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -654,7 +694,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -677,7 +717,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -700,7 +740,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -723,7 +763,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -746,7 +786,7 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         };
         
         // Act
-        var response = await _httpClient.PostAsJsonAsync("orders", request, _cancellationToken);
+        var response = await CallSutAsync(request);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -755,7 +795,15 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         result.Detail.ShouldNotBeNull();
         result.Detail.ShouldContain("'Quantity' must be greater than '0'");
     }
-    
+
+    private async Task<HttpResponseMessage> CallSutAsync(Request request)
+    {
+        return await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanCreateOrderPermission], 
+                sub: request.CustomerId))
+            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+    }
     public async Task DisposeAsync()
     {
         await _apiSpecification.DisposeAsync();

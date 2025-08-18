@@ -7,7 +7,7 @@ public record OrderCreatedEvent(
     [property: JsonPropertyName("created_by")]
     string? CreatedBy,
     [property: JsonPropertyName("last_modified")]
-    DateTime? LastModified,
+    DateTimeOffset? LastModified,
     [property: JsonPropertyName("customer_id")]
     Guid CustomerId,
     [property: JsonPropertyName("order_name")]

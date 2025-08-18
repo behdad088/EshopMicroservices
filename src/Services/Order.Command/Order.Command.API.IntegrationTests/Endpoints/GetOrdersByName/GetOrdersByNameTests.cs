@@ -1,3 +1,5 @@
+using IntegrationTests.Common;
+using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.GetOrdersByName;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrdersByName;
@@ -7,7 +9,7 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
 {
     private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken = default!;
+    private CancellationToken _cancellationToken;
     private SqlDbGiven _sqlDbGiven = default!;
     private IApplicationDbContext _dbContext = default!;
     
@@ -22,14 +24,47 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
     }
     
     [Fact]
+    public async Task GetOrdersByName_when_no_token_should_return_unauthorized()
+    {
+        // Arrange
+        const string orderName = "%20";
+        
+        // Act
+        var response = await _httpClient
+            .GetAsync($"orders?customer_name={orderName}", _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Fact]
+    public async Task GetOrdersByName_when_no_permission_should_return_forbidden()
+    {
+        // Arrange
+        const string orderName = "%20";
+        
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions([]))
+            .GetAsync($"orders?customer_name={orderName}", _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Fact]
     public async Task GetOrdersByName_when_invalid_order_name_should_return_bad_request()
     {
         // Arrange
         const string orderName = "%20";
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -49,8 +84,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         const int pageIndex = -1;
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName}&page_index={pageIndex}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName}&page_index={pageIndex}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -70,8 +108,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         const int pageSize = -1;
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName}&page_size={pageSize}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName}&page_size={pageSize}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -90,8 +131,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         var oredrName = "test-order-name";
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={oredrName}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={oredrName}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -114,8 +158,10 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
             configure.OrderName = OrderName.From("another-test-order-name");
         });
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName}",
-            _cancellationToken);
+        var response = await _httpClient.SetFakeBearerToken(
+            FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -141,8 +187,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         });
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName.Value}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName.Value}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -177,8 +226,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         });
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName.Value}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName.Value}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -215,8 +267,11 @@ public class GetOrdersByNameTests(WebApiContainerFactory webApiContainerFactory)
         await _sqlDbGiven.AnOrder();
         
         // Act
-        var response = await _httpClient.GetAsync($"orders/name?name={orderName.Value}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(
+                FakePermission.GetPermissions(
+                    [Policies.OrdersCommandCanGetOrdersListsByOrderNamePermission]))
+            .GetAsync($"orders?customer_name={orderName.Value}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);

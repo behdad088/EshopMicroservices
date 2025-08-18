@@ -1,3 +1,5 @@
+using IntegrationTests.Common;
+using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.GetOrders;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrders;
@@ -22,13 +24,41 @@ public class GetOrdersTests(WebApiContainerFactory webApiContainerFactory) : IAs
     }
 
     [Fact]
+    public async Task GetOrders_when_no_token_should_return_unauthorized()
+    {
+        // Act
+        var response = await _httpClient
+            .GetAsync("orders/all",
+                _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Fact]
+    public async Task GetOrders_when_no_permission_should_return_forbidden()
+    {
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions([]))
+            .GetAsync("orders/all",
+                _cancellationToken);
+        
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Fact]
     public async Task GetOrders_when_invalid_page_index_should_return_bad_request()
     {
         // Arrange
         const int pageIndex = -1;
         
         // Act
-        var response = await _httpClient.GetAsync($"orders?page_index={pageIndex}",
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetAllOrdersPermission]))
+            .GetAsync($"orders/all?page_index={pageIndex}",
             _cancellationToken);
         
         // Assert
@@ -48,8 +78,10 @@ public class GetOrdersTests(WebApiContainerFactory webApiContainerFactory) : IAs
         const int pageSize = -1;
         
         // Act
-        var response = await _httpClient.GetAsync($"orders?page_size={pageSize}",
-            _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetAllOrdersPermission]))
+            .GetAsync($"orders/all?page_size={pageSize}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -65,13 +97,17 @@ public class GetOrdersTests(WebApiContainerFactory webApiContainerFactory) : IAs
     public async Task GetOrdersByCustomer_when_empty_db_should_return_null_data()
     {
         // Act
-        var response = await _httpClient.GetAsync("orders",
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetAllOrdersPermission]))
+            .GetAsync("orders/all",
             _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var result =
-            await response.Content.ReadFromJsonAsync<Response>(cancellationToken: _cancellationToken);
+            await response.Content
+                .ReadFromJsonAsync<Response>(cancellationToken: _cancellationToken);
         
         result.ShouldNotBeNull();
         
@@ -88,7 +124,10 @@ public class GetOrdersTests(WebApiContainerFactory webApiContainerFactory) : IAs
         await _sqlDbGiven.AnOrder();
         
         // Act
-        var response = await _httpClient.GetAsync("orders",
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanGetAllOrdersPermission]))
+            .GetAsync("orders/all",
             _cancellationToken);
         
         // Assert

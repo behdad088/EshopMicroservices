@@ -3,6 +3,7 @@ using BuildingBlocks.CQRS.Extensions;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Application.Configurations;
+using Order.Command.Application.Identity;
 using Order.Command.Application.Outbox;
 using Order.Command.Application.Rmq;
 using Order.Command.Application.Rmq.CloudEvent;

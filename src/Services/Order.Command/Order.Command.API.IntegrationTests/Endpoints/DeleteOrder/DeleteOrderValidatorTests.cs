@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using IntegrationTests.Common;
+using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.DeleteOrder;
 using Order.Command.API.IntegrationTests.AutoFixture;
 
@@ -20,11 +22,71 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
     }
     
     [Theory, OrderRequestAutoData] 
+    public async Task UpdateOrderValidator_when_no_token_should_return_unauthorized(
+        Request request)
+    {
+        // Arrange
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        {
+            Content = JsonContent.Create(request)
+        };
+        
+        // Act
+        var response = await _httpClient
+            .SendAsync(requestMessage, _cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+    
+    [Theory, OrderRequestAutoData] 
+    public async Task UpdateOrderValidator_when_no_permission_should_return_forbidden(
+        Request request)
+    {
+        // Arrange
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        {
+            Content = JsonContent.Create(request)
+        };
+        
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Theory, OrderRequestAutoData] 
+    public async Task UpdateOrderValidator_when_trying_to_delete_another_users_order_should_return_forbidden(
+        Request request)
+    {
+        // Arrange
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        {
+            Content = JsonContent.Create(request)
+        };
+        
+        // Act
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [],
+                sub: Guid.NewGuid().ToString()))
+            .SendAsync(requestMessage, _cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Theory, OrderRequestAutoData] 
     public async Task UpdateOrderValidator_when_invalid_etag_return_bad_request(
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -32,7 +94,11 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"1\""));
         
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanDeleteOrderPermission],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -51,7 +117,7 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             OrderId = "invalid-order-id"
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -59,7 +125,11 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         requestMessage.Headers.IfMatch.Add(new EntityTagHeaderValue("\"1\"", isWeak: true));
         
         // Act
-        var response = await _httpClient.SendAsync(requestMessage, _cancellationToken);
+        var response = await _httpClient
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersCommandCanDeleteOrderPermission],
+                sub: request.CustomerId))
+            .SendAsync(requestMessage, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert

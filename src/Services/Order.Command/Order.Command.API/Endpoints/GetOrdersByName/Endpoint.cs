@@ -7,13 +7,16 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/orders/name", HandleAsync);
+        Get("/orders", HandleAsync);
         Name("GetOrdersByName");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
         ProducesProblem(StatusCodes.Status404NotFound);
+        ProducesProblem(StatusCodes.Status403Forbidden);
+        ProducesProblem(StatusCodes.Status401Unauthorized);
         Summary("Gets orders by name.");
         Description("Gets orders by name");
+        Policies(Authorization.Policies.CanGetListOfOrdersByOrderName);
     }
 
     public override async Task<IResult> HandleAsync(Request request)
@@ -26,7 +29,7 @@ public class Endpoint : EndpointBase<Request, Response>
 
     private static GetOrdersByNameQuery MapToQuery(Request request)
     {
-        return new GetOrdersByNameQuery(request.Name, request.PageSize, request.PageIndex);
+        return new GetOrdersByNameQuery(request.CustomerName, request.PageSize, request.PageIndex);
     }
 
     private static Response MapToResponse(GetOrdersByNameResult result)

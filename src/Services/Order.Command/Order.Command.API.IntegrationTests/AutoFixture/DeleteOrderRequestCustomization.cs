@@ -9,6 +9,7 @@ public class DeleteOrderRequestCustomization : ICustomization
     {
         fixture.Customize<Request>(composer => composer
             .With(r => r.OrderId, Ulid.NewUlid().ToString())
+            .With(r => r.CustomerId, Guid.NewGuid().ToString())
         );
     }
 }

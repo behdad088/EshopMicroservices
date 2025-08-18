@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Infrastructure.Data;
+using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Order.Command.API.IntegrationTests;
 
@@ -34,6 +35,10 @@ public class ApiFactory(string mssqlConnectionString, RmqConfiguration rmqConfig
             var sp = services.BuildServiceProvider().GetRequiredService<ApplicationDbContext>();
             sp.Database.EnsureDeletedAsync().GetAwaiter().GetResult();
             sp.Database.MigrateAsync().GetAwaiter().GetResult();
+            
+            services
+                .AddAuthentication(FakeJwtBearerDefaults.AuthenticationScheme)
+                .AddFakeJwtBearer();
         }).UseEnvironment("Test");
     }
 }

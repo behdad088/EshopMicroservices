@@ -6,6 +6,7 @@ namespace Order.Command.API.Endpoints.GetOrderById;
 public record Request
 {
     [FromRoute(Name = "id")] public string? Id { get; set; }
+    [FromRoute(Name = "customer_id")] public string? CustomerId { get; set; }
 }
 
 public record Response(
