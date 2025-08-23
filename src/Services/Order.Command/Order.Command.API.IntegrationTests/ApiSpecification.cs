@@ -30,7 +30,7 @@ public class ApiSpecification(WebApiContainerFactory containerFactory) : IAsyncL
     internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;
 
     internal SqlDbGiven SqlDbGiven => new(_apiFactory!.Services.GetRequiredService<IApplicationDbContext>() ??
-                                          throw new Exception("IApplicationDbContext is not initialized."));
+        throw new Exception("IApplicationDbContext is not initialized."));
 
     private IApplicationDbContext? _dbContext;
 
