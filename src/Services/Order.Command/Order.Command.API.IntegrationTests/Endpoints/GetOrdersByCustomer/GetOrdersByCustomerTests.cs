@@ -4,23 +4,21 @@ using Order.Command.API.Endpoints.GetOrdersByCustomer;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrdersByCustomer;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class GetOrdersByCustomerTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
     private SqlDbGiven _sqlDbGiven = default!;
     private IApplicationDbContext _dbContext = default!;
-    
-    public async Task InitializeAsync()
+
+    public GetOrdersByCustomerTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
-        _sqlDbGiven = _apiSpecification.SqlDbGiven;
-        _dbContext = _apiSpecification.DbContext;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
+        _sqlDbGiven = apiSpecification.SqlDbGiven;
+        _dbContext = apiSpecification.DbContext;
     }
     
     [Fact]
@@ -31,7 +29,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
         
         // Act
         var response = await _httpClient
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -48,7 +46,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: Guid.NewGuid().ToString()))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -65,7 +63,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([],
                     sub: customerId))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -82,7 +80,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -106,7 +104,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId))
-            .GetAsync($"customers/{customerId}/orders?&page_index={pageIndex}", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders?&page_index={pageIndex}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -130,7 +128,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId))
-            .GetAsync($"customers/{customerId}/orders?page_size={pageSize}", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders?page_size={pageSize}", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -153,7 +151,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -181,7 +179,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId.ToString()))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -220,7 +218,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId.ToString()))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -261,7 +259,7 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.OrdersCommandCanGetOrdersListsByCustomerIdPermission],
                     sub: customerId.ToString()))
-            .GetAsync($"customers/{customerId}/orders", _cancellationToken);
+            .GetAsync($"api/v1/customers/{customerId}/orders", _cancellationToken);
         
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -278,11 +276,6 @@ public class GetOrdersByCustomerTests(WebApiContainerFactory webApiContainerFact
         
         var expected = new Response(new PaginatedItems<ModuleOrder>(0, 10, 2, MapOrder(dbResult)));
         result.ShouldBeEquivalentTo(expected);
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
     
     private static List<ModuleOrder> MapOrder(IEnumerable<Domain.Models.Order> orders)

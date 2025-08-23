@@ -6,19 +6,17 @@ using Order.Command.API.IntegrationTests.AutoFixture;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.DeleteOrder;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class DeleteOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
-    
-    public async Task InitializeAsync()
+
+    public DeleteOrderValidatorTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
     }
     
     [Theory, OrderRequestAutoData] 
@@ -26,7 +24,8 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete,
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -44,7 +43,8 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -65,7 +65,8 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -86,7 +87,8 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -117,7 +119,8 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             OrderId = "invalid-order-id"
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"customers/{request.CustomerId}/orders/{request.OrderId}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -137,10 +140,5 @@ public class DeleteOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         result.ShouldNotBeNull();
         result.Detail.ShouldNotBeNull();
         result.Detail.ShouldContain($"{request.OrderId} is not a valid Ulid");
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

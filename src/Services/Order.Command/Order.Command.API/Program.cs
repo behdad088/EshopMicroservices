@@ -60,7 +60,7 @@ var routeGroupBuilder = app.MapGroup("/api/v1/")
 
 app.MapEndpoints(routeGroupBuilder);
 
-app.UseProblemDetailsResponseExceptionHandler();
+app.UseProblemDetailsResponseExceptionHandler(); 
 app.Run();
 
 namespace Order.Command.API

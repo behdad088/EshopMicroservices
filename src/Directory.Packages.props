@@ -14,6 +14,7 @@
     <PackageVersion Include="Refit" Version="8.0.0" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
     <PackageVersion Include="ReHackt.Extensions.Options.Validation" Version="8.0.2" />
+    <PackageVersion Include="Respawn" Version="6.2.1" />
     <PackageVersion Include="Scrutor" Version="4.2.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageVersion Include="AutoFixture.Xunit2" Version="4.18.1" />

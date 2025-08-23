@@ -1,6 +1,6 @@
 namespace Order.Command.API.IntegrationTests.HealthChecks;
 
-[Collection(GetWebApiContainerFactory.Name)]
+[Collection(TestCollection.Name)]
 public class ReadyTests(ApiSpecification apiSpecification) : IClassFixture<ApiSpecification>
 {
     private readonly HttpClient _httpClient = apiSpecification.HttpClient();

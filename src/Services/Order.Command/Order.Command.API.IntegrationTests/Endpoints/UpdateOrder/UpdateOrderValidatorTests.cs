@@ -6,20 +6,17 @@ using Order.Command.API.Endpoints.UpdateOrder;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;
 
-
-[Collection(GetWebApiContainerFactory.Name)]
-public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class UpdateOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
-    
-    public async Task InitializeAsync()
+
+    public UpdateOrderValidatorTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
     }
     
     [Theory, OrderRequestAutoData]
@@ -27,7 +24,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
     {
         // Act
         var response = await _httpClient
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -40,7 +37,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         var response = await _httpClient
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([], sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -58,7 +55,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{anotherCustomer}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{anotherCustomer}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -79,7 +76,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -104,7 +101,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -129,7 +126,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -148,7 +145,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             OrderItems = null
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -180,7 +177,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             OrderItems = []
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -221,7 +218,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -249,7 +246,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -277,7 +274,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -305,7 +302,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -333,7 +330,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -361,7 +358,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -389,7 +386,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -417,7 +414,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -445,7 +442,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -473,7 +470,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -501,7 +498,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -529,7 +526,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -557,7 +554,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -585,7 +582,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -613,7 +610,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -641,7 +638,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -669,7 +666,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -697,7 +694,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -725,7 +722,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -753,7 +750,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -781,7 +778,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -800,7 +797,8 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             OrderItems = null
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, 
+            $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -838,7 +836,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request,
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request,
             _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
@@ -861,7 +859,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             ]
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -902,7 +900,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
         // Assert
@@ -924,7 +922,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             ]
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -965,7 +963,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
                 FakePermission.GetPermissions(
                     [Policies.OrdersCommandCanUpdateOrderPermission],
                     sub: request.CustomerId))
-            .PutAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request,
+            .PutAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request,
             _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(_cancellationToken);
 
@@ -988,7 +986,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             ]
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -1016,7 +1014,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -1050,7 +1048,7 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             Status = "invalid-status"
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -1071,10 +1069,5 @@ public class UpdateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
         result.ShouldNotBeNull();
         result.Detail.ShouldNotBeNull();
         result.Detail.ShouldContain("Invalid order status.");
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

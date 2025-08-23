@@ -15,34 +15,21 @@ using Shouldly;
 namespace Basket.API.IntegrationTests.Features.StoreBasket;
 
 [Collection(GetWebApiContainerFactory.Name)]
-public class StoreBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+public class StoreBasketTests : BaseEndpoint
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _client = default!;
     private DiscountGiven _discountGiven = default!;
     private PostgresDataSeeder _postgresDataSeeder = default!;
     private RedisDataSeeder _redisDataSeeder = default!;
 
-    public async Task InitializeAsync()
+    public StoreBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainer);
-        await _apiSpecification.InitializeAsync().ConfigureAwait(false);
-
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
-
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-
         _discountGiven = _apiSpecification.CreateDiscountServerGiven();
     }
-
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
-    }
-
+    
     [Theory]
     [BasketRequestAutoData]
     public async Task StoreBasket_Null_Username_Returns_BadRequest(StoreBasketRequest request)

@@ -1,31 +1,34 @@
 using MassTransit.Testing;
-using Order.Command.API.Endpoints.CreateOrder;
 using Order.Command.Application.Rmq.CloudEvent.Models;
 using Order.Command.Domain.Events;
 using Order.Command.Domain.Models;
 
 namespace Order.Command.API.IntegrationTests.OutboxTests;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class OutboxServiceTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
 {
-    private ApiSpecification _apiSpecification = default!;
     private CancellationToken _cancellationToken;
     private IApplicationDbContext _dbContext = default!;
     private SqlDbGiven _sqlDbGiven = default!;
     private ITestHarness _testHarness = default!;
-
-    
+    private ApiSpecification _apiSpecification = default!;
     public async Task InitializeAsync()
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
+        _apiSpecification = new ApiSpecification(factory);
         await _apiSpecification.InitializeAsync();
+        await _apiSpecification.ClearDatabaseAsync();
         _cancellationToken = _apiSpecification.CancellationToken;
         _dbContext = _apiSpecification.DbContext;
         _testHarness = _apiSpecification.TestHarness;
         _sqlDbGiven = _apiSpecification.SqlDbGiven;
     }
 
+    public async Task DisposeAsync()
+    {
+        await _apiSpecification.DisposeAsync();
+    }
+    
     [Fact]
     public async Task? OutboxService_when_valid_order_created_event_is_not_dispatched_should_dispatch_the_event()
     {
@@ -184,10 +187,5 @@ public class OutboxServiceTests(WebApiContainerFactory webApiContainerFactory) :
         message.OrderId.ShouldBe(orderId);
         message.DeletedDate.ShouldBe(orderUpdatedEvent.DeletedDate);
         outboxMessage.NumberOfDispatchTry.Value.ShouldBe(1);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

@@ -4,9 +4,12 @@ namespace Catalog.API.IntegrationTests.Database;
 
 public class DataSeeder(IDocumentStore store)
 {
-    public async Task SeedDataBaseAsync(Product? product = null)
+    public async Task SeedDataBaseAsync(Action<ProductConfiguration>? productConfiguration = null)
     {
-        var products = product is null ? GetListOfProducts() : [product];
+        var product = new ProductConfiguration();
+        productConfiguration?.Invoke(product);
+        
+        var products = productConfiguration is null ? GetListOfProducts() : [product.ToDbProduct()];
 
         await using var session = store.LightweightSession();
         session.Store<Product>(products);
@@ -20,7 +23,7 @@ public class DataSeeder(IDocumentStore store)
         return data;
     }
 
-    public static IEnumerable<Product> GetListOfProducts()
+    private static IEnumerable<Product> GetListOfProducts()
     {
         return
         [

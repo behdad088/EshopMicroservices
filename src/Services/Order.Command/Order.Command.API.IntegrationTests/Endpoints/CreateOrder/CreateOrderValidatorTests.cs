@@ -5,19 +5,17 @@ using Order.Command.API.Endpoints.CreateOrder;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.CreateOrder;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class CreateOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
-    
-    public async Task InitializeAsync()
+
+    public CreateOrderValidatorTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
     }
     
     [Theory, OrderRequestAutoData]
@@ -25,34 +23,36 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
     {
         // Act
         var response = await _httpClient
-            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PostAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Theory, OrderRequestAutoData]
-    public async Task CreateOrderValidator_when_no_permission_should_return_forbidden(Request request)
+    public async Task CreateOrderValidator_when_no_permission_should_return_forbidden(
+        Request request)
     {
         // Act
         var response = await _httpClient
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [],
                 sub: request.CustomerId))
-            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PostAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
     
     [Theory, OrderRequestAutoData]
-    public async Task CreateOrderValidator_when_with_permission_but_wrong_customer_id_should_return_forbidden(Request request)
+    public async Task CreateOrderValidator_when_with_permission_but_wrong_customer_id_should_return_forbidden(
+        Request request)
     {
         // Act
         var response = await _httpClient
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanCreateOrderPermission]))
-            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PostAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -802,10 +802,6 @@ public class CreateOrderValidatorTests(WebApiContainerFactory webApiContainerFac
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanCreateOrderPermission], 
                 sub: request.CustomerId))
-            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
-    }
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
+            .PostAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
     }
 }

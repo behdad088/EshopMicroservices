@@ -43,9 +43,3 @@ public class WebApiContainerFactory : IAsyncLifetime
         await _redis.DisposeAsync().ConfigureAwait(false);
     }
 }
-
-[CollectionDefinition(Name)]
-public class GetWebApiContainerFactory : ICollectionFixture<WebApiContainerFactory>
-{
-    public const string Name = "WebApiContainerFactory";
-}

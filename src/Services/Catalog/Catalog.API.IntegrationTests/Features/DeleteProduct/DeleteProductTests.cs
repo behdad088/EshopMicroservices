@@ -1,29 +1,23 @@
-﻿using System.Net;
-using Catalog.API.Authorization;
-using Catalog.API.Features.Products.DeleteProduct;
+﻿using Catalog.API.Features.Products.DeleteProduct;
 using Catalog.API.Features.Products.GetProductById;
 using IntegrationTests.Common;
 
 namespace Catalog.API.IntegrationTests.Features.DeleteProduct;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class DeleteProductTests(ApiSpecification apiSpecification) : IAsyncLifetime
 {
     private DataSeeder _dataSeeder = default!;
     private HttpClient _client = default!;
-    private ApiSpecification _apiSpecification = default!;
     
     public async Task InitializeAsync()
     {
-        _apiSpecification = new ApiSpecification(webApiContainer);
-        await _apiSpecification.InitializeAsync();
-        
-        _dataSeeder = _apiSpecification.DataSeeder;
-        _client = _apiSpecification.HttpClient;
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        _dataSeeder = apiSpecification.DataSeeder;
+        _client = apiSpecification.HttpClient;
+        await apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
 
-    [Theory, CatalogRequestAutoData]
+    [Fact]
     public async Task DeleteProductById_No_Token_Return_Unauthorized()
     {
         // Arrange
@@ -37,7 +31,7 @@ public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsync
         result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
     
-    [Theory, CatalogRequestAutoData]
+    [Fact]
     public async Task DeleteProductById_Invalid_Access_Policy_Return_Forbidden()
     {
         // Arrange
@@ -73,25 +67,25 @@ public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsync
     }
 
     [Fact]
-    public async Task DeleteProductById_Add_Product_To_Db_Check_The_Existance_And_Delete_The_Product_By_Id()
+    public async Task DeleteProductById_Add_Product_To_Db_Check_The_Existence_And_Delete_The_Product_By_Id()
     {
         // Arrange
-        var product = new Product
-        {
-            Id = Ulid.NewUlid().ToString(),
-            Name = "Test",
-            Description = "Test",
-            Category = ["test"],
-            ImageFile = "test",
-            Price = 1
-        };
+        var productId = Ulid.NewUlid().ToString();
 
-        await _dataSeeder.SeedDataBaseAsync(product);
+        await _dataSeeder.SeedDataBaseAsync(x =>
+        {
+            x.Id = productId;
+            x.Name = "Test";
+            x.Description = "Test";
+            x.Category = ["test"];
+            x.ImageFile = "test";
+            x.Price = 1;
+        });
 
         // Act - Assert
         var savedProduct = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductDeletePermission]))
-            .GetAsync($"api/v1/catalog/products/{product.Id}");
+            .GetAsync($"api/v1/catalog/products/{productId}");
         savedProduct.StatusCode.ShouldBe(HttpStatusCode.OK);
         var savedProductResult = await GetHttpResultAsync<GetProductByIdResponse>(savedProduct.Content);
         savedProductResult.ShouldNotBeNull();
@@ -103,7 +97,7 @@ public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsync
         var result = await GetHttpResultAsync<DeleteProductResponse>(response.Content);
         result!.IsSuccess.ShouldBeTrue();
 
-        var retryFetchProduct = await _client.GetAsync($"api/v1/catalog/products/{product.Id}");
+        var retryFetchProduct = await _client.GetAsync($"api/v1/catalog/products/{productId}");
         retryFetchProduct.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
@@ -115,7 +109,6 @@ public class DeleteProductTests(WebApiContainerFactory webApiContainer) : IAsync
 
     public async Task DisposeAsync()
     {
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+        await Task.CompletedTask;
     }
 }

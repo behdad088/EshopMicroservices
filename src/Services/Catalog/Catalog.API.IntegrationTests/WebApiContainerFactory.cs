@@ -30,9 +30,3 @@ public class WebApiContainerFactory : IAsyncLifetime
         await _postgres.StartAsync().ConfigureAwait(false);
     }
 }
-
-[CollectionDefinition(Name)]
-public class GetWebApiContainerFactory : ICollectionFixture<WebApiContainerFactory>
-{
-    public const string Name = "WebApiContainerFactory";
-}
