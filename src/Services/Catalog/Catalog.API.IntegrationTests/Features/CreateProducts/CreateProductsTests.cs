@@ -1,31 +1,22 @@
-﻿using System.Net;
-using Catalog.API.Authorization;
-using Catalog.API.Features.Products.CreateProduct;
+﻿using Catalog.API.Features.Products.CreateProduct;
 using IntegrationTests.Common;
 
 namespace Catalog.API.IntegrationTests.Features.CreateProducts;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class CreateProductsTests(ApiSpecification apiSpecification) : IAsyncLifetime
 {
     private HttpClient _client = default!;
-    private ApiSpecification _apiSpecification = default!;
 
     public async Task InitializeAsync()
     {
-        _apiSpecification = new ApiSpecification(webApiContainer);
-        await _apiSpecification.InitializeAsync();
-
-        _client = _apiSpecification.HttpClient;
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+        _client = apiSpecification.HttpClient;
+        await apiSpecification.GetDocumentStore().Advanced.ResetAllData();
     }
     
     [Theory, CatalogRequestAutoData]
     public async Task CreateProduct_No_Token_Return_Unauthorized(CreateProductRequest createProductRequest)
     {
-        // Arrange
-        createProductRequest = createProductRequest with { Name = string.Empty };
-
         // Act
         var result = await _client
             .PostAsJsonAsync("api/v1/catalog/products", createProductRequest);
@@ -160,7 +151,7 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
 
 
         result.StatusCode.ShouldBe(HttpStatusCode.Created);
-        await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
+        await using var session = apiSpecification.GetDocumentStore().LightweightSession();
         var valueInDb = session.Query<Product>().First(x => x.Id == createProductRequest.Id);
         valueInDb.ShouldNotBeNull();
         valueInDb.Id.ShouldBe(productId);
@@ -187,7 +178,6 @@ public class CreateProductsTests(WebApiContainerFactory webApiContainer) : IAsyn
 
     public async Task DisposeAsync()
     {
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+        await Task.CompletedTask;
     }
 }

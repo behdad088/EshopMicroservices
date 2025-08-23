@@ -1,25 +1,19 @@
-﻿using System.Net;
-using Catalog.API.Authorization;
-using Catalog.API.Features.Products.UpdateProduct;
+﻿using Catalog.API.Features.Products.UpdateProduct;
 using IntegrationTests.Common;
 
 namespace Catalog.API.IntegrationTests.Features.UpdateProduct
 {
-    [Collection(GetWebApiContainerFactory.Name)]
-    public class UpdateProductTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+    [Collection(TestCollection.Name)]
+    public class UpdateProductTests(ApiSpecification apiSpecification) : IAsyncLifetime
     {
         private HttpClient _client = default!;
         private DataSeeder _dataSeeder = default!;
-        private ApiSpecification _apiSpecification = default!;
 
         public async Task InitializeAsync()
         {
-            _apiSpecification = new ApiSpecification(webApiContainer);
-            await _apiSpecification.InitializeAsync();
-
-            _dataSeeder = _apiSpecification.DataSeeder;
-            _client = _apiSpecification.HttpClient;
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            _dataSeeder = apiSpecification.DataSeeder;
+            _client = apiSpecification.HttpClient;
+            await apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
         
         [Theory, CatalogRequestAutoData]
@@ -168,17 +162,15 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         {
             // Arrange
             _client.DefaultRequestHeaders.Add("If-Match", "W/\"0\"");
-            var product = new Product
+            await _dataSeeder.SeedDataBaseAsync(x =>
             {
-                Id = updateProductRequest.Id,
-                Name = "Test",
-                Description = "Test",
-                Category = ["test"],
-                ImageFile = "test",
-                Price = 1
-            };
-
-            await _dataSeeder.SeedDataBaseAsync(product);
+                x.Id = updateProductRequest.Id;
+                x.Name = "Test";
+                x.Description = "Test";
+                x.Category = ["test"];
+                x.ImageFile = "test";
+                x.Price = 1;
+            });
 
             // Act
             var result = await _client
@@ -194,17 +186,16 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
         {
             // Arrange
             _client.DefaultRequestHeaders.Add("If-Match", "W/\"1\"");
-            var product = new Product
-            {
-                Id = updateProductRequest.Id,
-                Name = "Test",
-                Description = "Test",
-                Category = ["test"],
-                ImageFile = "test",
-                Price = 1
-            };
 
-            await _dataSeeder.SeedDataBaseAsync(product);
+            await _dataSeeder.SeedDataBaseAsync(x =>
+            {
+                x.Id = updateProductRequest.Id;
+                x.Name = "Test";
+                x.Description = "Test";
+                x.Category = ["test"];
+                x.ImageFile = "test";
+                x.Price = 1;
+            });
 
             // Act
             var result = await _client
@@ -214,7 +205,7 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             // Assert
             result.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
-            await using var session = _apiSpecification.GetDocumentStore().LightweightSession();
+            await using var session = apiSpecification.GetDocumentStore().LightweightSession();
             var valueInDb = session.Query<Product>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
 
             valueInDb!.Name.ShouldBe(updateProductRequest.Name);
@@ -227,8 +218,7 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
 
         public async Task DisposeAsync()
         {
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-            await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+            await Task.CompletedTask;
         }
     }
 }

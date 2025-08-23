@@ -10,34 +10,32 @@ using Order.Command.Domain.Models;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.DeleteOrder;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class DeleteOrderTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
     private SqlDbGiven _sqlDbGiven = default!;
     private IApplicationDbContext _dbContext = default!;
     private ITestHarness _testHarness = default!;
-    
-    public async Task InitializeAsync()
-    {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
-        _sqlDbGiven = _apiSpecification.SqlDbGiven;
-        _dbContext = _apiSpecification.DbContext;
-        _testHarness = _apiSpecification.TestHarness;
-    }
 
+    public DeleteOrderTests(ApiSpecification apiSpecification)
+    {
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
+        _sqlDbGiven = apiSpecification.SqlDbGiven;
+        _dbContext = apiSpecification.DbContext;
+        _testHarness = apiSpecification.TestHarness;
+    }
+    
     [Theory, OrderRequestAutoData]
     public async Task DeleteOrder_when_order_id_not_found_should_return_not_found(
         Request request)
     {
         // Arrange
         var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
-            $"customers/{request.CustomerId}/orders/{request.OrderId}")
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -71,7 +69,7 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         };
         
         var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
-            $"customers/{request.CustomerId}/orders/{request.OrderId}")
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -103,7 +101,7 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         });
         
         var requestMessage = new HttpRequestMessage(HttpMethod.Delete, 
-            $"customers/{request.CustomerId}/orders/{request.OrderId}")
+            $"api/v1/customers/{request.CustomerId}/orders/{request.OrderId}")
         {
             Content = JsonContent.Create(request)
         };
@@ -145,10 +143,5 @@ public class DeleteOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         message.ShouldNotBeNull();
         message.Version.ShouldBe(2);
         outboxMessage.NumberOfDispatchTry.Value.ShouldBe(1);
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

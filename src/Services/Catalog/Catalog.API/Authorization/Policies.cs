@@ -11,16 +11,17 @@ public static class Policies
     public const string CanCreateProduct = nameof(CanCreateProduct);
     public const string CanUpdateProduct = nameof(CanUpdateProduct);
     public const string CanDeleteProduct = nameof(CanDeleteProduct);
+    private const string PolicyName = "permissions";
     
     public static void ConfigureAuthorization(AuthorizationOptions options)
     {
         options.AddPolicy(CanCreateProduct, 
-            policy => policy.AddRequirements(new CatalogRequirement([CatalogProductCreatePermission])));
+            policy => policy.RequireClaim(PolicyName, CatalogProductCreatePermission));
     
         options.AddPolicy(CanUpdateProduct, 
-            policy => policy.AddRequirements(new CatalogRequirement([CatalogProductUpdatePermission])));
+            policy => policy.RequireClaim(PolicyName, CatalogProductUpdatePermission));
     
         options.AddPolicy(CanDeleteProduct, 
-            policy => policy.AddRequirements(new CatalogRequirement([CatalogProductDeletePermission])));
+            policy => policy.RequireClaim(PolicyName, CatalogProductDeletePermission));
     }
 }

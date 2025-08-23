@@ -49,10 +49,10 @@ public class WebApiContainerFactory : IAsyncLifetime
     }
 }
 
-public record RmqConfiguration(string Uri, string Username, string Password);
-
 [CollectionDefinition(Name)]
-public class GetWebApiContainerFactory : ICollectionFixture<WebApiContainerFactory>
+public class TestCollection : ICollectionFixture<WebApiContainerFactory>
 {
-    public const string Name = "WebApiContainerFactory";
+    public const string Name = "TestCollection";
 }
+
+public record RmqConfiguration(string Uri, string Username, string Password);

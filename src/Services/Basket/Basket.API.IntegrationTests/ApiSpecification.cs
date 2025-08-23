@@ -1,6 +1,7 @@
 using Basket.API.IntegrationTests.Database.Postgres;
 using Basket.API.IntegrationTests.Database.Redis;
 using Basket.API.IntegrationTests.ServerGivens;
+using IntegrationTests.Common;
 using Marten;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,12 @@ using WireMock.Server;
 
 namespace Basket.API.IntegrationTests;
 
-internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+[CollectionDefinition(Name)]
+public class GetWebApiContainerFactory : ICollectionFixture<ApiSpecification>
+{
+    public const string Name = "TestCollection";
+}
+public class ApiSpecification : IAsyncLifetime
 {
     private readonly CancellationTokenSource _timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
     private IDistributedCache? _cache;
@@ -17,9 +23,18 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
 
     private HttpClient? _httpClient;
     private PostgresDataSeeder? _postgresDataSeeder;
-    private RedisDataSeeder? _redisDataSeeder;
+    private RedisDataSeeder? _redisDataSeeder;  
     private IDocumentStore? _store;
-    internal HttpClient HttpClient => _httpClient ??= _factory!.CreateClient();
+    private readonly WebApiContainerFactory _webApiContainer = new();
+    internal HttpClient HttpClient
+    {
+        get
+        { 
+            var client = _httpClient ??= _factory!.CreateClient();
+            client.ClearDefaultHeaders();
+            return client;
+        }
+    }
 
     internal PostgresDataSeeder PostgresDataSeeder =>
         _postgresDataSeeder ??= new PostgresDataSeeder(GetDocumentStore());
@@ -27,12 +42,18 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
     internal RedisDataSeeder RedisDataSeeder => _redisDataSeeder ??= new RedisDataSeeder(GetCache());
     internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;
 
+    public void ResetWireMockServer()
+    {
+        _discountWireMockServer?.Reset();
+    }
+    
     public async Task InitializeAsync()
     {
+        await _webApiContainer.InitializeAsync();
         _discountWireMockServer = StartWireMockServer();
         Environment.SetEnvironmentVariable("Grpc__Discount", _discountWireMockServer.Url);
 
-        _factory = new ApiFactory(webApiContainer.PostgresConnectionString, webApiContainer.RedisConnectionString);
+        _factory = new ApiFactory(_webApiContainer.PostgresConnectionString, _webApiContainer.RedisConnectionString);
         _store = _factory.Services.GetRequiredService<IDocumentStore>();
         _cache = _factory.Services.GetRequiredService<IDistributedCache>();
         await Task.CompletedTask;
@@ -47,7 +68,7 @@ internal class ApiSpecification(WebApiContainerFactory webApiContainer) : IAsync
         _httpClient?.Dispose();
         _store?.Advanced.ResetAllData(CancellationToken);
         _store?.Dispose();
-
+        await _webApiContainer.DisposeAsync();
         _discountWireMockServer?.Stop();
         _discountWireMockServer?.Dispose();
     }

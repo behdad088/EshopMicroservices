@@ -2,21 +2,17 @@
 
 namespace Catalog.API.IntegrationTests.Features.GetProductById
 {
-    [Collection(GetWebApiContainerFactory.Name)]
-    public class GetProductByIdTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+    [Collection(TestCollection.Name)]
+    public class GetProductByIdTests(ApiSpecification apiSpecification) : IAsyncLifetime
     {
         private DataSeeder _dataSeeder = default!;
         private HttpClient _client = default!;
-        private ApiSpecification _apiSpecification = default!;
 
         public async Task InitializeAsync()
         {
-            _apiSpecification = new ApiSpecification(webApiContainer);
-            await _apiSpecification.InitializeAsync();
-
-            _dataSeeder = _apiSpecification.DataSeeder;
-            _client = _apiSpecification.HttpClient;
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            _dataSeeder = apiSpecification.DataSeeder;
+            _client = apiSpecification.HttpClient;
+            await apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
 
         [Fact]
@@ -40,44 +36,37 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
         public async Task GetProductById_Returns_The_Product()
         {
             // Arrange
-            var product = new Product()
+            var productId = Ulid.NewUlid().ToString();
+            await _dataSeeder.SeedDataBaseAsync(x =>
             {
-                Id = Ulid.NewUlid().ToString(),
-                Name = "IPhone X",
-                Description =
-                    "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
-                ImageFile = "product-1.png",
-                Price = 950.00M,
-                Category = ["Smart Phone"]
-            };
-            await _dataSeeder!.SeedDataBaseAsync(product);
+                x.Id = productId;
+                x.Name = "IPhone X";
+                x.Description =
+                    "test description";
+                x.ImageFile = "product-1.png";
+                x.Price = 950.00M;
+                x.Category = ["Smart Phone"];
+            });
 
             // Act
-            var result = await _client.GetAsync($"api/v1/catalog/products/{product.Id}");
+            var result = await _client.GetAsync($"api/v1/catalog/products/{productId}");
             var response = await result.Content.ReadFromJsonAsync<GetProductByIdResponse>();
 
             // Assert
             result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             response.ShouldNotBeNull();
-            var expected = MapToProduct(product);
-            response.ShouldBeEquivalentTo(expected);
+            response.Id.ShouldBe(Ulid.Parse(productId));
+            response.Name.ShouldBe("IPhone X");
+            response.Description.ShouldBe("test description");
+            response.ImageFile.ShouldBe("product-1.png");
+            response.Price.ShouldBe(950.00M);
+            var category = response.Category.ShouldHaveSingleItem();
+            category.ShouldBe("Smart Phone");
         }
 
         public async Task DisposeAsync()
         {
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-            await _apiSpecification.DisposeAsync().ConfigureAwait(false);
-        }
-
-        private static GetProductByIdResponse MapToProduct(Product product)
-        {
-            return new GetProductByIdResponse(
-                Id: Ulid.Parse(product.Id),
-                Name: product.Name,
-                Category: product.Category,
-                Description: product.Description,
-                ImageFile: product.ImageFile,
-                Price: product.Price);
+            await Task.CompletedTask;
         }
     }
 }

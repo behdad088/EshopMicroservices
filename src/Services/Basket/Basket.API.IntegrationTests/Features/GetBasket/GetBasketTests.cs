@@ -13,29 +13,17 @@ using Shouldly;
 namespace Basket.API.IntegrationTests.Features.GetBasket;
 
 [Collection(GetWebApiContainerFactory.Name)]
-public class GetBasketTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+public class GetBasketTests : BaseEndpoint
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _client = default!;
     private PostgresDataSeeder _postgresDataSeeder = default!;
     private RedisDataSeeder _redisDataSeeder = default!;
 
-    public async Task InitializeAsync()
+    public GetBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainer);
-        await _apiSpecification.InitializeAsync().ConfigureAwait(false);
-
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
-
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-        await _apiSpecification.DisposeAsync().ConfigureAwait(false);
     }
 
     [Fact]

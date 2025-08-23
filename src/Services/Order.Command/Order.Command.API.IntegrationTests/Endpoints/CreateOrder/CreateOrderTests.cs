@@ -9,23 +9,21 @@ using Order.Command.Domain.Models;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.CreateOrder;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class CreateOrderTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class CreateOrderTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
     private IApplicationDbContext _dbContext = default!;
     private ITestHarness _testHarness = default!;
-    
-    public async Task InitializeAsync()
+
+    public CreateOrderTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
-        _dbContext = _apiSpecification.DbContext;
-        _testHarness = _apiSpecification.TestHarness;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
+        _dbContext = apiSpecification.DbContext;
+        _testHarness = apiSpecification.TestHarness;
     }
 
     [Theory, OrderRequestAutoData]
@@ -40,7 +38,7 @@ public class CreateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanCreateOrderPermission],
                 sub: request.CustomerId))
-            .PostAsJsonAsync($"customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
+            .PostAsJsonAsync($"api/v1/customers/{request.CustomerId}/orders/{request.Id}", request, _cancellationToken);
         var result = await response.Content.ReadFromJsonAsync<Response>(_cancellationToken);
         
         // Assert
@@ -86,10 +84,5 @@ public class CreateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             .ShouldBeEquivalentTo(request.OrderItems);
         
         outboxMessage.NumberOfDispatchTry.Value.ShouldBe(1);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

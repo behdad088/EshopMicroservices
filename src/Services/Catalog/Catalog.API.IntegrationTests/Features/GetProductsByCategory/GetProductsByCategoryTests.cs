@@ -2,21 +2,17 @@
 
 namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
 {
-    [Collection(GetWebApiContainerFactory.Name)]
-    public class GetProductsByCategoryTests(WebApiContainerFactory webApiContainer) : IAsyncLifetime
+    [Collection(TestCollection.Name)]
+    public class GetProductsByCategoryTests(ApiSpecification apiSpecification) : IAsyncLifetime
     {
         private DataSeeder _dataSeeder = default!;
         private HttpClient _client = default!;
-        private ApiSpecification _apiSpecification = default!;
 
         public async Task InitializeAsync()
         {
-            _apiSpecification = new ApiSpecification(webApiContainer);
-            await _apiSpecification.InitializeAsync();
-
-            _dataSeeder = _apiSpecification.DataSeeder;
-            _client = _apiSpecification.HttpClient;
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData();
+            _dataSeeder = apiSpecification.DataSeeder;
+            _client = apiSpecification.HttpClient;
+            await apiSpecification.GetDocumentStore().Advanced.ResetAllData();
         }
 
         [Fact]
@@ -57,8 +53,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
 
         public async Task DisposeAsync()
         {
-            await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
-            await _apiSpecification.DisposeAsync().ConfigureAwait(false);
+            await Task.CompletedTask;
         }
 
         private static ProductModule ToProductModule(Product product)

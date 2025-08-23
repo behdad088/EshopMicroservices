@@ -1,4 +1,3 @@
-using System.Net;
 using IntegrationTests.Common;
 using Order.Command.API.Authorization;
 using Order.Command.Domain.Models;
@@ -6,25 +5,23 @@ using Order.Command.API.Endpoints.GetOrderById;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrderById;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class GetOrderByIdTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken = default!;
     private SqlDbGiven _sqlDbGiven = default!;
     private IApplicationDbContext _dbContext = default!;
-    
-    public async Task InitializeAsync()
-    {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
-        _sqlDbGiven = _apiSpecification.SqlDbGiven;
-        _dbContext = _apiSpecification.DbContext;
-    }
 
+    public GetOrderByIdTests(ApiSpecification apiSpecification)
+    {
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
+        _sqlDbGiven = apiSpecification.SqlDbGiven;
+        _dbContext = apiSpecification.DbContext;
+    }
+    
     [Fact]
     public async Task GetOrderById_when_no_token_should_return_unauthorized()
     {
@@ -34,7 +31,7 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
         
         // Act
         var response = await _httpClient
-            .GetAsync($"customers/{customerId}/orders/{orderId}",
+            .GetAsync($"api/v1/customers/{customerId}/orders/{orderId}",
                 _cancellationToken);
         
         // Assert
@@ -52,7 +49,7 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
         var response = await _httpClient
             .SetFakeBearerToken(FakePermission.GetPermissions([],
                 sub: customerId))
-            .GetAsync($"customers/{customerId}/orders/{orderId}",
+            .GetAsync($"api/v1/customers/{customerId}/orders/{orderId}",
                 _cancellationToken);
         
         // Assert
@@ -72,7 +69,7 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanGetOrderPermission],
                 sub: customerId))
-            .GetAsync($"customers/{anotherCustomerId}/orders/{orderId}",
+            .GetAsync($"api/v1/customers/{anotherCustomerId}/orders/{orderId}",
                 _cancellationToken);
         
         // Assert
@@ -91,7 +88,7 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanGetOrderPermission],
                 sub: customerId))
-            .GetAsync($"customers/{customerId}/orders/{orderId}",
+            .GetAsync($"api/v1/customers/{customerId}/orders/{orderId}",
             _cancellationToken);
         
         // Assert
@@ -129,7 +126,7 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.OrdersCommandCanGetOrderPermission],
                 sub: customerId.ToString()))
-            .GetAsync($"customers/{customerId}/orders/{orderId}",
+            .GetAsync($"api/v1/customers/{customerId}/orders/{orderId}",
             _cancellationToken);
         
         // Assert
@@ -147,11 +144,6 @@ public class GetOrderByIdTests(WebApiContainerFactory webApiContainerFactory) : 
         
         var expected = MapOrder(dbResult!);
         result.ShouldBeEquivalentTo(expected);
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
     
     private static Response MapOrder(Domain.Models.Order order)

@@ -10,25 +10,23 @@ using Order.Command.Domain.Models;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;
 
-[Collection(GetWebApiContainerFactory.Name)]
-public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : IAsyncLifetime
+[Collection(TestCollection.Name)]
+public class UpdateOrderTests : IClassFixture<ApiSpecification>
 {
-    private ApiSpecification _apiSpecification = default!;
     private HttpClient _httpClient = default!;
     private CancellationToken _cancellationToken;
     private SqlDbGiven _sqlDbGiven = default!;
     private IApplicationDbContext _dbContext = default!;
     private ITestHarness _testHarness = default!;
-    
-    public async Task InitializeAsync()
+
+    public UpdateOrderTests(ApiSpecification apiSpecification)
     {
-        _apiSpecification = new ApiSpecification(webApiContainerFactory);
-        await _apiSpecification.InitializeAsync();
-        _httpClient = _apiSpecification.HttpClient();
-        _cancellationToken = _apiSpecification.CancellationToken;
-        _sqlDbGiven = _apiSpecification.SqlDbGiven;
-        _dbContext = _apiSpecification.DbContext;
-        _testHarness = _apiSpecification.TestHarness;
+        apiSpecification.ClearDatabaseAsync().GetAwaiter().GetResult();
+        _httpClient = apiSpecification.HttpClient();
+        _cancellationToken = apiSpecification.CancellationToken;
+        _sqlDbGiven = apiSpecification.SqlDbGiven;
+        _dbContext = apiSpecification.DbContext;
+        _testHarness = apiSpecification.TestHarness;
     }
     
     [Theory, OrderRequestAutoData]
@@ -36,7 +34,7 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
         Request request)
     {
         // Arrange
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -68,7 +66,7 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
             Id = orderId.Value.ToString()
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -115,7 +113,7 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
                 "12345")
         };
         
-        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"customers/{request.CustomerId}/orders/{request.Id}")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"api/v1/customers/{request.CustomerId}/orders/{request.Id}")
         {
             Content = JsonContent.Create(request)
         };
@@ -170,10 +168,5 @@ public class UpdateOrderTests(WebApiContainerFactory webApiContainerFactory) : I
                 new ModuleOrderItem(x.ProductId.ToString(), x.Quantity, x.Price)).ToList()
             .ShouldBeEquivalentTo(request.OrderItems);
         outboxMessage.NumberOfDispatchTry.Value.ShouldBe(1);
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _apiSpecification.DisposeAsync();
     }
 }

@@ -23,7 +23,6 @@ if (builder.Environment.IsDevelopment())
     builder.Services.InitializeMartenWith<CatalogInitialDataMigration>();
 }
 
-builder.Services.AddSingleton<IAuthorizationHandler, CatalogRequirementHandler>();
 builder.AddDefaultAuthentication(Policies.ConfigureAuthorization);
 
 var app = builder.Build();
