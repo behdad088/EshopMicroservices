@@ -22,8 +22,6 @@ public record OrderCreatedEvent(
     OrderCreatedEvent.Payment PaymentMethod,
     [property: JsonPropertyName("order_status")]
     string? OrderStatus,
-    [property: JsonPropertyName("deleted_date")]
-    string? DeletedDate,
     [property: JsonPropertyName("total_price")]
     decimal TotalPrice,
     [property: JsonPropertyName("version")]
@@ -34,13 +32,11 @@ public record OrderCreatedEvent(
     public DateTimeOffset OccurredAt => DateTimeOffset.Now;
 
     [property: JsonPropertyName("event_type")]
-    public string? EventType => GetType().AssemblyQualifiedName;
+    public string? EventType => "order_created_event";
 
     public record OrderItem(
-        [property: JsonPropertyName("id")] Ulid Id,
-        string? LastModifiedBy,
-        [property: JsonPropertyName("order_id")]
-        Ulid OrderId,
+        [property: JsonPropertyName("id")] 
+        Ulid Id,
         [property: JsonPropertyName("product_id")]
         Ulid ProductId,
         [property: JsonPropertyName("quantity")]

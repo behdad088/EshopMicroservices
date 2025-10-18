@@ -6,6 +6,8 @@ namespace Order.Command.Domain.Models;
 public class Outbox : Aggregate<OutboxId>
 {
     public AggregateId AggregateId { get; private set; } = default!;
+    
+    public CustomerId CustomerId { get; private set; } = default!;
     public AggregateType AggregateType { get; private set; } = default!;
     public DispatchDateTime DispatchDateTime { get; private set; } = default!;
     public VersionId VersionId { get; private set; } = default!;
@@ -16,6 +18,7 @@ public class Outbox : Aggregate<OutboxId>
 
     public Outbox Create(
         AggregateId aggregateId,
+        CustomerId customerId,
         AggregateType aggregateType,
         VersionId versionId,
         DispatchDateTime dispatchDateTime,
@@ -26,6 +29,7 @@ public class Outbox : Aggregate<OutboxId>
         {
             Id = OutboxId.From(Ulid.NewUlid()),
             AggregateId = aggregateId,
+            CustomerId = customerId,
             AggregateType = aggregateType,
             DispatchDateTime = dispatchDateTime,
             IsDispatched = IsDispatched.No,

@@ -6,6 +6,8 @@ namespace Order.Command.Domain.Events;
 public record OrderDeletedEvent(
     [property: JsonPropertyName("order_id")]
     Ulid OrderId,
+    [property: JsonPropertyName("customer_id")]
+    Guid? CustomerId,
     [property: JsonPropertyName("deleted_date")]
     string? DeletedDate,
     [property: JsonPropertyName("version")]
@@ -15,5 +17,5 @@ public record OrderDeletedEvent(
     public DateTimeOffset OccurredAt => DateTimeOffset.Now;
 
     [property: JsonPropertyName("event_type")]
-    public string? EventType => GetType().AssemblyQualifiedName;
+    public string? EventType => "order_deleted_event";
 }

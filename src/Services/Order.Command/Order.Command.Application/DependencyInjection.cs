@@ -3,7 +3,6 @@ using BuildingBlocks.CQRS.Extensions;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Application.Configurations;
-using Order.Command.Application.Identity;
 using Order.Command.Application.Outbox;
 using Order.Command.Application.Rmq;
 using Order.Command.Application.Rmq.CloudEvent;
@@ -41,9 +40,12 @@ public static class DependencyInjection
         
         Configurations[typeof(TEvent).Name] = (_, cfg) =>
         {
+            cfg.ClearSerialization();
+            cfg.UseRawJsonSerializer(isDefault: true);
+            
             cfg.Message<CloudEvent<TEvent>>(config =>
             {
-                config.SetEntityName($"{exchange}_exchange");
+                config.SetEntityName(exchange);
             });
             cfg.Publish<CloudEvent<TEvent>>(publishConfig =>
             {
@@ -87,6 +89,6 @@ public static class DependencyInjection
         var eventNameInSnakeCase =
             string.Concat(eventName.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()))
                 .ToLower();
-        return eventNameInSnakeCase;
+        return $"{eventNameInSnakeCase}_exchange";
     }
 }

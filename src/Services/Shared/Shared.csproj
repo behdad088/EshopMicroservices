@@ -13,11 +13,14 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Cnblogs.IdentityModel.AspNetCore.OAuth2Introspection" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
         <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
         <PackageReference Include="ReHackt.Extensions.Options.Validation"/>
         <PackageReference Include="Swashbuckle.AspNetCore"/>
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="Ulid" />
     </ItemGroup>
 
 </Project>

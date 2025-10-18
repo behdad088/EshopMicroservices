@@ -1,3 +1,4 @@
+using eshop.Shared;
 using FluentValidation;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;

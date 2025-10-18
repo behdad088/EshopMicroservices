@@ -3,7 +3,6 @@ using Catalog.API.Authorization;
 using Catalog.API.Common;
 using Catalog.API.Data;
 using eshop.Shared;
-using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDefaultOpenApi();

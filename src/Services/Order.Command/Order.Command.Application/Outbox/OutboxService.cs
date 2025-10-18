@@ -11,7 +11,7 @@ public class OutboxService(
 ) : BackgroundService
 {
     private const int DelayInMilliseconds = 2000;
-
+    
     protected override async Task ExecuteAsync(CancellationToken token)
     {
         try
@@ -111,8 +111,9 @@ public class OutboxService(
             }
 
             dbContext.Outboxes.Update(@event);
-            await dbContext.SaveChangesAsync(token).ConfigureAwait(false);
         }
+        
+        await dbContext.SaveChangesAsync(token).ConfigureAwait(false);
     }
 
     private static async Task<List<Domain.Models.Outbox>> GetEventsToDispatchAsync(

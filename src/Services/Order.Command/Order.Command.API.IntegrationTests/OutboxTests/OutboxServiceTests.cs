@@ -13,6 +13,7 @@ public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
     private SqlDbGiven _sqlDbGiven = default!;
     private ITestHarness _testHarness = default!;
     private ApiSpecification _apiSpecification = default!;
+    
     public async Task InitializeAsync()
     {
         _apiSpecification = new ApiSpecification(factory);
@@ -39,7 +40,7 @@ public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
         {
             x.AggregateId = AggregateId.From(orderCreatedEvent.Id.Value);
             x.EventType = EventType.From(nameof(OrderCreatedEvent));
-            x.Payload = Payload.Serialize(orderCreatedEvent.ToOrderCreatedEvent());
+            x.Payload = Payload.Serialize(orderCreatedEvent.ToOrderCreatedEvent("test"));
             x.DispatchDateTime = DispatchDateTime.From(DateTimeOffset.UtcNow.AddMinutes(-1));
         });
         
@@ -78,7 +79,6 @@ public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
         message.PaymentMethod.CardNumber.ShouldBe(orderCreatedEvent.Payment.CardNumber);
         message.OrderItems.Count.ShouldBe(orderCreatedEvent.OrderItems.Count);
         var messageOrderItem = message.OrderItems.First();
-        messageOrderItem.OrderId.ShouldBe(orderCreatedEvent.Id.Value);
         messageOrderItem.ProductId.ShouldBe(orderCreatedEvent.OrderItems[0].ProductId.Value);
         messageOrderItem.Quantity.ShouldBe(orderCreatedEvent.OrderItems[0].Quantity);
         messageOrderItem.Price.ShouldBe(orderCreatedEvent.OrderItems[0].Price.Value);
@@ -135,7 +135,6 @@ public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
         message.PaymentMethod.CardNumber.ShouldBe(orderUpdatedEvent.Payment.CardNumber);
         message.OrderItems.Count.ShouldBe(orderUpdatedEvent.OrderItems.Count);
         var messageOrderItem = message.OrderItems.First();
-        messageOrderItem.OrderId.ShouldBe(orderUpdatedEvent.Id.Value);
         messageOrderItem.ProductId.ShouldBe(orderUpdatedEvent.OrderItems[0].ProductId.Value);
         messageOrderItem.Quantity.ShouldBe(orderUpdatedEvent.OrderItems[0].Quantity);
         messageOrderItem.Price.ShouldBe(orderUpdatedEvent.OrderItems[0].Price.Value);
@@ -147,7 +146,8 @@ public class OutboxServiceTests(WebApiContainerFactory factory) : IAsyncLifetime
     {
         // Arrange
         var orderId = Ulid.NewUlid();
-        var orderUpdatedEvent = new OrderDeletedEvent(orderId, DateTimeOffset.UtcNow.ToString(), 1);
+        var customerId = CustomerId.From(Guid.NewGuid());
+        var orderUpdatedEvent = new OrderDeletedEvent(orderId, customerId.Value, DateTimeOffset.UtcNow.ToString(), 1);
         
         await _testHarness.Start();
         await _sqlDbGiven.AnOutbox(x =>

@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_catalog_db:/var/lib/postgresql/data/
-  
+    
   basketDb:
     container_name: basketDb
     environment:
@@ -37,6 +37,18 @@ services:
     volumes:
       - identity_catalog_db:/var/lib/postgresql/data/
   
+  order.query.db:
+    container_name: order.query.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=OrderQueryDb
+    restart: always
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_order_query_db:/var/lib/postgresql/data/
+      
   distributedCache:
     container_name: distributedCache
     restart: always
@@ -167,6 +179,38 @@ services:
     ports:
       - "7000:8080"
       - "7063:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ./certificates:/app/certificates
+  
+  order.query.eventprocessor:
+    container_name: order.query.eventprocessor
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/order-query-event-processor.pfx
+      - RabbitMQ__URI=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest 
+      - ConnectionStrings__Database=Host=order.query.db;Port=5432;Database=OrderQueryDb;User Id=postgres;Password=postgres
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Name=order_created_event_queue
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Dlq=order_created_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Exchange=order_created_event_exchange
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Name=order_updated_event_queue
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Dlq=order_updated_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Exchange=order_updated_event_exchange
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Name=order_deleted_event_queue
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Dlq=order_deleted_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Exchange=order_deleted_event_exchange
+    depends_on:
+      - rabbitmq
+      - order.query.db
+    ports:
+      - "6004:8080"
+      - "7064:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro

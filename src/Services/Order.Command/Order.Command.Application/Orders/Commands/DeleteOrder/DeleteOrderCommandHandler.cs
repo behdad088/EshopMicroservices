@@ -4,7 +4,7 @@ using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;
 
-public record DeleteOrderCommand(string? OrderId, string? Version) : ICommand<DeleteOrderResult>;
+public record DeleteOrderCommand(string? CustomerId, string? OrderId, string? Version) : ICommand<DeleteOrderResult>;
 
 public record DeleteOrderResult(bool IsSuccess);
 
@@ -15,6 +15,7 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
     {
         try
         {
+            var customerId = CustomerId.From(Guid.Parse(command.CustomerId!));
             var orderId = OrderId.From(Ulid.Parse(command.OrderId));
             var version = VersionId.FromWeakEtag(command.Version!).Value;
 
@@ -26,12 +27,12 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
 
             AssertOrder(order, command.OrderId!, version);
             order!.Delete(order.RowVersion.Increment());
-            var outbox = MapOutbox(order);
+            var outbox = MapOutbox(customerId, order);
 
             dbContext.Orders.Update(order);
             dbContext.Outboxes.Add(outbox);
 
-            AddOrderDeletedEvent(order);
+            AddOrderDeletedEvent(customerId, order);
 
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -58,17 +59,18 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
             throw new InvalidEtagException(version);
     }
 
-    private static void AddOrderDeletedEvent(Domain.Models.Order order)
+    private static void AddOrderDeletedEvent(CustomerId customerId, Domain.Models.Order order)
     {
-        var @event = MapOrderDeletedEvent(order);
+        var @event = MapOrderDeletedEvent(customerId, order);
         order.AddDomainEvent(@event);
     }
 
-    private static Domain.Models.Outbox MapOutbox(Domain.Models.Order order)
+    private static Domain.Models.Outbox MapOutbox(CustomerId customerId, Domain.Models.Order order)
     {
-        var payload = Payload.Serialize(MapOrderDeletedEvent(order));
+        var payload = Payload.Serialize(MapOrderDeletedEvent(customerId, order));
         var outbox = new Domain.Models.Outbox().Create(
             aggregateId: AggregateId.From(order.Id.Value),
+            customerId: customerId,
             aggregateType: AggregateType.From(order.GetType().Name),
             versionId: VersionId.From(order.RowVersion.Value),
             dispatchDateTime: DispatchDateTime.InTwoMinutes(),
@@ -78,8 +80,8 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
         return outbox;
     }
 
-    private static OrderDeletedEvent MapOrderDeletedEvent(Domain.Models.Order order)
+    private static OrderDeletedEvent MapOrderDeletedEvent(CustomerId customerId, Domain.Models.Order order)
     {
-        return new OrderDeletedEvent(order.Id.Value, order.DeleteDate!.Value, order.RowVersion.Value);
+        return new OrderDeletedEvent(order.Id.Value, customerId.Value, order.DeleteDate!.Value, order.RowVersion.Value);
     }
 }

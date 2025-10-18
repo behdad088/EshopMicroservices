@@ -19,6 +19,9 @@ services:
   order.command.db:
     image: mcr.microsoft.com/mssql/server
     platform: linux/amd64
+    
+  order.query.db:
+    image: postgres
   
   catalog.api:
     image: ${DOCKER_REGISTRY-}catalog.api
@@ -50,8 +53,15 @@ services:
       context: .
       dockerfile: Services/Identity/Identity.API/Dockerfile
       
+  order.query.eventprocessor:
+    image: ${DOCKER_REGISTRY-}order.query.eventprocessor
+    build:
+      context: .
+      dockerfile: Services/Order.Query/Order.Query.EventProcessor/Dockerfile
+      
 volumes:
   postgres_catalog_db:
+  postgres_order_query_db:
   postgres_basket_db:
   identity_catalog_db:
   rabbitmq_data:

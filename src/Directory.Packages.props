@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="8.0.1" />
+    <PackageVersion Include="Cnblogs.IdentityModel.AspNetCore.OAuth2Introspection" Version="7.0.0" />
     <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.57.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.65.0" />
     <PackageVersion Include="Grpc.Core" Version="2.46.6" />
