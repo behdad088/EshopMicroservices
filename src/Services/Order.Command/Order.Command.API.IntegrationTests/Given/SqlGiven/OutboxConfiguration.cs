@@ -8,6 +8,7 @@ public record OutboxConfiguration
     public VersionId VersionId { get; set; } = VersionId.From(1);
     public IsDispatched IsDispatched { get; set; } = IsDispatched.No;
     public NumberOfDispatchTry NumberOfDispatchTry { get; set; } = NumberOfDispatchTry.InitialValue;
+    public CustomerId CustomerId { get; init; } = CustomerId.From(Guid.Empty);
     public EventType EventType { get; set; } = EventType.From("TestEventType");
     public Payload? Payload { get; set; }
 }
@@ -18,6 +19,7 @@ public static class CreateOutboxConfiguration
     {
         return new Domain.Models.Outbox().Create(
             outbox.AggregateId,
+            outbox.CustomerId,
             outbox.AggregateType,
             outbox.VersionId,
             outbox.DispatchDateTime,

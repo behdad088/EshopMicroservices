@@ -4,11 +4,11 @@ namespace Order.Command.Domain.Events;
 
 public static class Extensions
 {
-    public static OrderCreatedEvent ToOrderCreatedEvent(this Models.Order order)
+    public static OrderCreatedEvent ToOrderCreatedEvent(this Models.Order order, string createdBy)
     {
         return new OrderCreatedEvent(
             Id: order.Id.Value,
-            CreatedBy: order.CreatedBy,
+            CreatedBy: createdBy,
             LastModified: order.LastModified,
             CustomerId: order.CustomerId.Value,
             OrderName: order.OrderName.Value,
@@ -17,7 +17,6 @@ public static class Extensions
             BillingAddress: ToEventAddress(order.BillingAddress),
             PaymentMethod: ToEventPayment(order.Payment),
             OrderStatus: order.Status.Value,
-            DeletedDate: order.DeleteDate?.Value,
             TotalPrice: order.TotalPrice.Value,
             Version: order.RowVersion.Value);
 
@@ -25,8 +24,6 @@ public static class Extensions
         {
             return orderItems.Select(item => new OrderCreatedEvent.OrderItem(
                 Id: item.Id.Value,
-                LastModifiedBy: item.LastModifiedBy,
-                OrderId: item.OrderId.Value,
                 ProductId: item.ProductId.Value,
                 Quantity: item.Quantity,
                 Price: item.Price.Value)).ToList();
@@ -59,7 +56,6 @@ public static class Extensions
     {
         return new OrderUpdatedEvent(
             Id: order.Id.Value,
-            CreatedBy: order.CreatedBy,
             LastModified: order.LastModified,
             CustomerId: order.CustomerId.Value,
             OrderName: order.OrderName.Value,
@@ -68,7 +64,6 @@ public static class Extensions
             BillingAddress: ToEventAddress(order.BillingAddress),
             PaymentMethod: ToEventPayment(order.Payment),
             OrderStatus: order.Status.Value,
-            DeletedDate: order.DeleteDate?.Value,
             TotalPrice: order.TotalPrice.Value,
             Version: order.RowVersion.Value);
 
@@ -76,8 +71,6 @@ public static class Extensions
         {
             return orderItems.Select(item => new OrderCreatedEvent.OrderItem(
                 Id: item.Id.Value,
-                LastModifiedBy: item.LastModifiedBy,
-                OrderId: item.OrderId.Value,
                 ProductId: item.ProductId.Value,
                 Quantity: item.Quantity,
                 Price: item.Price.Value)).ToList();

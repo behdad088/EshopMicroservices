@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\..\Shared\Shared.csproj" />
         <ProjectReference Include="..\Order.Command.Domain\Order.Command.Domain.csproj"/>
     </ItemGroup>
 

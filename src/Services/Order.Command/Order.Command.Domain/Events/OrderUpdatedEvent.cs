@@ -4,8 +4,6 @@ namespace Order.Command.Domain.Events;
 
 public record OrderUpdatedEvent(
     [property: JsonPropertyName("id")] Ulid Id,
-    [property: JsonPropertyName("created_by")]
-    string? CreatedBy,
     [property: JsonPropertyName("last_modified")]
     DateTimeOffset? LastModified,
     [property: JsonPropertyName("customer_id")]
@@ -22,8 +20,6 @@ public record OrderUpdatedEvent(
     OrderUpdatedEvent.Payment PaymentMethod,
     [property: JsonPropertyName("order_status")]
     string? OrderStatus,
-    [property: JsonPropertyName("deleted_date")]
-    string? DeletedDate,
     [property: JsonPropertyName("total_price")]
     decimal TotalPrice,
     [property: JsonPropertyName("version")]
@@ -34,7 +30,7 @@ public record OrderUpdatedEvent(
     public DateTimeOffset OccurredAt => DateTimeOffset.Now;
 
     [property: JsonPropertyName("event_type")]
-    public string? EventType => GetType().AssemblyQualifiedName;
+    public string? EventType => "order_updated_event";
 
     public record OrderItem(
         [property: JsonPropertyName("id")] Ulid Id,

@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
+using Order.Command.Application.Identity;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
@@ -7,24 +8,26 @@ public record CreateOrderCommand(OrderParameter OrderParameter) : ICommand<Creat
 
 public record CreateOrderResult(Ulid Id);
 
-public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
+public class CreateOrderCommandHandler(
+    IApplicationDbContext dbContext)
     : ICommandHandler<CreateOrderCommand, CreateOrderResult>
 {
     public async Task<CreateOrderResult> Handle(
-        CreateOrderCommand command, 
+        CreateOrderCommand command,
         CancellationToken cancellationToken)
     {
         try
         {
+            var customerId = CustomerId.From(Guid.Parse(command.OrderParameter.CustomerId!));
             var order = MapOrder(command.OrderParameter);
-            var outbox = MapOutbox(order);
+            var outbox = MapOutbox(customerId, order);
 
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             dbContext.Orders.Add(order);
             dbContext.Outboxes.Add(outbox);
 
-            AddOrderCreatedEvent(order);
+            AddOrderCreatedEvent(order, customerId);
 
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken);
@@ -77,20 +80,21 @@ public class CreateOrderCommandHandler(IApplicationDbContext dbContext)
             cvv: paymentParameter.Cvv!,
             paymentMethod: paymentParameter.PaymentMethod!.Value);
 
-    private static void AddOrderCreatedEvent(Domain.Models.Order order)
+    private static void AddOrderCreatedEvent(Domain.Models.Order order, CustomerId customerId)
     {
-        order.AddDomainEvent(order.ToOrderCreatedEvent());
+        order.AddDomainEvent(order.ToOrderCreatedEvent(customerId.Value.ToString()));
     }
 
-    private static Domain.Models.Outbox MapOutbox(Domain.Models.Order order)
+    private Domain.Models.Outbox MapOutbox(CustomerId customerId, Domain.Models.Order order)
     {
         var outbox = new Domain.Models.Outbox().Create(
             aggregateId: AggregateId.From(order.Id.Value),
+            customerId: customerId,
             aggregateType: AggregateType.From(order.GetType().Name),
             versionId: VersionId.From(order.RowVersion.Value),
             dispatchDateTime: DispatchDateTime.InTwoMinutes(),
             eventType: EventType.From(nameof(OrderCreatedEvent)),
-            payload: Payload.Serialize(order.ToOrderCreatedEvent()));
+            payload: Payload.Serialize(order.ToOrderCreatedEvent(customerId.Value.ToString())));
 
         return outbox;
     }

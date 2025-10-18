@@ -1,8 +1,9 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.Net.Http.Headers;
 
-namespace Order.Command.Application;
+namespace eshop.Shared;
 
 public static partial class ValidationExtensions
 {
@@ -23,16 +24,32 @@ public static partial class ValidationExtensions
     public static void MustBeValidCountryName<T>(
         this IRuleBuilder<T, string?> ruleBuilder
     ) => ruleBuilder.Must(x => x is not null && CountryNames.Contains(x))
-        .WithMessage($"country is not valid.");
+        .WithMessage("country is not valid.");
 
     public static void MustBeValidUlid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Ulid.TryParse(x, out _))
-            .WithMessage((_, propertyName) => $"{propertyName} is not a valid Ulid.");
+            .WithMessage((_, propertyValue) => $"{propertyValue} is not a valid Ulid.");
 
     public static IRuleBuilderOptions<T, string?> MustBeValidGuid<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
         ruleBuilder.NotEmpty().Must(x => Guid.TryParse(x, out _))
-            .WithMessage((_, propertyName) => $"{propertyName} is not a valid UUID");
+            .WithMessage((_, propertyValue) => $"{propertyValue} is not a valid UUID");
 
+    public static void MustBeValidTimestamp<T>(this IRuleBuilder<T, string?> ruleBuilder) =>
+        ruleBuilder.NotEmpty().Must(BeValidTimestamp)
+        .WithMessage((_, value) => $"{value} is not a valid timestamp");
+    
+    private static bool BeValidTimestamp(string? timestamp)
+    {
+        return DateTime.TryParseExact(
+            timestamp,
+            "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out _
+        );
+    }
+    
+    
     [GeneratedRegex(
         @"^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12}|(?:2131|1800|35\d{3})\d{11})$")]
     private static partial Regex CardNumberRegex();

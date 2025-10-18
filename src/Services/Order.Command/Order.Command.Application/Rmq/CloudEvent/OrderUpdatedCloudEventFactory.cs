@@ -3,7 +3,7 @@ using Order.Command.Application.Rmq.CloudEvent.Models;
 
 namespace Order.Command.Application.Rmq.CloudEvent;
 
-public sealed class OrderUpdatedCloudEventFactory : ICloudEventFactory<OrderUpdatedEvent>
+internal sealed class OrderUpdatedCloudEventFactory : ICloudEventFactory<OrderUpdatedEvent>
 {
     public CloudEvent<OrderUpdatedEvent> Create(OrderUpdatedEvent @event)
     {

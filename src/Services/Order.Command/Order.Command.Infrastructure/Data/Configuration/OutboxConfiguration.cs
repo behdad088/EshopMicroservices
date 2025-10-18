@@ -20,6 +20,11 @@ public class OutboxConfiguration : IEntityTypeConfiguration<Outbox>
             aggregateId => aggregateId.ToString(),
             dbAggregateId => AggregateId.From(Ulid.Parse(dbAggregateId)));
 
+        builder.Property(x => x.CustomerId).HasConversion(
+                customerId => customerId.Value,
+                dbCustomerId => CustomerId.From(dbCustomerId))
+            .IsRequired();
+        
         builder.Property(p => p.VersionId).HasConversion(
                 versionId => versionId.Value,
                 dbVersionId => VersionId.From(dbVersionId))

@@ -3,7 +3,7 @@ using Order.Command.Application.Rmq.CloudEvent.Models;
 
 namespace Order.Command.Application.Rmq.CloudEvent;
 
-public sealed class OrderDeletedCloudEventFactory : ICloudEventFactory<OrderDeletedEvent>
+internal sealed class OrderDeletedCloudEventFactory : ICloudEventFactory<OrderDeletedEvent>
 {
     public CloudEvent<OrderDeletedEvent> Create(OrderDeletedEvent @event)
     {

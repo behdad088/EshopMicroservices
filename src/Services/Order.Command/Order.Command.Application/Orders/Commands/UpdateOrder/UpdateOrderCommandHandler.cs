@@ -15,6 +15,7 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
     {
         try
         {
+            var customerId = CustomerId.From(Guid.Parse(command.Order.CustomerId!));
             var orderId = OrderId.From(Ulid.Parse(command.Order.Id));
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             var orderDb = await dbContext.Orders.FindAsync([orderId], cancellationToken: cancellationToken)
@@ -23,7 +24,7 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
             AssertOrder(orderDb, command.Order);
             UpdateOrderWithNewValues(command.Order, orderDb!);
             AddOrderUpdatedEvent(orderDb!);
-            var outbox = MapOutbox(orderDb!);
+            var outbox = MapOutbox(customerId, orderDb!);
 
             dbContext.Orders.Update(orderDb!);
             dbContext.Outboxes.Add(outbox);
@@ -121,10 +122,11 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
         };
     }
 
-    private static Domain.Models.Outbox MapOutbox(Domain.Models.Order order)
+    private static Domain.Models.Outbox MapOutbox(CustomerId customerId, Domain.Models.Order order)
     {
         var outbox = new Domain.Models.Outbox().Create(
             aggregateId: AggregateId.From(order.Id.Value),
+            customerId: customerId,
             aggregateType: AggregateType.From(order.GetType().Name),
             versionId: VersionId.From(order.RowVersion.Value),
             dispatchDateTime: DispatchDateTime.InTwoMinutes(),

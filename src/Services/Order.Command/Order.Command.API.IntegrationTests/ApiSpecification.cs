@@ -1,14 +1,8 @@
 using IntegrationTests.Common;
-using MassTransit;
 using MassTransit.Testing;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
-using Order.Command.Infrastructure.Data;
 using Respawn;
-using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Order.Command.API.IntegrationTests;
 

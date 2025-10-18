@@ -1,0 +1,44 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Order Command API CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+    - src/BuildingBlocks/**
+    - src/Services/Order.Command/**
+    - .github/workflows/order-command-api-CI.yml
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - src/BuildingBlocks/**
+    - src/Services/Order.Command/**
+    - .github/workflows/order-command-api-CI.yml
+
+env:
+  SERVICE: order-command.api
+  IMAGE: order-command.api
+  ProjectPath: src/Services/Order.Command/Order.Command.API
+  ProjectTestPath: src/Services/Order.Command/Order.Command.API.IntegrationTests
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - uses: ./.github/workflows/composite/build-push
+      with: 
+        service: ${{ env.SERVICE }}
+        image_name: ${{ env.IMAGE }}
+        project_path: ${{ env.ProjectPath }}
+        test_path: ${{ env.ProjectTestPath }}
+        registry_username: ${{ vars.REGISTRYUSERNAME }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -1,0 +1,6 @@
+@Order.Query.EventProcessor_HostAddress = http://localhost:5136
+
+GET {{Order.Query.EventProcessor_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

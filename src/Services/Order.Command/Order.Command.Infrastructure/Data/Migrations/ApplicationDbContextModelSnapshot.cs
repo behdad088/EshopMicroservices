@@ -235,6 +235,9 @@ namespace Order.Command.Infrastructure.Data.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset>("DispatchDateTime")
                         .HasColumnType("datetimeoffset");
 

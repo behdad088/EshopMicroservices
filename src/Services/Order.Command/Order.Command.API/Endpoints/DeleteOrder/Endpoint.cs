@@ -37,6 +37,6 @@ public class Endpoint : EndpointBase<Request>
 
     private static DeleteOrderCommand MapToCommand(Request request, string? etag)
     {
-        return new DeleteOrderCommand(request.OrderId, etag);
+        return new DeleteOrderCommand(request.CustomerId, request.OrderId, etag);
     }
 }
