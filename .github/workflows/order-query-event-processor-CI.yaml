@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Order Command API CI
+name: Order Query EventProcessor CI
 
 on:
   workflow_dispatch:
@@ -9,21 +9,21 @@ on:
     branches: [ "main" ]
     paths:
     - src/BuildingBlocks/**
-    - src/Services/Order.Command/**
-    - .github/workflows/order-command-api-CI.yml
+    - src/Services/Order.Query/**
+    - .github/workflows/order-query-event-processor-CI.yml
 
   pull_request:
     branches: [ "main" ]
     paths:
     - src/BuildingBlocks/**
-    - src/Services/Order.Command/**
-    - .github/workflows/order-command-api-CI.yml
+    - src/Services/Order.Query/**
+    - .github/workflows/order-query-event-processor-CI.yml
 
 env:
-  SERVICE: order-command.api
-  IMAGE: order-command.api
-  ProjectPath: src/Services/Order.Command/Order.Command.API
-  ProjectTestPath: src/Services/Order.Command/Order.Command.API.IntegrationTests
+  SERVICE: order-query-eventProcessor
+  IMAGE: order-query-eventProcessor
+  ProjectPath: src/Services/Order.Query/Order.Query.EventProcessor
+  ProjectTestPath: src/Services/Order.Query/Order.Query.EventProcessor.IntegrationTests
 
 jobs:
 
