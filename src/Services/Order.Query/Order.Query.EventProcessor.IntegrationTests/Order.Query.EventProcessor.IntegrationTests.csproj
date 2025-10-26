@@ -24,11 +24,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Order.Query.EventProcessor\Order.Query.EventProcessor.csproj" />
+        <ProjectReference Include="..\Order.Query.EventProcessor\Order.Query.EventProcessor.csproj" />
+        <ProjectReference Include="..\Order.Query\Order.Query.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Given\SqlGiven\" />
+        <Folder Include="Given\SqlGiven\" />
     </ItemGroup>
 
 </Project>

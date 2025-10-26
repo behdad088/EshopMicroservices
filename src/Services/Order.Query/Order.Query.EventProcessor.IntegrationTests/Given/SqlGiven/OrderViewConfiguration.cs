@@ -1,6 +1,6 @@
 
 using System.Globalization;
-using Order.Query.Data.Views.OrderView;
+using Order.Query.Features.OrderView;
 
 namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
 

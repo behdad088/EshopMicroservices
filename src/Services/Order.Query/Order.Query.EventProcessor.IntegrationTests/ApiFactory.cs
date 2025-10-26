@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Order.Query.Data.Events;
-using Order.Query.Data.Views.OrderView;
 using Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
 using Order.Query.EventProcessor.IntegrationTests.Masstransit;
+using Order.Query.Events;
+using Order.Query.Features.OrderView;
 
 namespace Order.Query.EventProcessor.IntegrationTests;
 

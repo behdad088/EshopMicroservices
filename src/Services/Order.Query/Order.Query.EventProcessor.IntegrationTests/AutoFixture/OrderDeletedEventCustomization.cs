@@ -1,6 +1,6 @@
 using System.Net.Mime;
 using AutoFixture;
-using Order.Query.Data.Events;
+using Order.Query.Events;
 
 namespace Order.Query.EventProcessor.IntegrationTests.AutoFixture;
 

@@ -1,4 +1,4 @@
-namespace Order.Query.Data.Events;
+namespace Order.Query.Events;
 
 public abstract record Event
 {

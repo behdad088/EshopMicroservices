@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
-using MassTransit;
 
-namespace Order.Query.Data.Events;
+namespace Order.Query.Events;
 
 public record CloudEvent<TEvent> where TEvent : Event
 {

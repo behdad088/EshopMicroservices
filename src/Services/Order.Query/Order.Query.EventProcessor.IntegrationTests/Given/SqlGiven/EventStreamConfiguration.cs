@@ -1,5 +1,4 @@
-
-using Order.Query.Data.Events;
+using Order.Query.Events;
 
 namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
 
