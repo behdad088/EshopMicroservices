@@ -29,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Given\SqlGiven\" />
+        <Folder Include="Given\SqlGiven\" />
     </ItemGroup>
 
 </Project>
