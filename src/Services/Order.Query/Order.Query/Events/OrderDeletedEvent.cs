@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
-using Order.Query.Data.Events;
 
-namespace Order.Query.Data.Events;
+namespace Order.Query.Events;
 
 public record OrderDeletedEvent(
     [property: JsonPropertyName("order_id")]

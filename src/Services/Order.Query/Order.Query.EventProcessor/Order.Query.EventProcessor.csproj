@@ -18,7 +18,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.csproj" />
-        <ProjectReference Include="..\Order.Query.Data\Order.Query.Data.csproj" />
+        <ProjectReference Include="..\Order.Query\Order.Query.csproj" />
     </ItemGroup>
 
     <ItemGroup>

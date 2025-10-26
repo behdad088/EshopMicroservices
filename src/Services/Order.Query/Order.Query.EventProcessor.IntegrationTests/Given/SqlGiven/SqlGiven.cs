@@ -1,6 +1,6 @@
 using Marten;
-using Order.Query.Data.Events;
-using Order.Query.Data.Views.OrderView;
+using Order.Query.Events;
+using Order.Query.Features.OrderView;
 
 namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
 

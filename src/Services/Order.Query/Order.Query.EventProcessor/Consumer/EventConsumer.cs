@@ -2,9 +2,9 @@ using System.Text.Json;
 using FluentValidation;
 using Marten;
 using MassTransit;
-using Order.Query.Data.Events;
-using Order.Query.Data.Projections;
-using Event = Order.Query.Data.Events.Event;
+using Order.Query.Events;
+using Order.Query.Projections;
+using Event = Order.Query.Events.Event;
 
 namespace Order.Query.EventProcessor.Consumer;
 
