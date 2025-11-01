@@ -58,6 +58,12 @@ services:
     build:
       context: .
       dockerfile: Services/Order.Query/Order.Query.EventProcessor/Dockerfile
+  
+  order.query.api:
+    image: ${DOCKER_REGISTRY-}order.query.api
+    build:
+      context: .
+      dockerfile: Services/Order.Query/Order.Query.API/Dockerfile
       
 volumes:
   postgres_catalog_db:

@@ -15,7 +15,6 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="Testcontainers.RabbitMq" />
         <PackageReference Include="xunit" />
-        <PackageReference Include="Testcontainers.RabbitMq" />
         <PackageReference Include="xunit.runner.visualstudio" />
     </ItemGroup>
 
@@ -29,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Given\SqlGiven\" />
+        <Folder Include="Given\DbGiven\" />
     </ItemGroup>
 
 </Project>

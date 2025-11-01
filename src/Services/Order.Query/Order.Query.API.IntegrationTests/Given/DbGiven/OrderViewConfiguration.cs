@@ -1,8 +1,7 @@
-
 using System.Globalization;
 using Order.Query.Features.OrderView;
 
-namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
+namespace Order.Query.API.IntegrationTests.Given.DbGiven;
 
 public class OrderViewConfiguration
 {
