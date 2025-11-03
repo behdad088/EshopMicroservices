@@ -26,6 +26,11 @@ public static class Config
         public const string OrdersCommandCanGetOrdersListsByOrderName = "orders_command:order:all-by-order-name";
         public const string OrdersCommandCanUpdateOrder = "orders_command:order:update";
         
+        // Define policies for orders query operations
+        public const string OrdersQueryCanGetOrder = "orders_query:order:get";
+        public const string OrdersQueryCanGetAllOrders = "orders_query:order:all";
+        public const string OrdersQueryCanGetOrdersListsByCustomerId = "orders_query:order:all-by-customer-id";
+        public const string OrdersQueryCanGetOrdersListsByOrderName = "orders_query:order:all-by-order-name";
     }
     public static class RolePolicyDefinitions
     {
@@ -41,11 +46,16 @@ public static class Config
             
             { Policies.OrdersCommandCanCreateOrder, [ Roles.Customer] },
             { Policies.OrdersCommandCanDeleteOrder, [Roles.Admin] },
-            { Policies.OrdersCommandCanGetOrder, [Roles.Admin] },
+            { Policies.OrdersCommandCanGetOrder, [Roles.Admin, Roles.Customer] },
             { Policies.OrdersCommandCanGetAllOrders, [Roles.Admin] },
             { Policies.OrdersCommandCanGetOrdersListsByCustomerId, [Roles.Admin, Roles.Customer] },
             { Policies.OrdersCommandCanGetOrdersListsByOrderName, [Roles.Admin] },
-            { Policies.OrdersCommandCanUpdateOrder, [Roles.Admin, Roles.Customer] }
+            { Policies.OrdersCommandCanUpdateOrder, [Roles.Admin, Roles.Customer] },
+            
+            { Policies.OrdersQueryCanGetOrder, [Roles.Admin, Roles.Customer] },
+            { Policies.OrdersQueryCanGetAllOrders, [Roles.Admin] },
+            { Policies.OrdersQueryCanGetOrdersListsByCustomerId, [Roles.Admin, Roles.Customer] },
+            { Policies.OrdersQueryCanGetOrdersListsByOrderName, [Roles.Admin] },
         };
     }
     

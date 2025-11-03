@@ -2,7 +2,7 @@ using Marten;
 using MassTransit;
 using MassTransit.Testing;
 using Order.Query.EventProcessor.IntegrationTests.AutoFixture;
-using Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
+using Order.Query.EventProcessor.IntegrationTests.Given.DbGiven;
 using Order.Query.EventProcessor.IntegrationTests.Masstransit;
 using Order.Query.Events;
 using Order.Query.Features.OrderView;
@@ -17,7 +17,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
     private readonly CancellationToken _cancellationToken;
     private readonly IDocumentStore _documentStore;
     private readonly ITestHarness  _testHarness;
-    private readonly SqlGiven _sqlGiven;
+    private readonly DbGiven _dbGiven;
     private readonly TestConsumeObserver  _consumeObserver;
 
     public OrderViewOrderUpdatedEventTest(WebApiContainerFactory webApiContainerFactory)
@@ -26,7 +26,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         _cancellationToken = _apiFactory.CancellationToken;
         _documentStore = _apiFactory.GetDocumentStore;
         _testHarness = _apiFactory.TestHarness;
-        _sqlGiven = new SqlGiven(_documentStore);
+        _dbGiven = new DbGiven(_documentStore);
         _consumeObserver = _apiFactory.ConsumeObserver;
     }
     
@@ -1151,7 +1151,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
             }
         };
 
-        await _sqlGiven.OrderViewConfigurationGiven(x =>
+        await _dbGiven.OrderViewConfigurationGiven(x =>
         {
             x.Id = orderId.ToString();
             x.OrderCreatedEventVersion = 1;
@@ -1186,7 +1186,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
             }
         };
         
-        await _sqlGiven.OrderViewConfigurationGiven(x =>
+        await _dbGiven.OrderViewConfigurationGiven(x =>
         {
             x.Id = orderId.ToString();
             x.OrderCreatedEventVersion = 1;

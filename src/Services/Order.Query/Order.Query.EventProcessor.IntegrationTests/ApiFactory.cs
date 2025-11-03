@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
+using Order.Query.EventProcessor.IntegrationTests.Given.DbGiven;
 using Order.Query.EventProcessor.IntegrationTests.Masstransit;
 using Order.Query.Events;
 using Order.Query.Features.OrderView;
@@ -16,7 +16,7 @@ public class ApiFactory(WebApiContainerFactory webApiContainerFactory) : WebAppl
 {
     private readonly CancellationTokenSource _timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
 
-    private SqlGiven? _sqlGiven;
+    private DbGiven? _sqlGiven;
     private TestConsumeObserver? _consumeObserver = null;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -88,7 +88,7 @@ public class ApiFactory(WebApiContainerFactory webApiContainerFactory) : WebAppl
     internal ITestHarness TestHarness => Services.GetTestHarness();
     internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;
 
-    internal SqlGiven SqlGiven => _sqlGiven ??= new SqlGiven(GetDocumentStore);
+    internal DbGiven DbGiven => _sqlGiven ??= new DbGiven(GetDocumentStore);
     
     internal TestConsumeObserver ConsumeObserver => _consumeObserver ??= new TestConsumeObserver(TestHarness);
 }

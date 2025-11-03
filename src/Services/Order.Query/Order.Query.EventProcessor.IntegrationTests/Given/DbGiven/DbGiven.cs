@@ -2,9 +2,9 @@ using Marten;
 using Order.Query.Events;
 using Order.Query.Features.OrderView;
 
-namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
+namespace Order.Query.EventProcessor.IntegrationTests.Given.DbGiven;
 
-public class SqlGiven(IDocumentStore store)
+public class DbGiven(IDocumentStore store)
 {
     public async Task OrderViewConfigurationGiven(Action<OrderViewConfiguration>? configuration = null)
     {

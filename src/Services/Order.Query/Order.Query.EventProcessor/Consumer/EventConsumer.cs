@@ -25,7 +25,7 @@ public sealed class EventConsumer<TView, TEvent> (
         if (!isValidatorResult.IsValid)
         {
             var validationErrors = isValidatorResult.Errors.Select(x => x.ErrorMessage).ToList();
-            throw new Exception($"Validation Failed due to: {string.Join(',', validationErrors)}");
+            throw new ValidationException($"Validation Failed due to: {string.Join(',', validationErrors)}");
         }
         
         var view = await session.LoadAsync<TView>(eventDocument.Id, cancellationTokenToken).ConfigureAwait(false);
