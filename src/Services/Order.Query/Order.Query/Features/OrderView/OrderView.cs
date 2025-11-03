@@ -14,7 +14,7 @@ public sealed class OrderView :
     public string? CreatedBy  { get; set; }
     public DateTimeOffset? LastModified  { get; set; }
     public string CustomerId   { get; set; } = null!;
-    public string? OrderName   { get; set; }
+    public string OrderName   { get; set; } = null!;
     public List<OrderItem> OrderItems { get; set; } = new();
     public Address ShippingAddress  { get; set; } = new();
     public Address BillingAddress  { get; set; } = new();
@@ -22,6 +22,8 @@ public sealed class OrderView :
     public string OrderStatus { get; set; } = null!;
     public string? DeletedDate { get; set; }
     public decimal TotalPrice {  get; set; }
+    
+    public int Version { get; set; }
     public int OrderCreatedEventVersion  { get; set; }
     public int OrderUpdatedEventVersion  { get; set; }
     public int OrderDeletedEventVersion { get; set; }
@@ -99,10 +101,14 @@ public sealed class OrderView :
             Cvv = @event.PaymentMethod.Cvv,
             PaymentMethod = @event.PaymentMethod.PaymentMethod!.Value
         };
-        OrderStatus = @event.OrderStatus;
+        OrderStatus = @event.OrderStatus!;
         TotalPrice = @event.TotalPrice;
         OrderCreatedEventVersion = @event.Version!.Value;
-        
+
+        if (Version < @event.Version)
+        {
+            Version = @event.Version.Value;
+        }
     }
 
     public static OrderView CreateView(OrderCreatedEvent @event)
@@ -121,7 +127,7 @@ public sealed class OrderView :
     public void Apply(OrderUpdatedEvent @event)
     {
         LastModified = @event.LastModified;
-        OrderName = @event.OrderName;
+        OrderName = @event.OrderName!;
         OrderItems =  @event.OrderItems.Select(x => 
             new OrderItem(x.Id.ToString(), x.ProductId.ToString(), x.Quantity!.Value, x.Price!.Value )).ToList();
         
@@ -158,6 +164,11 @@ public sealed class OrderView :
         OrderStatus = @event.OrderStatus;
         TotalPrice = @event.TotalPrice;
         OrderUpdatedEventVersion = @event.Version!.Value;
+        
+        if (Version < @event.Version)
+        {
+            Version = @event.Version.Value;
+        }
     }
 
     public static OrderView CreateView(OrderUpdatedEvent @event)
@@ -177,6 +188,11 @@ public sealed class OrderView :
     {
         DeletedDate = @event.DeletedDate;
         OrderDeletedEventVersion = @event.Version!.Value;
+        
+        if (Version < @event.Version)
+        {
+            Version = @event.Version.Value;
+        }
     }
 
     public static OrderView CreateView(OrderDeletedEvent @event)

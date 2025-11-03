@@ -1,9 +1,10 @@
-﻿using FluentValidation;
+﻿using FastEndpoints;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace BuildingBlocks.Exceptions.Handler;
 
@@ -54,6 +55,19 @@ public static class ExceptionHandlerMiddleware
                 Detail = error.Message,
                 Title = error.GetType().Name,
                 Status = StatusCodes.Status500InternalServerError
+            },
+            ValidationFailureException exception => new ProblemDetails
+            {
+                Detail = exception.Message,
+                Title = exception.GetType().Name,
+                Status = StatusCodes.Status400BadRequest,
+                Extensions = new Dictionary<string, object?>
+                {
+                    {
+                        "ValidationErrors", exception?.Failures?.Select(x =>
+                            new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []
+                    }
+                }
             },
             ValidationException exception => new ProblemDetails()
             {

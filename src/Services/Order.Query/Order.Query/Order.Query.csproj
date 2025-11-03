@@ -10,12 +10,12 @@
         <PackageReference Include="MassTransit"/>
         <PackageReference Include="FluentValidation"/>
         <PackageReference Include="Marten" />
+        <PackageReference Include="FastEndpoints" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Shared\Shared.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Features\" />
-        <Folder Include="Features\OrderView\GetOrderById\" />
     </ItemGroup>
 </Project>

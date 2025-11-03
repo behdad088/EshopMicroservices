@@ -1,6 +1,6 @@
 using Order.Query.Events;
 
-namespace Order.Query.EventProcessor.IntegrationTests.Given.SqlGiven;
+namespace Order.Query.EventProcessor.IntegrationTests.Given.DbGiven;
 
 public class EventStreamConfiguration
 {
