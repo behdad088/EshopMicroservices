@@ -8,23 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Marten" />
+        <PackageReference Include="FastEndpoints" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-        <PackageReference Include="ReHackt.Extensions.Options.Validation" />
-        <PackageReference Include="MassTransit"/>
-        <PackageReference Include="MassTransit.RabbitMQ"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-        <ProjectReference Include="..\..\Shared\Shared.csproj" />
-        <ProjectReference Include="..\Order.Query\Order.Query.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Content Include="..\..\..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Order.Query\Order.Query.csproj" />
     </ItemGroup>
 
 </Project>

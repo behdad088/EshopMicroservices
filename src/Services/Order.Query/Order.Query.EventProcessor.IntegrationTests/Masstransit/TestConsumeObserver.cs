@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using MassTransit;
 using MassTransit.Testing;
-using Order.Query.Data.Events;
-using Event = Order.Query.Data.Events.Event;
+using Order.Query.Events;
+using Event = Order.Query.Events.Event;
 
 namespace Order.Query.EventProcessor.IntegrationTests.Masstransit;
 

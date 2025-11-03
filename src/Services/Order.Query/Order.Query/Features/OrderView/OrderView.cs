@@ -1,8 +1,7 @@
-using System.Globalization;
-using Order.Query.Data.Events;
-using Order.Query.Data.Projections;
+using Order.Query.Events;
+using Order.Query.Projections;
 
-namespace Order.Query.Data.Views.OrderView;
+namespace Order.Query.Features.OrderView;
 
 public sealed class OrderView :
     IProjection<OrderView, OrderCreatedEvent>,
