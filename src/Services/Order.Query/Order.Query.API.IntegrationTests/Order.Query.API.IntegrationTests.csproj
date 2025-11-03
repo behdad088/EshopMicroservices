@@ -8,15 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Shouldly" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-        <PackageReference Include="AutoFixture.Xunit2"/>
         <PackageReference Include="coverlet.collector" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
-        <PackageReference Include="Testcontainers.RabbitMq" />
+        <PackageReference Include="Ulid" />
         <PackageReference Include="xunit" />
-        <PackageReference Include="Testcontainers.RabbitMq" />
         <PackageReference Include="xunit.runner.visualstudio" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="AutoFixture.Xunit2"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -24,12 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Order.Query.EventProcessor\Order.Query.EventProcessor.csproj" />
-        <ProjectReference Include="..\Order.Query\Order.Query.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Given\SqlGiven\" />
+        <ProjectReference Include="..\Order.Query.API\Order.Query.API.csproj" />
     </ItemGroup>
 
 </Project>

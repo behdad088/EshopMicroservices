@@ -1,8 +1,8 @@
 using eshop.Shared;
 using FluentValidation;
-using Order.Query.Data.Events;
+using Order.Query.Events;
 
-namespace Order.Query.Data.Views.OrderView;
+namespace Order.Query.Features.OrderView.Validators;
 
 public class OrderDeletedEventValidator : AbstractValidator<OrderDeletedEvent>
 {

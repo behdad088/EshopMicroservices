@@ -1,13 +1,13 @@
 using System.Net.Mime;
 using FluentValidation;
 using MassTransit;
-using Order.Query.Data.Events;
-using Order.Query.Data.Projections;
-using Order.Query.Data.Views.OrderView;
+using Order.Query.Events;
+using Order.Query.Projections;
 using Order.Query.EventProcessor.Configurations;
 using Order.Query.EventProcessor.Consumer;
 using Order.Query.EventProcessor.MassTransitConfiguration;
-using Event = Order.Query.Data.Events.Event;
+using Order.Query.Features.OrderView;
+using Event = Order.Query.Events.Event;
 
 namespace Order.Query.EventProcessor;
 
