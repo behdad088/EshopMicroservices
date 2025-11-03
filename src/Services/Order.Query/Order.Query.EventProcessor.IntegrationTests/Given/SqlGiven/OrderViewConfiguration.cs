@@ -57,7 +57,7 @@ public class OrderViewConfiguration
     public int OrderUpdatedEventVersion  { get; set; } = 0;
     public int OrderDeletedEventVersion { get; set; } = 0;
 
-     public record OrderItem(
+    public record OrderItem(
         string Id,
         string ProductId,
         int Quantity,
