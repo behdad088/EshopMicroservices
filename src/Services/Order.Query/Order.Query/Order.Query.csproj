@@ -13,6 +13,7 @@
         <PackageReference Include="FastEndpoints" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.csproj" />
     </ItemGroup>
     <ItemGroup>

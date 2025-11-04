@@ -13,6 +13,7 @@ public class DomainDataAutoAttribute() : AutoDataAttribute(FixtureFactory.Create
             var fixture = new Fixture();
             
             fixture.Customize(new GetOrderByIdCustomization());
+            fixture.Customize(new GetOrdersCustomization());
             
             return fixture;
         }

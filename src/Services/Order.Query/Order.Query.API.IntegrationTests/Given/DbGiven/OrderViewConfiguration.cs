@@ -50,13 +50,13 @@ public class OrderViewConfiguration
     };
 
     public string OrderStatus { get; set; } = "pending";
-    public string? DeletedDate { get; set; } = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
+    public string? DeletedDate { get; set; } = null;
     public decimal TotalPrice {  get; set; } = 100;
     public int OrderCreatedEventVersion  { get; set; } = 1;
     public int OrderUpdatedEventVersion  { get; set; } = 0;
     public int OrderDeletedEventVersion { get; set; } = 0;
 
-     public record OrderItem(
+    public record OrderItem(
         string Id,
         string ProductId,
         int Quantity,

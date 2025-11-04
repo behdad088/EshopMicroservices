@@ -19,8 +19,7 @@ public class GetOrderByIdTests(ApiFactory apiFactory) : IAsyncLifetime
     {
         _client = apiFactory.CreateClient();
         _dbGiven = apiFactory.DbGiven;
-        
-        await Task.CompletedTask;
+        await apiFactory.GetDocumentStore.Advanced.ResetAllData(CancellationToken.None);
     }
     
     [Theory]
