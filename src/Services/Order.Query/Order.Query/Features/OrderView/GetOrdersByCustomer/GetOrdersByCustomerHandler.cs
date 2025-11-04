@@ -2,23 +2,24 @@ using BuildingBlocks.Pagination;
 using FastEndpoints;
 using Marten;
 
-namespace Order.Query.Features.OrderView.GetOrders;
+namespace Order.Query.Features.OrderView.GetOrdersByCustomer;
 
-public class GetOrdersQuery : ICommand<PaginatedItems<GetOrdersResult>>
+public class GetOrdersByCustomerQuery : ICommand<PaginatedItems<GetOrdersByCustomerResult>>
 {
+    public required string CustomerId { get; init; }
     public required int PageSize { get; init; }
     public required int PageIndex { get; init; }
 }
 
-public record GetOrdersResult(
+public record GetOrdersByCustomerResult(
     string Id,
     string CustomerId,
     string OrderName,
-    GetOrdersResult.Address ShippingAddress,
-    GetOrdersResult.Address BillingAddress,
-    GetOrdersResult.Payment PaymentDetails,
+    GetOrdersByCustomerResult.Address ShippingAddress,
+    GetOrdersByCustomerResult.Address BillingAddress,
+    GetOrdersByCustomerResult.Payment PaymentDetails,
     string Status,
-    IReadOnlyCollection<GetOrdersResult.OrderItem> OrderItems)
+    IReadOnlyCollection<GetOrdersByCustomerResult.OrderItem> OrderItems)
 {
     public record OrderItem(
         string? ProductId,
@@ -44,20 +45,22 @@ public record GetOrdersResult(
         int PaymentMethod);
 }
 
-public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrdersQuery, PaginatedItems<GetOrdersResult>>
+public class GetOrdersByCustomerHandler(IDocumentSession session) : 
+    ICommandHandler<GetOrdersByCustomerQuery, PaginatedItems<GetOrdersByCustomerResult>>
 {
-    public async Task<PaginatedItems<GetOrdersResult>> ExecuteAsync(
-        GetOrdersQuery command,
+    public async Task<PaginatedItems<GetOrdersByCustomerResult>> ExecuteAsync(
+        GetOrdersByCustomerQuery command,
         CancellationToken ct)
     {
         var pageSize = command.PageSize;
         var pageIndex = command.PageIndex;
         
         var totalCount = await session.Query<OrderView>()
-            .Where(x => x.DeletedDate == null)
+            .Where(x => x.CustomerId == command.CustomerId && x.DeletedDate == null)
             .LongCountAsync(ct).ConfigureAwait(false);
-        
-        var dbResult = await session.Query<OrderView>().Where(x => x.DeletedDate == null)
+
+        var dbResult = await session.Query<OrderView>()
+            .Where(x => x.CustomerId == command.CustomerId && x.DeletedDate == null)
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
@@ -65,12 +68,12 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
             .ConfigureAwait(false);
 
         var result = dbResult.Select(MapResult).ToArray();
-        return new  PaginatedItems<GetOrdersResult>(pageIndex, pageSize, totalCount, result);
+        return new  PaginatedItems<GetOrdersByCustomerResult>(pageIndex, pageSize, totalCount, result);
     }
     
-    private static GetOrdersResult MapResult(OrderView order)
+    private static GetOrdersByCustomerResult MapResult(OrderView order)
     {
-        return new GetOrdersResult(
+        return new GetOrdersByCustomerResult(
             Id: order.Id,
             CustomerId: order.CustomerId,
             OrderName: order.OrderName,
@@ -79,16 +82,16 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
             PaymentDetails: MapPayment(order.PaymentMethod),
             Status: order.OrderStatus,
             OrderItems: order.OrderItems.Select(x => 
-                new  GetOrdersResult.OrderItem(
+                new  GetOrdersByCustomerResult.OrderItem(
                     x.ProductId, 
                     x.Quantity,
                     x.Price)).ToArray().AsReadOnly()
         );
     }
 
-    private static GetOrdersResult.Address MapAddress(OrderView.Address address)
+    private static GetOrdersByCustomerResult.Address MapAddress(OrderView.Address address)
     {
-        return new GetOrdersResult.Address(
+        return new GetOrdersByCustomerResult.Address(
             Firstname: address.Firstname,
             Lastname: address.Lastname,
             EmailAddress: address.EmailAddress,
@@ -98,9 +101,9 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
             ZipCode: address.ZipCode);
     }
 
-    private static GetOrdersResult.Payment MapPayment(OrderView.Payment payment)
+    private static GetOrdersByCustomerResult.Payment MapPayment(OrderView.Payment payment)
     {
-        return new GetOrdersResult.Payment(
+        return new GetOrdersByCustomerResult.Payment(
             CardName: payment.CardName,
             CardNumber: payment.CardNumber,
             Expiration: payment.Expiration,

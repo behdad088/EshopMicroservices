@@ -56,8 +56,10 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
     public async Task<Result> ExecuteAsync(GetOrderByIdQuery command, CancellationToken ct)
     {
         var result = await session
-            .Query<OrderView>().FirstOrDefaultAsync(x => x.Id == command.OrderId && x.CustomerId == command.CustomerId,
-                token: ct);
+            .Query<OrderView>()
+            .FirstOrDefaultAsync(x => x.Id == command.OrderId && x.CustomerId == command.CustomerId,
+                token: ct)
+            .ConfigureAwait(false);
 
         if (result is null)
             return new Result.NotFound();

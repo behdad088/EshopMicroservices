@@ -15,6 +15,16 @@ public static class AuthorizationExtension
         return result.Succeeded;
     }
     
+    public static async Task<bool> CanCanGetListOfOrdersByCustomerIdAsync(this IAuthorizationService authorizationService,
+        ClaimsPrincipal user,
+        string? customerId)
+    {
+        var result = await authorizationService.AuthorizeAsync(user, customerId, Policies.CanGetListOfOrdersByCustomerId)
+            .ConfigureAwait(false);
+
+        return result.Succeeded;
+    }
+    
     public static async Task<bool> CanGetOrdersByCustomerIdAsync(this IAuthorizationService authorizationService,
         ClaimsPrincipal user,
         string? customerId)
