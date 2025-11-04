@@ -14,6 +14,7 @@ public class DomainDataAutoAttribute() : AutoDataAttribute(FixtureFactory.Create
             
             fixture.Customize(new GetOrderByIdCustomization());
             fixture.Customize(new GetOrdersCustomization());
+            fixture.Customize(new GetOrdersByCustomerCustomization());
             
             return fixture;
         }
