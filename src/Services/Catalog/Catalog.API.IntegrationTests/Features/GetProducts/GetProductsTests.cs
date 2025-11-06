@@ -96,7 +96,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             await Task.CompletedTask;
         }
 
-        private static List<ProductResponse> GetProductsModules(IReadOnlyList<Product> products)
+        private static List<ProductResponse> GetProductsModules(IReadOnlyList<ProductDocument> products)
         {
             return products.Select(x => new ProductResponse(
                 Id: Ulid.Parse(x.Id),

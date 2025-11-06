@@ -32,7 +32,7 @@ public class Endpoint : EndpointBase<Request, Response>
         Context.Response.Headers.ETag = $"W/\"{result.Order.Version}\"";
 
         var response = MapToResponse(result);
-        return TypedResults.Ok(response);
+        return Results.Ok(response);
     }
 
     private static GetOrdersByIdQuery MapToQuery(Request request)

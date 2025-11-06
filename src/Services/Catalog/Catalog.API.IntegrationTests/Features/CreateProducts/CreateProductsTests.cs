@@ -152,7 +152,7 @@ public class CreateProductsTests(ApiSpecification apiSpecification) : IAsyncLife
 
         result.StatusCode.ShouldBe(HttpStatusCode.Created);
         await using var session = apiSpecification.GetDocumentStore().LightweightSession();
-        var valueInDb = session.Query<Product>().First(x => x.Id == createProductRequest.Id);
+        var valueInDb = session.Query<ProductDocument>().First(x => x.Id == createProductRequest.Id);
         valueInDb.ShouldNotBeNull();
         valueInDb.Id.ShouldBe(productId);
     }

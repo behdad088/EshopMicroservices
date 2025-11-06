@@ -1,4 +1,6 @@
-﻿using Catalog.API.Authorization;
+﻿using System.Net;
+using Catalog.API.Authorization;
+using OpenTelemetry.Trace;
 
 namespace Catalog.API.Features.Products.UpdateProduct;
 
@@ -22,14 +24,22 @@ public static class UpdateProductEndpoint
         UpdateProductRequest request,
         ISender sender)
     {
-        var eTag = context.Request.Headers["If-Match"];
+        var eTag = context.Request.Headers.IfMatch;
         var command = request.ToCommand(eTag);
 
         if (command is null)
-            return TypedResults.BadRequest("Request is null");
+            return Results.BadRequest("Request is null");
 
-        await sender.Send(command).ConfigureAwait(false);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command).ConfigureAwait(false);
+        
+        return result switch
+        {
+            Result.NotFound notFound => Results.NotFound(notFound.Id),
+            Result.InvalidEtag invalidEtag => Results.Problem($"Invalid Etag {invalidEtag}",
+                statusCode: StatusCodes.Status412PreconditionFailed),
+            Result.Success => Results.NoContent(),
+            _ => Results.InternalServerError()
+        };
     }
 
     private static UpdateProductCommand? ToCommand(this UpdateProductRequest? request, string? etag)

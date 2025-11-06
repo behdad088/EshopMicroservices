@@ -30,7 +30,7 @@ public class Endpoint : EndpointBase<Request, Response>
         var query = ToQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
         var response = MapResponse(result);
-        return TypedResults.Ok(response);
+        return Results.Ok(response);
     }
 
     private static GetOrderByCustomerQuery ToQuery(Request request)

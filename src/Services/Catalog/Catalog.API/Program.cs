@@ -12,7 +12,7 @@ builder.Services.RegisterMediateR(typeof(Program).Assembly);
 builder.Services.AddMarten(options =>
 {
     options.Connection(builder.Configuration.GetConnectionString("Database")!);
-    options.Schema.For<Product>().UseNumericRevisions(true);
+    options.Schema.For<ProductDocument>().UseNumericRevisions(true);
 }).UseLightweightSessions();
 
 builder.Services.AddHealthChecks(builder.Configuration);

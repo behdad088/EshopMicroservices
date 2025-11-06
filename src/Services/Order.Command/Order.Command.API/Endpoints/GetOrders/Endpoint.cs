@@ -24,7 +24,7 @@ public class Endpoint : EndpointBase<Request, Response>
         var query = MapQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
         var response = MapResponse(result);
-        return TypedResults.Ok(response);
+        return Results.Ok(response);
     }
 
     private static GetOrdersQuery MapQuery(Request request)

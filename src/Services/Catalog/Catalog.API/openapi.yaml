@@ -1,0 +1,284 @@
+openapi: 3.0.1
+info:
+  title: Catalog API
+  version: v1
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get Products
+      description: Get a paginated list of products.
+      parameters:
+        - name: pageIndex
+          in: query
+          description: The page index.
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          description: The page size.
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductsResponse'
+        '400':
+          description: Bad Request
+    post:
+      tags:
+        - Products
+      summary: Create Product
+      description: Create a new product.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateProductResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    put:
+      tags:
+        - Products
+      summary: Update Product
+      description: Update an existing product.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: If-Match
+          in: header
+          required: true
+          description: The ETag of the product to update.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '412':
+          description: Precondition Failed
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get Product by id
+      description: Get a single product by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product.
+          schema:
+            type: string
+        - name: If-None-Match
+          in: header
+          required: false
+          description: The ETag of the product to compare against.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          headers:
+            ETag:
+              description: The ETag of the product.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '304':
+          description: Not Modified
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - Products
+      summary: Delete Product
+      description: Delete a product by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to delete.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteProductResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /products/category/{category}:
+    get:
+      tags:
+        - Products
+      summary: Get Product By Category
+      description: Get a paginated list of products by category.
+      parameters:
+        - name: category
+          in: path
+          required: true
+          description: The category to filter products by.
+          schema:
+            type: string
+        - name: pageIndex
+          in: query
+          description: The page index.
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          description: The page size.
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductsByCategoryResponse'
+        '400':
+          description: Bad Request
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+        name:
+          type: string
+        category:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        image_file:
+          type: string
+        price:
+          type: number
+          format: decimal
+    CreateProductRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+        name:
+          type: string
+        category:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        image_file:
+          type: string
+        price:
+          type: number
+          format: decimal
+    CreateProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+    DeleteProductResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+    UpdateProductRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ulid
+        name:
+          type: string
+        category:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        image_file:
+          type: string
+        price:
+          type: number
+          format: decimal
+    PaginatedItems_Product:
+      type: object
+      properties:
+        pageIndex:
+          type: integer
+        pageSize:
+          type: integer
+        count:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    GetProductsResponse:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/PaginatedItems_Product'
+    GetProductsByCategoryResponse:
+      type: object
+      properties:
+        productModule:
+          $ref: '#/components/schemas/PaginatedItems_Product'

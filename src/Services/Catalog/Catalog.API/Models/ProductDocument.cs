@@ -2,7 +2,7 @@
 
 namespace Catalog.API.Models;
 
-public class Product
+public class ProductDocument
 {
     public string Id { get; init; }
     public string Name { get; set; } = default!;

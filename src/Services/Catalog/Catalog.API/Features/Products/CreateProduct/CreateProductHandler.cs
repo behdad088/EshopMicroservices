@@ -16,7 +16,7 @@ internal class CreateProductCommandHandler(IDocumentSession session)
 {
     public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
     {
-        var product = new Product
+        var product = new ProductDocument
         {
             Id = command.Id,
             Name = command.Name,
@@ -33,10 +33,10 @@ internal class CreateProductCommandHandler(IDocumentSession session)
         return result;
     }
 
-    private static CreateProductResult MapResult(Product product)
+    private static CreateProductResult MapResult(ProductDocument productDocument)
     {
         return new CreateProductResult(
-            Id: Ulid.Parse(product.Id)
+            Id: Ulid.Parse(productDocument.Id)
         );
     }
 }

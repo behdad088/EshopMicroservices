@@ -23,13 +23,12 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
 
             // Act
             var result = await _client.GetAsync($"api/v1/catalog/products/{productId}");
-            var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
+            var response = await result.Content.ReadFromJsonAsync<string>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.NotFound);
+            result.StatusCode.ShouldBe(HttpStatusCode.NotFound);
             response.ShouldNotBeNull();
-            response.Detail.ShouldNotBeNull();
-            response.Detail.ShouldBe($"Entity \"Product\" ({productId}) was not found.");
+            response.ShouldBe(productId.ToString());
         }
 
         [Fact]
