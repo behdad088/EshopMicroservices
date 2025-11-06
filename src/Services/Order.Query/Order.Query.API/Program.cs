@@ -2,7 +2,7 @@ using BuildingBlocks.Exceptions.Handler;
 using eshop.Shared;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
-using Order.Query.Api.Authorization;
+using Order.Query.API.Authorization;
 using Order.Query.API.Configurations;
 using Order.Query.PostgresConfig;
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Order.Query.Api.Authorization;
+namespace Order.Query.API.Authorization;
 
 public class Policies
 {

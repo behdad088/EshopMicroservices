@@ -1,7 +1,7 @@
 using System.Net;
 using FastEndpoints;
 using IntegrationTests.Common;
-using Order.Query.Api.Authorization;
+using Order.Query.API.Authorization;
 using Order.Query.API.Features.GetOrdersByCustomer;
 using Order.Query.API.IntegrationTests.AutoFixture;
 using Order.Query.API.IntegrationTests.Given.DbGiven;
@@ -106,6 +106,23 @@ public class GetOrdersByCustomerTests(ApiFactory apiFactory) : IAsyncLifetime
         // Act
         var (response, _) = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions([]))
+            .GETAsync<Endpoint, Request, ProblemDetails>(request);
+
+        // Assert
+        response.ShouldNotBeNull();
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+    
+    [Theory]
+    [DomainDataAuto]
+    public async Task GetOrdersByCustomer_WhenCustomerId_In_Token_Is_Not_Valid_ShouldReturnForbidden(Request request)
+    {
+        // Arrange
+        var invalidCustomerId = Guid.NewGuid().ToString();
+        // Act
+        var (response, _) = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.OrdersQueryCanGetOrdersListsByCustomerIdPermission], sub: invalidCustomerId))
             .GETAsync<Endpoint, Request, ProblemDetails>(request);
 
         // Assert
