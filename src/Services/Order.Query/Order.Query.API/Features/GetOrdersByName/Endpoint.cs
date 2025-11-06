@@ -1,31 +1,33 @@
 using BuildingBlocks.Pagination;
 using FastEndpoints;
-using Order.Query.Features.OrderView.GetOrders;
+using Order.Query.Features.OrderView.GetOrdersByName;
 
-namespace Order.Query.API.Features.GetOrders;
+namespace Order.Query.API.Features.GetOrdersByName;
 
 public class Endpoint : Endpoint<Request, Response>
 {
     public override void Configure()
     {
-        Get("/orders/all");
+        Get("/orders");
         DontCatchExceptions();
         Version(1);
-        Policies(Authorization.Policies.CanGetAllOrders);
+        Policies(Authorization.Policies.CanGetListOfOrdersByOrderName);
     }
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
-        var result = await new GetOrdersQuery
+        var result = await new GetOrdersByOrderNameQuery
         {
+            OrderName = req.OrderName!,
+            PageSize = req.PageSize,
             PageIndex = req.PageIndex,
-            PageSize = req.PageSize
-        }.ExecuteAsync(ct);
+        }.ExecuteAsync(ct)
+        .ConfigureAwait(false);
 
         await Send.OkAsync(MapResponse(result), ct);
     }
-
-    private Response MapResponse(PaginatedItems<GetOrdersResult> res)
+    
+    private Response MapResponse(PaginatedItems<GetOrdersByOrderNameResult> res)
     {
         var result = res.Data.Select(x => new Order(
             x.Id,
@@ -42,7 +44,7 @@ public class Endpoint : Endpoint<Request, Response>
             res.Count, result));
     }
 
-    private static Address MapAddress(GetOrdersResult.Address address)
+    private static Address MapAddress(GetOrdersByOrderNameResult.Address address)
     {
         return new Address(
             address.Firstname,
@@ -54,7 +56,7 @@ public class Endpoint : Endpoint<Request, Response>
             address.ZipCode);
     }
 
-    private static Payment MapPayment(GetOrdersResult.Payment payment)
+    private static Payment MapPayment(GetOrdersByOrderNameResult.Payment payment)
     {
         return new Payment(
             payment.CardName,
@@ -65,7 +67,7 @@ public class Endpoint : Endpoint<Request, Response>
     }
 
     private static List<OrderItem> MapOrderItems(
-        IReadOnlyCollection<GetOrdersResult.OrderItem> orderItems)
+        IReadOnlyCollection<GetOrdersByOrderNameResult.OrderItem> orderItems)
     {
         return orderItems.Select(x => new OrderItem(x.ProductId, x.Quantity, x.Price)).ToList();
     }

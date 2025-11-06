@@ -1,7 +1,7 @@
 using BuildingBlocks.Pagination;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
-using Order.Query.Api.Authorization;
+using Order.Query.API.Authorization;
 using Order.Query.Features.OrderView.GetOrdersByCustomer;
 
 namespace Order.Query.API.Features.GetOrdersByCustomer;

@@ -55,6 +55,8 @@ public class OrderViewConfiguration
     public int OrderCreatedEventVersion  { get; set; } = 1;
     public int OrderUpdatedEventVersion  { get; set; } = 0;
     public int OrderDeletedEventVersion { get; set; } = 0;
+    public int Version { get; set; } = 0;
+    
 
     public record OrderItem(
         string Id,
@@ -105,7 +107,8 @@ public static class OrderViewConfigurationExtension
             TotalPrice = configuration.TotalPrice,
             OrderCreatedEventVersion = configuration.OrderCreatedEventVersion,
             OrderUpdatedEventVersion = configuration.OrderUpdatedEventVersion,
-            OrderDeletedEventVersion = configuration.OrderDeletedEventVersion
+            OrderDeletedEventVersion = configuration.OrderDeletedEventVersion,
+            Version = configuration.Version
 
         };
     }

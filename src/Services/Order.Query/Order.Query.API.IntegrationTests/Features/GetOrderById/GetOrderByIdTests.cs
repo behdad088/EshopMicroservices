@@ -1,7 +1,7 @@
 using System.Net;
 using FastEndpoints;
 using IntegrationTests.Common;
-using Order.Query.Api.Authorization;
+using Order.Query.API.Authorization;
 using Order.Query.API.Features.GetOrderById;
 using Order.Query.API.IntegrationTests.AutoFixture;
 using Order.Query.API.IntegrationTests.Given.DbGiven;
@@ -114,6 +114,7 @@ public class GetOrderByIdTests(ApiFactory apiFactory) : IAsyncLifetime
         {
             x.Id = request.OrderId!;
             x.CustomerId = request.CustomerId!;
+            x.Version = 1;
         });
         
         // Act
@@ -125,6 +126,9 @@ public class GetOrderByIdTests(ApiFactory apiFactory) : IAsyncLifetime
         // Assert
         response.ShouldNotBeNull();
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Headers.ETag.ShouldNotBeNull();
+        response.Headers.ETag.IsWeak.ShouldBeTrue();
+        response.Headers.ETag.ToString().ShouldBe("W/\"1\"");
         
         result.ShouldNotBeNull();
         result.Id.ShouldBe(result.Id);

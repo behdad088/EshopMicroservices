@@ -2,17 +2,17 @@ using System.Text.Json.Serialization;
 using BuildingBlocks.Pagination;
 using FastEndpoints;
 
-namespace Order.Query.API.Features.GetOrders;
+namespace Order.Query.API.Features.GetOrdersByName;
 
 public record Request(
+    [property: BindFrom("customer_name")] 
+    string? OrderName,
     [property: BindFrom("page_size")]
     int PageSize = 10,
-    [property: BindFrom("page_index")]
-    int PageIndex = 0
-    );
-    
-    
-    
+    [property: BindFrom("page_index")] 
+    int PageIndex = 0);
+
+
 public record Response(
     [property: JsonPropertyName("data")] 
     PaginatedItems<Order> Orders);

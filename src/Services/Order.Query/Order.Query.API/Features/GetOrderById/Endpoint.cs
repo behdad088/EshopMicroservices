@@ -1,6 +1,6 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
-using Order.Query.Api.Authorization;
+using Order.Query.API.Authorization;
 using Order.Query.Features.OrderView.GetOrderById;
 
 namespace Order.Query.API.Features.GetOrderById;
@@ -34,6 +34,8 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
                 await Send.NotFoundAsync(ct);
                 break;
             case Result.Success success:
+                var version = success.Result.Version;
+                HttpContext.Response.Headers.ETag = $"W/\"{version}\"";
                 await Send.OkAsync(MapResponse(success.Result), ct); 
                 break;
         }
