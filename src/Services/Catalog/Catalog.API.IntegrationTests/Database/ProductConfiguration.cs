@@ -15,9 +15,9 @@ public record ProductConfiguration
 
 public static class CreateProductConfiguration
 {
-    public static Product ToDbProduct(this ProductConfiguration configuration)
+    public static ProductDocument ToDbProduct(this ProductConfiguration configuration)
     {
-        return new Product
+        return new ProductDocument
         {
             Id = configuration.Id,
             Name = configuration.Name,

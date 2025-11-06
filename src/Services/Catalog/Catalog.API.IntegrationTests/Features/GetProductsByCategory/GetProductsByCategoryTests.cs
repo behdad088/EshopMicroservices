@@ -56,15 +56,15 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
             await Task.CompletedTask;
         }
 
-        private static ProductModule ToProductModule(Product product)
+        private static ProductModule ToProductModule(ProductDocument productDocument)
         {
             return new ProductModule(
-                Id: Ulid.Parse(product.Id),
-                Name: product.Name,
-                Category: product.Category,
-                Description: product.Description,
-                ImageFile: product.ImageFile,
-                Price: product.Price);
+                Id: Ulid.Parse(productDocument.Id),
+                Name: productDocument.Name,
+                Category: productDocument.Category,
+                Description: productDocument.Description,
+                ImageFile: productDocument.ImageFile,
+                Price: productDocument.Price);
         }
     }
 }

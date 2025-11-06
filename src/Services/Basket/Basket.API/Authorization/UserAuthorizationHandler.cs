@@ -17,37 +17,21 @@ public class UserAuthorizationHandler : AuthorizationHandler<UserIdRequirement, 
         UserIdRequirement requirement,
         string username)
     {
-
         var userRole = GetUserRole(context.User);
-        if (userRole == string.Empty)
-        {
-            context.Fail();
-            return Task.CompletedTask;
-        }
 
-        if (userRole == "admin")
+        if (userRole != "admin")
         {
-            if (!ValidateUserPermissions(
-                    context.User.Claims.ToList(),
-                    requirement.Requirements.ToList()))
+            var usernameInClaim = GetUsername(context.User);
+            if (string.IsNullOrEmpty(usernameInClaim) || username != usernameInClaim)
             {
                 context.Fail();
                 return Task.CompletedTask;
             }
-            context.Succeed(requirement);
-            return Task.CompletedTask;
         }
 
-        var usernameInClaim = GetUsername(context.User);
-        if (username != usernameInClaim)
-        {
-            context.Fail();
-            return Task.CompletedTask;
-        }
-        
         if (!ValidateUserPermissions(
-                context.User.Claims.ToList(),
-                requirement.Requirements.ToList()))
+                context.User.Claims.ToArray(),
+                requirement.Requirements.ToArray()))
         {
             context.Fail();
             return Task.CompletedTask;

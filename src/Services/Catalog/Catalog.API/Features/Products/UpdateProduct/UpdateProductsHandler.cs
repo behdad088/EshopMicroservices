@@ -10,24 +10,29 @@ public record UpdateProductCommand(
     string? Description,
     string? ImageFile,
     decimal? Price,
-    string? Etag) : ICommand<UpdateProductResult>;
+    string? Etag) : ICommand<Result>;
 
-public record UpdateProductResult(bool IsSuccess);
+public abstract record Result
+{
+    public record Success : Result;
+    public record NotFound(string Id) : Result;
+    public record InvalidEtag(string Etag) : Result;
+}
 
 internal class UpdateProductsCommandHandler(
-    IDocumentSession session) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
+    IDocumentSession session) : ICommandHandler<UpdateProductCommand, Result>
 {
-    public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
     {
-        var product = await session.LoadAsync<Product>(command.Id, cancellationToken).ConfigureAwait(false);
+        var product = await session.LoadAsync<ProductDocument>(command.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
-            throw new ProductNotFoundException(Ulid.Parse(command.Id));
+            return new Result.NotFound(command.Id);
 
         var version = GetVersionFromEtag(command.Etag!);
 
         if (product.Version != version)
-            throw new InvalidEtagException(etag: version);
+            return new Result.InvalidEtag(version.ToString());
 
         if (!string.IsNullOrEmpty(command.Name))
             product.Name = command.Name;
@@ -47,10 +52,10 @@ internal class UpdateProductsCommandHandler(
         }
         catch (ConcurrencyException)
         {
-            throw new InvalidEtagException(etag: version);
+            return new Result.InvalidEtag(command.Etag!);
         }
 
-        return new UpdateProductResult(true);
+        return new Result.Success();
     }
 
     private static int GetVersionFromEtag(string eTag)

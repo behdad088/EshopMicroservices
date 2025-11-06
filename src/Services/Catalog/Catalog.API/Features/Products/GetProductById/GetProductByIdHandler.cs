@@ -1,32 +1,36 @@
 ﻿namespace Catalog.API.Features.Products.GetProductById;
 
-public record GetProductByIdQuery(string Id) : IQuery<GetProductByIdResult>;
+public record GetProductByIdQuery(string Id) : IQuery<Result>;
 
-public record GetProductByIdResult(GetProductById Product);
+public abstract record Result
+{
+    public record Success(GetProductById Product) : Result;
+    public record NotFound(string Id) : Result;
+}
 
 internal class GetProductByIQueryHandler(
-    IDocumentSession session) : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
+    IDocumentSession session) : IQueryHandler<GetProductByIdQuery, Result>
 {
-    public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
+    public async Task<Result> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
-        var product = await session.LoadAsync<Product>(query.Id, cancellationToken).ConfigureAwait(false);
+        var product = await session.LoadAsync<ProductDocument>(query.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
-            throw new ProductNotFoundException(Ulid.Parse(query.Id));
+            return new Result.NotFound(query.Id);
 
         return MapResult(product);
     }
 
-    private static GetProductByIdResult MapResult(Product product)
+    private static Result.Success MapResult(ProductDocument productDocument)
     {
-        return new GetProductByIdResult(
+        return new Result.Success(
             Product: new GetProductById(
-                Id: Ulid.Parse(product.Id),
-                Name: product.Name,
-                Category: product.Category,
-                Description: product.Description,
-                ImageFile: product.ImageFile,
-                Price: product.Price,
-                product.Version));
+                Id: Ulid.Parse(productDocument.Id),
+                Name: productDocument.Name,
+                Category: productDocument.Category,
+                Description: productDocument.Description,
+                ImageFile: productDocument.ImageFile,
+                Price: productDocument.Price,
+                productDocument.Version));
     }
 }

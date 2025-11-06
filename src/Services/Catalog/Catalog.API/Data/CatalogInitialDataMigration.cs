@@ -28,7 +28,7 @@ public class CatalogInitialDataMigration : IInitialData
             await policy.ExecuteAsync(async () =>
             {
                 await using var session = store.LightweightSession();
-                if (await session.Query<Product>().AnyAsync(cancellation))
+                if (await session.Query<ProductDocument>().AnyAsync(cancellation))
                     return;
 
                 session.Store(GetPreConfiguredProducts());
@@ -41,7 +41,7 @@ public class CatalogInitialDataMigration : IInitialData
         }
     }
 
-    private static IEnumerable<Product> GetPreConfiguredProducts()
+    private static IEnumerable<ProductDocument> GetPreConfiguredProducts()
     {
         return
         [

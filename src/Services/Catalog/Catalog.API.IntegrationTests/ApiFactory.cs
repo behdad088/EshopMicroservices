@@ -20,7 +20,7 @@ namespace Catalog.API.IntegrationTests
                 service.AddMarten(options =>
                 {
                     options.Connection(postgresConnection);
-                    options.Schema.For<Product>().UseNumericRevisions(true);
+                    options.Schema.For<ProductDocument>().UseNumericRevisions(true);
                 }).UseLightweightSessions();
                 
                 service

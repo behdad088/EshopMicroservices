@@ -16,18 +16,32 @@ public static class GetProductByIdEndpoint
         return app;
     }
 
-    private static async Task<Ok<GetProductByIdResponse>> GetProductById(
+    private static async Task<IResult> GetProductById(
         HttpContext context,
         string id,
         ISender sender)
     {
         var queryResult = await sender.Send(new GetProductByIdQuery(id)).ConfigureAwait(false);
-        context.Response.Headers.ETag = $"W/\"{queryResult.Product.Version}\"";
-        var result = ToResponse(queryResult);
-        return TypedResults.Ok(result);
+
+        switch (queryResult)
+        {
+            case Result.NotFound notFound:
+                return Results.NotFound(notFound.Id);
+            case Result.Success success:
+                var etag = $"W/\"{success.Product.Version}\"";
+                if (context.Request.Headers.IfNoneMatch == etag)
+                {
+                    return Results.StatusCode(StatusCodes.Status304NotModified);
+                }
+                context.Response.Headers.ETag = etag;
+                var result = ToResponse(success);
+                return Results.Ok(result);
+            default:
+                return Results.InternalServerError();
+        }
     }
 
-    private static GetProductByIdResponse? ToResponse(GetProductByIdResult? result)
+    private static GetProductByIdResponse? ToResponse(Result.Success? result)
     {
         return result is null
             ? null

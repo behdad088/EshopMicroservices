@@ -32,7 +32,7 @@ public class Endpoint : EndpointBase<Request>
         var command = MapToCommand(request, eTag);
         
         await SendAsync(command).ConfigureAwait(false);
-        return TypedResults.NoContent();
+        return Results.NoContent();
     }
 
     private static DeleteOrderCommand MapToCommand(Request request, string? etag)

@@ -12,18 +12,18 @@ public class DataSeeder(IDocumentStore store)
         var products = productConfiguration is null ? GetListOfProducts() : [product.ToDbProduct()];
 
         await using var session = store.LightweightSession();
-        session.Store<Product>(products);
+        session.Store<ProductDocument>(products);
         await session.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<Product>> GetAllData()
+    public async Task<IReadOnlyList<ProductDocument>> GetAllData()
     {
         await using var session = store.LightweightSession();
-        var data = await session.Query<Product>().ToListAsync();
+        var data = await session.Query<ProductDocument>().ToListAsync();
         return data;
     }
 
-    private static IEnumerable<Product> GetListOfProducts()
+    private static IEnumerable<ProductDocument> GetListOfProducts()
     {
         return
         [

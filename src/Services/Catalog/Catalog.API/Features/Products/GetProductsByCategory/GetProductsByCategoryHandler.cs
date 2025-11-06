@@ -18,7 +18,7 @@ internal class GetProductsByCategoryQueryHandler(
         var pageSize = query.PaginationRequest.PageSize;
         var pageIndex = query.PaginationRequest.PageIndex;
         var productAsQueryable =
-            session.Query<Product>().Where(p => p.Category.Contains(query.Category!)).AsQueryable();
+            session.Query<ProductDocument>().Where(p => p.Category.Contains(query.Category!)).AsQueryable();
         var totalItems = await productAsQueryable.CountAsync(cancellationToken).ConfigureAwait(false);
         var product = await productAsQueryable
             .Skip(pageSize * pageIndex)
@@ -32,7 +32,7 @@ internal class GetProductsByCategoryQueryHandler(
             new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));
     }
 
-    private static ReadOnlyCollection<ProductModule>? MapToResult(IReadOnlyCollection<Product>? products)
+    private static ReadOnlyCollection<ProductModule>? MapToResult(IReadOnlyCollection<ProductDocument>? products)
     {
         return products?.Select(x => new ProductModule(
             Id: Ulid.Parse(x.Id),

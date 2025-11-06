@@ -147,13 +147,12 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             var result = await _client
                 .SetFakeBearerToken(FakePermission.GetPermissions([Policies.CatalogProductUpdatePermission]))
                 .PutAsJsonAsync("api/v1/catalog/products", updateProductRequest);
-            var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
+            var response = await result.Content.ReadFromJsonAsync<string>();
 
             // Assert
             result.StatusCode.ShouldBe(HttpStatusCode.NotFound);
             response.ShouldNotBeNull();
-            response.Detail.ShouldNotBeNull();
-            response.Detail.ShouldContain($"Entity \"Product\" ({updateProductRequest.Id}) was not found.");
+            response.ShouldBe(updateProductRequest.Id);
         }
 
         [Theory, CatalogRequestAutoData]
@@ -206,7 +205,7 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             result.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
             await using var session = apiSpecification.GetDocumentStore().LightweightSession();
-            var valueInDb = session.Query<Product>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
+            var valueInDb = session.Query<ProductDocument>().FirstOrDefault(x => x.Id == updateProductRequest.Id);
 
             valueInDb!.Name.ShouldBe(updateProductRequest.Name);
             valueInDb.Description.ShouldBe(updateProductRequest.Description);
