@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using BuildingBlocks.Pagination;
+using eshop.Shared.CQRS.Query;
+using eshop.Shared.Pagination;
 
 namespace Catalog.API.Features.Products.GetProductsByCategory;
 

@@ -1,4 +1,5 @@
-using BuildingBlocks.Pagination;
+using eshop.Shared.CQRS.Query;
+using eshop.Shared.Pagination;
 
 namespace Order.Command.Application.Orders.Queries.GetOrders;
 

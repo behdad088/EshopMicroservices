@@ -1,4 +1,4 @@
-using BuildingBlocks.Pagination;
+using eshop.Shared.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Order.Command.API.Endpoints.GetOrdersByCustomer;

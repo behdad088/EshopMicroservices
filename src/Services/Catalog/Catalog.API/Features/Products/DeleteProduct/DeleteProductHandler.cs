@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.DeleteProduct;
+﻿using eshop.Shared.CQRS.Command;
+
+namespace Catalog.API.Features.Products.DeleteProduct;
 
 public record DeleteProductCommand(string? Id) : ICommand<DeleteProductResult>;
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace BuildingBlocks.HealthChecks;
+namespace eshop.Shared.HealthChecks;
 
 public static class HealthChecksExtension
 {

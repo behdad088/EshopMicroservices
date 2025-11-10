@@ -1,3 +1,5 @@
+using eshop.Shared.CQRS.Query;
+
 namespace Basket.API.Features.GetBasket;
 
 public record GetBasketQuery(string Username) : IQuery<GetBasketResult>;

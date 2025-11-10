@@ -1,4 +1,4 @@
-using BuildingBlocks.Pagination;
+using eshop.Shared.Pagination;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
 using Order.Query.API.Authorization;

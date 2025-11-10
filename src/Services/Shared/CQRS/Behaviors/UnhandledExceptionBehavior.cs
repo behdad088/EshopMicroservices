@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace BuildingBlocks.CQRS.Behaviors;
+namespace eshop.Shared.CQRS.Behaviors;
 
 public class UnhandledExceptionBehavior<TRequest, TResponse>(ILogger<TRequest> logger) :
     IPipelineBehavior<TRequest, TResponse> 

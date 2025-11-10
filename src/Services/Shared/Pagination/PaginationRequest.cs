@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace BuildingBlocks.Pagination;
+namespace eshop.Shared.Pagination;
 
 public record PaginationRequest(
     [FromQuery(Name = "page_size")]

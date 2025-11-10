@@ -1,9 +1,9 @@
-﻿using BuildingBlocks.CQRS.Behaviors;
+﻿using System.Reflection;
+using eshop.Shared.CQRS.Behaviors;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
-namespace BuildingBlocks.CQRS.Extensions;
+namespace eshop.Shared.CQRS.Extensions;
 
 public static class CqrsExtensions
 {

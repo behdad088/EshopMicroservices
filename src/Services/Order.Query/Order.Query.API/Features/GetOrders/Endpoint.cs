@@ -1,4 +1,4 @@
-using BuildingBlocks.Pagination;
+using eshop.Shared.Pagination;
 using FastEndpoints;
 using Order.Query.Features.OrderView.GetOrders;
 

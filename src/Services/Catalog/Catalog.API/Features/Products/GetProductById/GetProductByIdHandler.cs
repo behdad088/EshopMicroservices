@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.GetProductById;
+﻿using eshop.Shared.CQRS.Query;
+
+namespace Catalog.API.Features.Products.GetProductById;
 
 public record GetProductByIdQuery(string Id) : IQuery<Result>;
 

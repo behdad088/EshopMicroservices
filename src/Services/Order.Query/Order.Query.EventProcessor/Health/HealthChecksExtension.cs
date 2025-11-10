@@ -1,5 +1,5 @@
-using BuildingBlocks.HealthChecks;
 using eshop.Shared;
+using eshop.Shared.HealthChecks;
 using Order.Query.EventProcessor.Configurations;
 
 namespace Order.Query.EventProcessor.Health;

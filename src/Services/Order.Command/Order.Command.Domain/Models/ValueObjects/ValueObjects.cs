@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using BuildingBlocks.Exceptions;
+using eshop.Shared.Exceptions;
 using ValueOf;
 
 namespace Order.Command.Domain.Models.ValueObjects;

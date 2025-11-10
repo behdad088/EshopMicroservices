@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using BuildingBlocks.Pagination;
+using eshop.Shared.Pagination;
 using FastEndpoints;
 
 namespace Order.Query.API.Features.GetOrdersByCustomer;

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Serilog;
 using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
-namespace BuildingBlocks.Exceptions.Handler;
+namespace eshop.Shared.Exceptions.Handler;
 
 public static class ExceptionHandlerMiddleware
 {

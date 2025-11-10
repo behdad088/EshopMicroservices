@@ -1,5 +1,5 @@
-using BuildingBlocks.Exceptions.Handler;
 using eshop.Shared;
+using eshop.Shared.Exceptions.Handler;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
 using Order.Query.API.Authorization;

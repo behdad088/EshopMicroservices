@@ -1,4 +1,4 @@
-using BuildingBlocks.HealthChecks;
+using eshop.Shared.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Order.Command.API.Common.SqlHealthCheck;
 

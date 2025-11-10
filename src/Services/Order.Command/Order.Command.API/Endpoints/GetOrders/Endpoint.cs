@@ -1,4 +1,4 @@
-using BuildingBlocks.Pagination;
+using eshop.Shared.Pagination;
 using Order.Command.Application.Orders.Queries.GetOrders;
 
 namespace Order.Command.API.Endpoints.GetOrders;
