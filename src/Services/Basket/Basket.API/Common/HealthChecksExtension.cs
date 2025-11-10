@@ -1,5 +1,5 @@
-using BuildingBlocks.HealthChecks;
 using eshop.Shared;
+using eshop.Shared.HealthChecks;
 
 namespace Basket.API.Common;
 

@@ -10,7 +10,6 @@ RUN apk update && apk add --no-cache libc6-compat gcompat
 
 WORKDIR /src
 COPY ["Services/Basket/Basket.API/Basket.API.csproj", "Services/Basket/Basket.API/"]
-COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
 COPY ["Services/Shared/Shared.csproj", "Services/Shared/"]
 COPY ["Directory.Packages.props", "/"]
 RUN dotnet restore "Services/Basket/Basket.API/Basket.API.csproj"

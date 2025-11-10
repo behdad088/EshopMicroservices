@@ -1,5 +1,5 @@
-using BuildingBlocks.HealthChecks;
 using eshop.Shared;
+using eshop.Shared.HealthChecks;
 using FluentValidation;
 using Order.Query.EventProcessor;
 using Order.Query.EventProcessor.Configurations;

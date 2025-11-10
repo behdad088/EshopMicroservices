@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Pagination;
+﻿using eshop.Shared.Pagination;
 
 namespace Catalog.API.Features.Products.GetProducts;
 

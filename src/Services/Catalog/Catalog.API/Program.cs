@@ -4,6 +4,7 @@ using Catalog.API.Data;
 using eshop.Shared;
 using eshop.Shared.CQRS.Extensions;
 using eshop.Shared.Exceptions.Handler;
+using eshop.Shared.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDefaultOpenApi();

@@ -1,4 +1,4 @@
-﻿namespace BuildingBlocks.Exceptions;
+﻿namespace eshop.Shared.Exceptions;
 
 public class NotFoundException : Exception
 {

@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
-using FastEndpoints;
+﻿using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;

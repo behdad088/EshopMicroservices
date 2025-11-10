@@ -16,7 +16,6 @@ RUN apk add icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 WORKDIR /src
 COPY ["Services/Order.Command/Order.Command.API/Order.Command.API.csproj", "Services/Order.Command/Order.Command.API/"]
-COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
 COPY ["Services/Shared/Shared.csproj", "Services/Shared/"]
 COPY ["Services/Order.Command/Order.Command.Application/Order.Command.Application.csproj", "Services/Order.Command/Order.Command.Application/"]
 COPY ["Services/Order.Command/Order.Command.Domain/Order.Command.Domain.csproj", "Services/Order.Command/Order.Command.Domain/"]

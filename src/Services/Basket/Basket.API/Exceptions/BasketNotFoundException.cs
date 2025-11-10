@@ -1,4 +1,4 @@
-using BuildingBlocks.Exceptions;
+using eshop.Shared.Exceptions;
 
 namespace Basket.API.Exceptions;
 

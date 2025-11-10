@@ -8,7 +8,6 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/Order.Query/Order.Query.EventProcessor/Order.Query.EventProcessor.csproj", "Services/Order.Query/Order.Query.EventProcessor/"]
-COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
 COPY ["Services/Shared/Shared.csproj", "Services/Shared/"]
 COPY ["Services/Order.Query/Order.Query.Data/Order.Query.Data.csproj", "Services/Order.Query/Order.Query.Data/"]
 COPY ["Directory.Packages.props", "/"]

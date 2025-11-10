@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Common;
+﻿using eshop.Shared.HealthChecks;
+
+namespace Catalog.API.Common;
 
 public static class HealthChecksExtension
 {
