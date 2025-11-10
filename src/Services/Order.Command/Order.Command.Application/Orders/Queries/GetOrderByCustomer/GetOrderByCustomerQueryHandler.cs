@@ -1,4 +1,5 @@
 using BuildingBlocks.Pagination;
+using eshop.Shared.CQRS.Query;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 

@@ -1,8 +1,8 @@
-﻿using BuildingBlocks.CQRS.Command;
-using BuildingBlocks.CQRS.Query;
+﻿using eshop.Shared.CQRS.Command;
+using eshop.Shared.CQRS.Query;
 using FluentValidation;
 
-namespace BuildingBlocks.CQRS.Behaviors;
+namespace eshop.Shared.CQRS.Behaviors;
 
 public class CommandValidationBehaviors<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : BaseValidator<TRequest, TResponse>(validators)

@@ -1,3 +1,4 @@
+using eshop.Shared.CQRS.Query;
 using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderById;

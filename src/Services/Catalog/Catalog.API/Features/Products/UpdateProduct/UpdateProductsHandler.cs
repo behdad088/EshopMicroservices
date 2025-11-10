@@ -1,4 +1,5 @@
-﻿using Marten.Exceptions;
+﻿using eshop.Shared.CQRS.Command;
+using Marten.Exceptions;
 using Exception = System.Exception;
 
 namespace Catalog.API.Features.Products.UpdateProduct;

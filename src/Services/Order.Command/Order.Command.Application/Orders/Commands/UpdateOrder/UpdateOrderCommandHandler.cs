@@ -1,4 +1,5 @@
 using BuildingBlocks.Exceptions;
+using eshop.Shared.CQRS.Command;
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 

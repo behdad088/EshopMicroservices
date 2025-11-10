@@ -1,4 +1,4 @@
-using BuildingBlocks.CQRS.Command;
+using eshop.Shared.CQRS.Command;
 
 namespace Basket.API.Features.DeleteBasket;
 

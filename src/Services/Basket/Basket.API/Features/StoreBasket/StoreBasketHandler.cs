@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using BuildingBlocks.CQRS.Command;
 using Discount;
+using eshop.Shared.CQRS.Command;
 
 namespace Basket.API.Features.StoreBasket;
 

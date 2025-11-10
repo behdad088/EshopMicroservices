@@ -1,4 +1,5 @@
-﻿using FastEndpoints;
+﻿using BuildingBlocks.Exceptions;
+using FastEndpoints;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Serilog;
 using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
-namespace BuildingBlocks.Exceptions.Handler;
+namespace eshop.Shared.Exceptions.Handler;
 
 public static class ExceptionHandlerMiddleware
 {

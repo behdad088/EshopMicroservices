@@ -1,4 +1,6 @@
-﻿namespace Catalog.API.Features.Products.CreateProduct;
+﻿using eshop.Shared.CQRS.Command;
+
+namespace Catalog.API.Features.Products.CreateProduct;
 
 public record CreateProductCommand(
     string Id,

@@ -1,7 +1,7 @@
 using System.Reflection;
-using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
 using eshop.Shared;
+using eshop.Shared.Exceptions.Handler;
 using Microsoft.AspNetCore.Authorization;
 using Order.Command.API.Authorization;
 using Order.Command.API.Common;

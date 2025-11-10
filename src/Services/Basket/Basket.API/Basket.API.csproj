@@ -27,7 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.csproj" />
         <Protobuf Include="Protos\basket.proto" GrpcServices="none" />
         <Protobuf Include="..\..\Discount\Discount.Grpc\Protos\discount.proto" GrpcServices="Client"/>

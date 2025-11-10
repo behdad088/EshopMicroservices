@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using BuildingBlocks.Pagination;
+using eshop.Shared.CQRS.Query;
 
 namespace Catalog.API.Features.Products.GetProducts;
 

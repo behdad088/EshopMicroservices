@@ -1,10 +1,10 @@
 using Basket.API.Authorization;
 using Basket.API.Common;
-using BuildingBlocks.CQRS.Extensions;
-using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.HealthChecks;
 using Discount;
 using eshop.Shared;
+using eshop.Shared.CQRS.Extensions;
+using eshop.Shared.Exceptions.Handler;
 using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);

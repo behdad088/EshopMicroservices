@@ -8,14 +8,14 @@ on:
   push:
     branches: [ "main" ]
     paths:
-    - src/BuildingBlocks/**
+    - src/Shared/**
     - src/Services/Order.Command/**
     - .github/workflows/order-command-api-CI.yml
 
   pull_request:
     branches: [ "main" ]
     paths:
-    - src/BuildingBlocks/**
+    - src/Shared/**
     - src/Services/Order.Command/**
     - .github/workflows/order-command-api-CI.yml
 

@@ -1,5 +1,5 @@
 using System.Reflection;
-using BuildingBlocks.CQRS.Extensions;
+using eshop.Shared.CQRS.Extensions;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Command.Application.Configurations;

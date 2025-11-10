@@ -1,3 +1,4 @@
+using eshop.Shared.CQRS.Command;
 using Microsoft.Data.SqlClient;
 using Order.Command.Application.Exceptions;
 using Order.Command.Application.Identity;
