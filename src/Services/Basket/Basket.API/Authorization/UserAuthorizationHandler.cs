@@ -41,7 +41,7 @@ public class UserAuthorizationHandler : AuthorizationHandler<UserIdRequirement, 
         return Task.CompletedTask;
     }
 
-    private bool ValidateUserPermissions(
+    private static bool ValidateUserPermissions(
         IReadOnlyList<Claim> claims,
         IReadOnlyList<string> requirements
     )

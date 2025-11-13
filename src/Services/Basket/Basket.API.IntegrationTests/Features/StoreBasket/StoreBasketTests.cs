@@ -45,7 +45,7 @@ public class StoreBasketTests : BaseEndpoint
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart.Username,
                 roles: ["admin"]))
-            .PostAsJsonAsync("api/v1/basket", invalidRequest, token);
+            .PostAsJsonAsync("api/v1/basket/customers", invalidRequest, token);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(token);
 
         // Assert
@@ -69,7 +69,7 @@ public class StoreBasketTests : BaseEndpoint
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username,
                 roles: ["admin"]))
-            .PostAsJsonAsync("api/v1/basket", request, token);
+            .PostAsJsonAsync("api/v1/basket/customers", request, token);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(token);
 
         // Assert
@@ -92,7 +92,7 @@ public class StoreBasketTests : BaseEndpoint
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username))
-            .PostAsJsonAsync("api/v1/basket", invalidRequest);
+            .PostAsJsonAsync("api/v1/basket/customers", invalidRequest);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
@@ -118,7 +118,7 @@ public class StoreBasketTests : BaseEndpoint
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username))
-            .PostAsJsonAsync("api/v1/basket", invalidRequest, token);
+            .PostAsJsonAsync("api/v1/basket/customers", invalidRequest, token);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(token);
 
         // Assert
@@ -144,7 +144,7 @@ public class StoreBasketTests : BaseEndpoint
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username))
-            .PostAsJsonAsync("api/v1/basket", invalidRequest, token);
+            .PostAsJsonAsync("api/v1/basket/customers", invalidRequest, token);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(token);
 
         // Assert
@@ -167,7 +167,7 @@ public class StoreBasketTests : BaseEndpoint
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username))
-            .PostAsJsonAsync("api/v1/basket", request, token);
+            .PostAsJsonAsync("api/v1/basket/customers", request, token);
         var response = await result.Content.ReadFromJsonAsync<StoreBasketResponse>(token);
 
         // Assert
@@ -208,7 +208,7 @@ public class StoreBasketTests : BaseEndpoint
             .SetFakeBearerToken(FakePermission.GetPermissions(
                 [Policies.BasketUserBasketStorePermission], 
                 username: request.ShoppingCart?.Username))
-            .PostAsJsonAsync("api/v1/basket", validRequest, token);
+            .PostAsJsonAsync("api/v1/basket/customers", validRequest, token);
         var response = await result.Content.ReadFromJsonAsync<StoreBasketResponse>(token);
 
         // Assert

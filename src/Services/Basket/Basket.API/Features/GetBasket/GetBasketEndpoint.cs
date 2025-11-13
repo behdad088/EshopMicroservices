@@ -8,7 +8,7 @@ public static class GetBasketEndpoint
 {
     public static IEndpointRouteBuilder MapGetBasketEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/{username}", GetBasketAsync)
+        app.MapGet("/customers/{username}", GetBasketAsync)
             .WithName("GetBasket")
             .Produces<GetBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)

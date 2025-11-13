@@ -35,7 +35,7 @@ public class GetBasketTests : BaseEndpoint
 
         // Act
         var result = await _client
-            .GetAsync($"api/v1/basket/{username}", timeout);
+            .GetAsync($"api/v1/basket/customers/{username}", timeout);
 
         // Assert
         result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -51,7 +51,7 @@ public class GetBasketTests : BaseEndpoint
         // Act
         var result = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions([], username: username))
-            .GetAsync($"api/v1/basket/{username}", timeout);
+            .GetAsync($"api/v1/basket/customers/{username}", timeout);
 
         // Assert
         result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -69,7 +69,7 @@ public class GetBasketTests : BaseEndpoint
             .SetFakeBearerToken(
                 FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
                     username: username))
-            .GetAsync($"api/v1/basket/{username}", timeout);
+            .GetAsync($"api/v1/basket/customers/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(timeout);
 
         // Assert
@@ -113,7 +113,7 @@ public class GetBasketTests : BaseEndpoint
         var result = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
                 username: username))
-            .GetAsync($"api/v1/basket/{username}", timeout);
+            .GetAsync($"api/v1/basket/customers/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<GetBasketResponse>(timeout);
 
         // Assert
@@ -161,7 +161,7 @@ public class GetBasketTests : BaseEndpoint
         var result = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
                 username: username))
-            .GetAsync($"api/v1/basket/{username}", timeout);
+            .GetAsync($"api/v1/basket/customers/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<GetBasketResponse>(timeout);
 
         // Assert

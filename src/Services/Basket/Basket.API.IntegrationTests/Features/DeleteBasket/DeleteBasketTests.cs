@@ -35,7 +35,7 @@ public class DeleteBasketTests : BaseEndpoint
 
         // Act
         var result = await _client
-            .DeleteAsync($"api/v1/basket/{username}", timeout);
+            .DeleteAsync($"api/v1/basket/customers/{username}", timeout);
 
         // Assert
         result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -51,7 +51,7 @@ public class DeleteBasketTests : BaseEndpoint
         // Act
         var result = await _client
             .SetFakeBearerToken("sub")
-            .DeleteAsync($"api/v1/basket/{username}", timeout);
+            .DeleteAsync($"api/v1/basket/customers/{username}", timeout);
 
         // Assert
         result.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -96,7 +96,7 @@ public class DeleteBasketTests : BaseEndpoint
                 FakePermission.GetPermissions(
                     [Policies.BasketUserBasketDeletePermission],
                     username: username))
-            .DeleteAsync($"api/v1/basket/{username}", timeout);
+            .DeleteAsync($"api/v1/basket/customers/{username}", timeout);
         var response = await result.Content.ReadFromJsonAsync<DeleteBasketResponse>(timeout);
 
         // Assert

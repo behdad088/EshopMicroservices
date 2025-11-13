@@ -1,0 +1,200 @@
+openapi: 3.0.0
+info:
+  title: Order Command API
+  version: 1.0.0
+paths:
+  /customers/{customer_id}/orders/{order_id}:
+    post:
+      tags:
+        - Order
+      summary: Creates a new order
+      description: Creates a new order
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - Order
+      summary: Delete an existing order.
+      description: Delete an existing order
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '412':
+          description: Precondition Failed
+    put:
+      tags:
+        - Order
+      summary: Update an existing order.
+      description: Update an existing order
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderRequest'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '412':
+          description: Precondition Failed
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateOrderRequest:
+      type: object
+      properties:
+        order_name:
+          type: string
+        shipping_Address:
+          $ref: '#/components/schemas/Address'
+        billing_address:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    CreateOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+    UpdateOrderRequest:
+      type: object
+      properties:
+        order_name:
+          type: string
+        shipping_Address:
+          $ref: '#/components/schemas/Address'
+        billing_address:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        status:
+          type: string
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    Address:
+      type: object
+      properties:
+        firstname:
+          type: string
+        lastname:
+          type: string
+        email_address:
+          type: string
+        address_line:
+          type: string
+        country:
+          type: string
+        state:
+          type: string
+        zip_code:
+          type: string
+    Payment:
+      type: object
+      properties:
+        card_name:
+          type: string
+        card_number:
+          type: string
+        expiration:
+          type: string
+        cvv:
+          type: string
+        payment_method:
+          type: integer
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+security:
+  - BearerAuth: []
