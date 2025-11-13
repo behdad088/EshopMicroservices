@@ -1,0 +1,144 @@
+openapi: 3.0.1
+info:
+  title: Basket.API
+  version: v1
+paths:
+  /api/v1/basket/customers/{username}:
+    get:
+      tags:
+        - Basket API
+      summary: Get Basket by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBasketResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - Basket API
+      summary: Delete Basket by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteBasketResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /api/v1/basket/customers:
+    post:
+      tags:
+        - Basket API
+      summary: Store Basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreBasketRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreBasketResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    BasketDtoRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketItem'
+    BasketDtoResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketItem'
+        total_price:
+          type: number
+          format: decimal
+    BasketItem:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int32
+        color:
+          type: string
+        price:
+          type: number
+          format: decimal
+        product_id:
+          type: string
+        product_name:
+          type: string
+    DeleteBasketResponse:
+      type: object
+      properties:
+        is_success:
+          type: boolean
+    GetBasketResponse:
+      allOf:
+        - $ref: '#/components/schemas/BasketDtoResponse'
+    StoreBasketRequest:
+      type: object
+      properties:
+        shopping_cart:
+          $ref: '#/components/schemas/BasketDtoRequest'
+    StoreBasketResponse:
+      type: object
+      properties:
+        shopping_cart:
+          $ref: '#/components/schemas/BasketDtoResponse'
+security:
+  - Bearer: []

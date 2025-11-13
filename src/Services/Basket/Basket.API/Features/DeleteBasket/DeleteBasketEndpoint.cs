@@ -10,7 +10,7 @@ public static class DeleteBasketEndpoint
     public static IEndpointRouteBuilder MapDeleteBasketEndpoint(
         this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/{username}", DeleteBasketAsync)
+        app.MapDelete("/customers/{username}", DeleteBasketAsync)
             .WithName("DeleteBasket")
             .Produces<DeleteBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)

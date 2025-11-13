@@ -8,7 +8,7 @@ public static class StoreBasketEndpoint
 {
     public static IEndpointRouteBuilder MapStoreBasketEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/", StoreBasketAsync)
+        app.MapPost("/customers", StoreBasketAsync)
             .WithName("StoreBasket")
             .Produces<StoreBasketResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
