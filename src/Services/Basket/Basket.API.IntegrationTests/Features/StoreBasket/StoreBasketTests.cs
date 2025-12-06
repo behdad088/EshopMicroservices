@@ -1,16 +1,6 @@
-using System.Net;
-using System.Net.Http.Json;
-using Basket.API.Authorization;
 using Basket.API.Features.StoreBasket;
-using Basket.API.IntegrationTests.AutoFixture;
-using Basket.API.IntegrationTests.Database.Postgres;
-using Basket.API.IntegrationTests.Database.Redis;
 using Basket.API.IntegrationTests.ServerGivens;
 using Basket.API.Models.Dtos;
-using IntegrationTests.Common;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Shouldly;
 
 namespace Basket.API.IntegrationTests.Features.StoreBasket;
 
@@ -35,7 +25,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Null_Username_Returns_BadRequest(StoreBasketRequest request)
     {
         // Arrange
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         var invalidRequest =
             new StoreBasketRequest(new BasketDtoRequest(string.Empty, request.ShoppingCart!.Items));
 
@@ -60,7 +50,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Null_Request_Returns_BadRequest(StoreBasketRequest request)
     {
         // Arrange
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         request = new StoreBasketRequest(null);
 
         // Act
@@ -107,7 +97,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Zero_Quantity_In_Items_In_Request_Returns_BadRequest(StoreBasketRequest request)
     {
         // Arrange
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         var invalidRequest =
             new StoreBasketRequest(new BasketDtoRequest(
                 request.ShoppingCart!.Username,
@@ -133,7 +123,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Zero_Price_In_Items_In_Request_Returns_BadRequest(StoreBasketRequest request)
     {
         // Arrange
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         var invalidRequest =
             new StoreBasketRequest(new BasketDtoRequest(
                 request.ShoppingCart!.Username,
@@ -159,7 +149,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Valid_Request_Saves_Data_In_PostgresDb_And_Redis(StoreBasketRequest request)
     {
         // Arrange 
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         _discountGiven.GetDiscountGiven(request.ShoppingCart!.Items!.FirstOrDefault()!.ProductName);
 
         // Act
@@ -193,7 +183,7 @@ public class StoreBasketTests : BaseEndpoint
     public async Task StoreBasket_Valid_Request_Saves_Data_With_Valid_TotalPrice(StoreBasketRequest request)
     {
         // Arrange 
-        var token = _apiSpecification.CancellationToken;
+        var token = _apiSpecification.CreateTimeoutToken();
         var validRequest = new StoreBasketRequest(new BasketDtoRequest(request.ShoppingCart!.Username,
             new List<BasketItem>
             {

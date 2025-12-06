@@ -1,8 +1,5 @@
 using System.Net.Http.Headers;
-using IntegrationTests.Common;
-using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.DeleteOrder;
-using Order.Command.API.IntegrationTests.AutoFixture;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.DeleteOrder;
 

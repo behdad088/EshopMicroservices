@@ -13,9 +13,11 @@ public record GetProductByCategoryResult(PaginatedItems<ProductModule> Product);
 internal class GetProductsByCategoryQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductByCategoryQuery, GetProductByCategoryResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetProductsByCategoryQueryHandler>();
     public async Task<GetProductByCategoryResult> Handle(GetProductByCategoryQuery query,
         CancellationToken cancellationToken)
     {
+        _logger.Information("Getting products by category.");
         var pageSize = query.PaginationRequest.PageSize;
         var pageIndex = query.PaginationRequest.PageIndex;
         var productAsQueryable =
@@ -26,7 +28,7 @@ internal class GetProductsByCategoryQueryHandler(
             .Take(pageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-
+        _logger.Information("Successfully retrieving the list of product by category.");
         var result = MapToResult(product);
 
         return new GetProductByCategoryResult(

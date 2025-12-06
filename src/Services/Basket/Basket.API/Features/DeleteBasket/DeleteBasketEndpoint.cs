@@ -1,7 +1,6 @@
 using Basket.API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Basket.API.Features.DeleteBasket;
 

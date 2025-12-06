@@ -1,29 +1,37 @@
-using System.Globalization;
+using eshop.Shared;
+using eshop.Shared.Logger;
+using eshop.Shared.Middlewares;
+using eshop.Shared.OpenTelemetry;
 using Identity.API;
+using Identity.API.Configurations.ConfigurationOptions;
 using Serilog;
-
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
-    .CreateBootstrapLogger();
-
-Log.Information("Starting up");
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console(
-            outputTemplate:
-            "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-            formatProvider: CultureInfo.InvariantCulture)
-        .Enrich.FromLogContext()
-        .ReadFrom.Configuration(ctx.Configuration));
+    builder.Services
+        .AddOptions<LoggerConfigurations>()
+        .Bind(builder.Configuration)
+        .ValidateDataAnnotationsRecursively()
+        .ValidateOnStart();
+
+    var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+    const string serviceName = "eshop.identity.api";
+    builder.Services.AddOpenTelemetryOtl(serviceName);
+    builder.SetupLogging("Identity Service", environment, loggerConfigurations.ElasticSearch);
 
     var app = builder
         .ConfigureServices()
         .ConfigurePipeline();
-    
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.IncludeQueryInRequestPath = true;
+        options.MessageTemplate =
+            "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    });
+    app.UseTraceIdentifierHeader();
     app.Run();
 }
 catch (Exception ex) when (ex is not HostAbortedException)

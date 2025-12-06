@@ -10,10 +10,14 @@ using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Catalog.API.IntegrationTests
 {
-    public class ApiFactory(string postgresConnection) : WebApplicationFactory<Program>
+    public class ApiFactory(
+        string postgresConnection,
+        string elasticSearchString) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            Environment.SetEnvironmentVariable("Logger__elasticsearch", elasticSearchString);
+            
             builder.ConfigureTestServices(service =>
             {
                 service.RemoveAll(typeof(IInitialData));

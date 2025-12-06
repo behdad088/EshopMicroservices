@@ -1,14 +1,4 @@
-using System.Net;
-using System.Net.Http.Json;
-using Basket.API.Authorization;
 using Basket.API.Features.GetBasket;
-using Basket.API.IntegrationTests.Database.Postgres;
-using Basket.API.IntegrationTests.Database.Redis;
-using Basket.API.Models;
-using IntegrationTests.Common;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Shouldly;
 
 namespace Basket.API.IntegrationTests.Features.GetBasket;
 
@@ -30,7 +20,7 @@ public class GetBasketTests : BaseEndpoint
     public async Task GetBasket_No_Token_Returns_Unauthorized()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         const string username = "test username 1";
 
         // Act
@@ -45,7 +35,7 @@ public class GetBasketTests : BaseEndpoint
     public async Task GetBasket_No_Permission_Returns_Forbidden()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         const string username = "test username 1";
 
         // Act
@@ -61,7 +51,7 @@ public class GetBasketTests : BaseEndpoint
     public async Task GetBasket_Basket_NotFound_Returns_NotFound()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         const string username = "test username 1";
 
         // Act
@@ -83,7 +73,7 @@ public class GetBasketTests : BaseEndpoint
     public async Task GetBasket_Basket_Only_Exists_In_Postgres_database_Should_Return_Basket_And_Add_To_Redis()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         const string username = "test username 2";
 
         var shoppingCart = new ShoppingCart
@@ -131,7 +121,7 @@ public class GetBasketTests : BaseEndpoint
     public async Task GetBasket_Basket_Only_Exists_In_Redis_database_Should_Return_Basket()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         const string username = "test username 3";
 
         var shoppingCart = new ShoppingCart

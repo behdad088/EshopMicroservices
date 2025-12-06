@@ -1,8 +1,3 @@
-using MassTransit.Testing;
-using Order.Command.Application.Rmq.CloudEvent.Models;
-using Order.Command.Domain.Events;
-using Order.Command.Domain.Models;
-
 namespace Order.Command.API.IntegrationTests.OutboxTests;
 
 [Collection(TestCollection.Name)]

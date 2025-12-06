@@ -6,3 +6,7 @@ global using MediatR;
 global using Microsoft.Extensions.Logging;
 global using Order.Command.Domain.Events;
 global using Microsoft.EntityFrameworkCore;
+global using Serilog;
+global using Serilog.Context;
+global using ILogger = Serilog.ILogger;
+global using eshop.Shared.Logger;

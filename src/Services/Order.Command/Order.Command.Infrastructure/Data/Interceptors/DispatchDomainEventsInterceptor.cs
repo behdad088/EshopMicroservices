@@ -2,11 +2,14 @@ using System.Data.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Order.Command.Domain.Abstractions;
 
 namespace Order.Command.Infrastructure.Data.Interceptors;
 
-public class DispatchDomainEventsInterceptor(IMediator mediator) : DbTransactionInterceptor
+public class DispatchDomainEventsInterceptor(
+    IMediator mediator,
+    ILogger<DispatchDomainEventsInterceptor> _logger) : DbTransactionInterceptor
 {
     public override void TransactionCommitted(
         DbTransaction transaction,
@@ -23,6 +26,7 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : DbTransaction
         TransactionEndEventData eventData,
         CancellationToken cancellationToken = new())
     {
+        _logger.LogInformation("Transaction committed");
         var eventToDispatch = GetDomainEvents(eventData.Context);
         DispatchDomainEvents(eventToDispatch).GetAwaiter().GetResult();
         
@@ -34,12 +38,20 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : DbTransaction
         if (domainEvents is null) return;
 
         foreach (var domainEvent in domainEvents)
+        {
+            _logger.LogInformation("Dispatching domain event {EventType}", domainEvent.GetType().Name);
             await mediator.Publish(domainEvent).ConfigureAwait(false);
+        }
     }
 
-    private static List<IDomainEvent>? GetDomainEvents(DbContext? context)
+    private List<IDomainEvent>? GetDomainEvents(DbContext? context)
     {
-        if (context is null) return null;
+        _logger.LogInformation("Getting domain events");
+        if (context is null)
+        {
+            _logger.LogInformation("Domain events are null");
+            return null;
+        }
 
         var entities = context.ChangeTracker
             .Entries<IAggregate>()
@@ -49,8 +61,10 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : DbTransaction
         var domainEvents = entities
             .SelectMany(e => e.DomainEvents)
             .ToList();
-
+        
         entities.ToList().ForEach(e => e.ClearDomainEvents());
+        
+        _logger.LogInformation("Domain events were successfully retrieved. returning domain events.");
         return domainEvents;
     }
 }

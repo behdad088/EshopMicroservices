@@ -1,4 +1,3 @@
-using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Order.Query.Events;
 using Order.Query.Features.OrderView;

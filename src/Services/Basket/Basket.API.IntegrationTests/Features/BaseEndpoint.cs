@@ -10,7 +10,7 @@ public class BaseEndpoint : IAsyncLifetime
     }
     public async Task InitializeAsync()
     {
-        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData().ConfigureAwait(false);
+        await _apiSpecification.GetDocumentStore().Advanced.ResetAllData(CancellationToken.None).ConfigureAwait(false);
     }
 
     public async Task DisposeAsync()

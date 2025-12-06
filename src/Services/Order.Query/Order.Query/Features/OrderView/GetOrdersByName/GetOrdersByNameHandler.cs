@@ -1,6 +1,4 @@
-using eshop.Shared.Pagination;
 using FastEndpoints;
-using Marten;
 
 namespace Order.Query.Features.OrderView.GetOrdersByName;
 
@@ -48,10 +46,12 @@ public record GetOrdersByOrderNameResult(
 public class GetOrdersByCustomerHandler(IDocumentSession session) : 
     ICommandHandler<GetOrdersByOrderNameQuery, PaginatedItems<GetOrdersByOrderNameResult>>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrdersByCustomerHandler>();
     public async Task<PaginatedItems<GetOrdersByOrderNameResult>> ExecuteAsync(
         GetOrdersByOrderNameQuery command,
         CancellationToken ct)
     {
+        _logger.Information("Get orders by name");
         var pageSize = command.PageSize;
         var pageIndex = command.PageIndex;
         
@@ -68,6 +68,7 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
             .ConfigureAwait(false);
 
         var result = dbResult.Select(MapResult).ToArray();
+        _logger.Information("Successfully retrieved orders by name");
         return new  PaginatedItems<GetOrdersByOrderNameResult>(pageIndex, pageSize, totalCount, result);
     }
     

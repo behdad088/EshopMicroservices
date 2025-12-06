@@ -5,5 +5,7 @@ global using Marten;
 global using Basket.API.Data;
 global using System.Text.Json.Serialization;
 global using Microsoft.Extensions.Caching.Distributed;
-global using System.Text.Json;
 global using Basket.API.Configurations.ConfigurationOptions;
+global using Serilog;
+global using Serilog.Context;
+global using ILogger = Serilog.ILogger;

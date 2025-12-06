@@ -1,5 +1,3 @@
-using IntegrationTests.Common;
-using MassTransit.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Respawn;
@@ -45,7 +43,10 @@ public class ApiSpecification(WebApiContainerFactory containerFactory) : IAsyncL
     
     public async Task InitializeAsync()
     {
-        _apiFactory = new ApiFactory(containerFactory.MssqlConnectionString, containerFactory.RmqConfiguration);
+        _apiFactory = new ApiFactory(
+            containerFactory.MssqlConnectionString,
+            containerFactory.RmqConfiguration,
+            containerFactory.ElasticSearchUri);
         _ = _apiFactory.CreateClient();
 
         await using var connection = new SqlConnection(containerFactory.MssqlConnectionString);

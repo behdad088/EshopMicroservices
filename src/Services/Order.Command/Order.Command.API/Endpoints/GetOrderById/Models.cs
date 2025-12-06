@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Order.Command.Application.Orders.Queries.GetOrderById;
 
 namespace Order.Command.API.Endpoints.GetOrderById;
 

@@ -8,12 +8,16 @@ using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Basket.API.IntegrationTests;
 
-public class ApiFactory(string postgresConnection, string redisConnectionString) : WebApplicationFactory<Program>
+public class ApiFactory(
+    string postgresConnection,
+    string redisConnectionString,
+    string elasticSearchString) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Environment.SetEnvironmentVariable("ConnectionStrings__Database", postgresConnection);
         Environment.SetEnvironmentVariable("ConnectionStrings__Redis", redisConnectionString);
+        Environment.SetEnvironmentVariable("Logger__elasticsearch", elasticSearchString);
 
         builder.ConfigureTestServices(service =>
         {

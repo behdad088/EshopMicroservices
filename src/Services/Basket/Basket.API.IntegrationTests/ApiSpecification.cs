@@ -16,7 +16,6 @@ public class GetWebApiContainerFactory : ICollectionFixture<ApiSpecification>
 }
 public class ApiSpecification : IAsyncLifetime
 {
-    private readonly CancellationTokenSource _timeoutCancellationTokenSource = new(TimeSpan.FromSeconds(30));
     private IDistributedCache? _cache;
     private WireMockServer? _discountWireMockServer;
     private ApiFactory? _factory;
@@ -40,7 +39,10 @@ public class ApiSpecification : IAsyncLifetime
         _postgresDataSeeder ??= new PostgresDataSeeder(GetDocumentStore());
 
     internal RedisDataSeeder RedisDataSeeder => _redisDataSeeder ??= new RedisDataSeeder(GetCache());
-    internal CancellationToken CancellationToken => _timeoutCancellationTokenSource.Token;
+    internal CancellationToken CreateTimeoutToken(int seconds = 120)
+    {
+        return new CancellationTokenSource(TimeSpan.FromSeconds(seconds)).Token;
+    }
 
     public void ResetWireMockServer()
     {
@@ -53,7 +55,10 @@ public class ApiSpecification : IAsyncLifetime
         _discountWireMockServer = StartWireMockServer();
         Environment.SetEnvironmentVariable("Grpc__Discount", _discountWireMockServer.Url);
 
-        _factory = new ApiFactory(_webApiContainer.PostgresConnectionString, _webApiContainer.RedisConnectionString);
+        _factory = new ApiFactory(
+            _webApiContainer.PostgresConnectionString,
+            _webApiContainer.RedisConnectionString,
+            _webApiContainer.ElasticSearchUri);
         _store = _factory.Services.GetRequiredService<IDocumentStore>();
         _cache = _factory.Services.GetRequiredService<IDistributedCache>();
         await Task.CompletedTask;
@@ -66,7 +71,7 @@ public class ApiSpecification : IAsyncLifetime
             await _factory.DisposeAsync();
 
         _httpClient?.Dispose();
-        _store?.Advanced.ResetAllData(CancellationToken);
+        _store?.Advanced.ResetAllData(CreateTimeoutToken());
         _store?.Dispose();
         await _webApiContainer.DisposeAsync();
         _discountWireMockServer?.Stop();

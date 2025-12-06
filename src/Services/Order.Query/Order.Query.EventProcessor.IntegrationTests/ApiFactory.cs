@@ -26,6 +26,7 @@ public class ApiFactory(WebApiContainerFactory webApiContainerFactory) : WebAppl
         Environment.SetEnvironmentVariable("RabbitMQ__URI", rmqConfiguration.Uri);
         Environment.SetEnvironmentVariable("RabbitMQ__Username", rmqConfiguration.Username);
         Environment.SetEnvironmentVariable("RabbitMQ__Password", rmqConfiguration.Password);
+        Environment.SetEnvironmentVariable("Logger__elasticsearch", webApiContainerFactory.ElasticSearchUri);
         
         builder.ConfigureTestServices(services =>
         {

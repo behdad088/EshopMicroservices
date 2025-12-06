@@ -1,6 +1,5 @@
 using eshop.Shared.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Order.Command.Application.Dtos;
 
 namespace Order.Command.API.Endpoints.GetOrders;
 

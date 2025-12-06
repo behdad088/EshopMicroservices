@@ -1,13 +1,4 @@
-using System.Net;
-using System.Net.Http.Json;
-using Basket.API.Authorization;
 using Basket.API.Features.DeleteBasket;
-using Basket.API.IntegrationTests.AutoFixture;
-using Basket.API.IntegrationTests.Database.Postgres;
-using Basket.API.IntegrationTests.Database.Redis;
-using Basket.API.Models;
-using IntegrationTests.Common;
-using Shouldly;
 
 namespace Basket.API.IntegrationTests.Features.DeleteBasket;
 
@@ -31,7 +22,7 @@ public class DeleteBasketTests : BaseEndpoint
     public async Task DeleteBasket_No_Token_Returns_Unauthorized(string username)
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
 
         // Act
         var result = await _client
@@ -46,7 +37,7 @@ public class DeleteBasketTests : BaseEndpoint
     public async Task DeleteBasket_No_Permission_Returns_Forbidden(string username)
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
 
         // Act
         var result = await _client
@@ -61,7 +52,7 @@ public class DeleteBasketTests : BaseEndpoint
     public async Task DeleteBasket_Deletes_Basket_From_Cache_And_PostgresDb_Returns_Ok()
     {
         // Arrange
-        var timeout = _apiSpecification.CancellationToken;
+        var timeout = _apiSpecification.CreateTimeoutToken();
         var username = "test username 1";
 
         var shoppingCart = new ShoppingCart

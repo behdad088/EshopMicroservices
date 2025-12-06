@@ -1,10 +1,13 @@
 using eshop.Shared;
 using eshop.Shared.HealthChecks;
+using eshop.Shared.Logger;
+using eshop.Shared.OpenTelemetry;
 using FluentValidation;
 using Order.Query.EventProcessor;
 using Order.Query.EventProcessor.Configurations;
 using Order.Query.EventProcessor.Health;
 using Order.Query.PostgresConfig;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,10 +26,22 @@ builder.Services
     .Bind(builder.Configuration)
     .ValidateDataAnnotationsRecursively()
     .ValidateOnStart();
+builder.Services
+    .AddOptions<LoggerConfigurations>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
 
 var rabbitMqConfigurations = builder.Configuration.TryGetValidatedOptions<RabbitMqConfigurations>();
 var connectionString = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 var queues = builder.Configuration.TryGetValidatedOptions<QueueConfigurations>();
+var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
+
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+const string serviceName = "eshop.order.event.processor";
+builder.Services.AddOpenTelemetryOtl(serviceName);
+builder.SetupLogging("Order Event Processor", environment, loggerConfigurations.ElasticSearch);
+
 
 builder.Services.AddPostgresDb(connectionString.PostgresDb);
 
@@ -37,6 +52,12 @@ builder.Services.AddHealthChecks(builder.Configuration);
 
 
 var app = builder.Build();
+app.UseSerilogRequestLogging(options =>
+{
+    options.IncludeQueryInRequestPath = true;
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 app.MapDefaultHealthChecks();
 
 // Configure the HTTP request pipeline.
@@ -47,7 +68,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.Run();
+try
+{
+    await app.RunAsync();
+}
+catch (Exception e)
+{
+    Log.Fatal(e,"Unhandled Exception");
+}
+finally
+{
+    Log.Information("Log Complete");
+    Log.CloseAndFlush();
+}
+
 
 namespace Order.Query.EventProcessor
 {

@@ -70,6 +70,7 @@ public static class Config
         public const string Basket = "basket";
         public const string Catalog = "catalog";
         public const string OrdersCommand = "orders_command";
+        public const string OrdersQuery = "orders_query";
     }
     
     public static IEnumerable<IdentityResource> IdentityResources =>
@@ -84,21 +85,29 @@ public static class Config
         {
             new ApiScope(ScopeNames.Basket, "Basket Service"),
             new ApiScope(ScopeNames.Catalog, "Catalog Service"),
-            new ApiScope(ScopeNames.OrdersCommand, "Orders Command Service")
+            new ApiScope(ScopeNames.OrdersCommand, "Orders Command Service"),
+            new ApiScope(ScopeNames.OrdersQuery, "Orders Query Service")
         };
 
     public static IEnumerable<ApiResource> ApiResources =>
-        new[]
+    [
+        new ApiResource("basket", "Basket API")
         {
-            new ApiResource("basket", "Basket API")
-            {
-                Scopes = { ScopeNames.Basket }
-            },
-            new ApiResource("catalog", "Catalog API")
-            {
-                Scopes = { ScopeNames.Catalog }
-            }
-        };
+            Scopes = { ScopeNames.Basket }
+        },
+        new ApiResource("catalog", "Catalog API")
+        {
+            Scopes = { ScopeNames.Catalog }
+        },
+        new ApiResource("order.command", "Order Command API")
+        {
+            Scopes = { ScopeNames.OrdersCommand }
+        },
+        new ApiResource("order.query", "Order Query API")
+        {
+            Scopes = { ScopeNames.OrdersQuery }
+        }
+    ];
     
     public static IEnumerable<Client> Clients =>
         new Client[]
@@ -113,7 +122,8 @@ public static class Config
                     IdentityServerConstants.StandardScopes.Profile,
                     ScopeNames.Basket,
                     ScopeNames.Catalog,
-                    ScopeNames.OrdersCommand
+                    ScopeNames.OrdersCommand,
+                    ScopeNames.OrdersQuery
                 },
                 AllowAccessTokensViaBrowser = true
             }

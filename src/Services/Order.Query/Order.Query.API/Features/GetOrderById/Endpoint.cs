@@ -1,6 +1,4 @@
-using FastEndpoints;
-using Microsoft.AspNetCore.Authorization;
-using Order.Query.API.Authorization;
+using eshop.Shared.Logger;
 using Order.Query.Features.OrderView.GetOrderById;
 
 namespace Order.Query.API.Features.GetOrderById;
@@ -16,6 +14,9 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, req.OrderId);
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, req.CustomerId);
+        
         if (!await authorizationService.CanGetOrderByIdAsync(User, req.CustomerId))
         {
             await Send.ForbiddenAsync(ct);
@@ -41,7 +42,7 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
         }
     }
 
-    private Response MapResponse(GetOrderByIdResult result)
+    private static Response MapResponse(GetOrderByIdResult result)
     {
         return new Response(
             Id: result.Id,

@@ -80,7 +80,7 @@ public static class DependencyInjection
                     h.Username(rabbitMqConfigurations.Username);
                     h.Password(rabbitMqConfigurations.Password);
                 });
-
+                
                 cfg.SendTopology.ErrorQueueNameFormatter = new CustomErrorQueueNameFormatter();
                 
                 foreach (var configuration in EndpointConfigurations)

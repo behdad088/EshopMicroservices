@@ -1,28 +1,39 @@
 using eshop.Shared.CQRS.Command;
-using eshop.Shared.Exceptions;
 using Microsoft.Data.SqlClient;
-using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.UpdateOrder;
 
-public record UpdateOrderCommand(UpdateOrderParameter Order) : ICommand<UpdateOrderResult>;
+public record UpdateOrderCommand(UpdateOrderParameter Order) : ICommand<Result>;
 
-public record UpdateOrderResult(bool IsSuccess);
+public abstract record Result
+{
+    public record Succeed : Result;
+    public record InvalidEtag(string Etag) : Result;
+    public record OrderNotFound(string Id) : Result;
+    
+}
 
 public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
-    : ICommandHandler<UpdateOrderCommand, UpdateOrderResult>
+    : ICommandHandler<UpdateOrderCommand, Result>
 {
-    public async Task<UpdateOrderResult> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
+    private readonly ILogger _logger = Log.ForContext<UpdateOrderCommandHandler>();
+    public async Task<Result> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
     {
         try
         {
+            using var _ = LogContext.PushProperty(LogProperties.ETag, command.Order.Version);
+            
+            _logger.Information("Update Order Command.");
             var customerId = CustomerId.From(Guid.Parse(command.Order.CustomerId!));
             var orderId = OrderId.From(Ulid.Parse(command.Order.Id));
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             var orderDb = await dbContext.Orders.FindAsync([orderId], cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-            AssertOrder(orderDb, command.Order);
+            var assertResult = IsOrderValid(orderDb, command.Order);
+            if (assertResult is not null)
+                return assertResult;
+            
             UpdateOrderWithNewValues(command.Order, orderDb!);
             AddOrderUpdatedEvent(orderDb!);
             var outbox = MapOutbox(customerId, orderDb!);
@@ -32,28 +43,37 @@ public class UpdateOrderCommandHandler(IApplicationDbContext dbContext)
 
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-
-            return new UpdateOrderResult(true);
+            _logger.Information("Successfully updated order.");
+            return new Result.Succeed();
         }
         catch (DbUpdateException ex)
         {
             if (ex.InnerException is SqlException { Number: 2627 or 2601 })
             {
-                throw new InvalidEtagException(command.Order.Version!);
+                _logger.Error("Invalid order version.");
+                return new Result.InvalidEtag(command.Order.Version!);
             }
 
             throw;
         }
     }
 
-    private static void AssertOrder(Domain.Models.Order? orderDb, UpdateOrderParameter orderParameter)
+    private Result? IsOrderValid(Domain.Models.Order? orderDb, UpdateOrderParameter orderParameter)
     {
         if (orderDb is null)
-            throw new OrderNotFoundExceptions(Ulid.Parse(orderParameter.Id));
+        {
+            _logger.Information("Order not found.");
+            return new Result.OrderNotFound(orderParameter.Id!);
+        }
 
         var version = VersionId.FromWeakEtag(orderParameter.Version!).Value;
         if (version != orderDb.RowVersion.Value)
-            throw new InvalidEtagException(orderParameter.Version!);
+        {
+            _logger.Information("Order version doesn't match order version.");
+            return new Result.InvalidEtag(orderParameter.Version!);
+        }
+        
+        return null;
     }
 
     private static void AddOrderUpdatedEvent(Domain.Models.Order order)

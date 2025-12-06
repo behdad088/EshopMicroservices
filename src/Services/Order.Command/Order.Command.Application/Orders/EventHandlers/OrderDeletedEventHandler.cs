@@ -7,15 +7,16 @@ public class OrderDeletedEventHandler(
     IEventPublisher<OrderDeletedEvent> eventPublisher,
     IApplicationDbContext context) : INotificationHandler<OrderDeletedEvent>
 {
+    private readonly ILogger _logger = Log.ForContext<OrderDeletedEventHandler>();
     public async Task Handle(OrderDeletedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Publishing domain event: {DomainEvent}", notification.GetType());
+        using var _ = LogContext.PushProperty(LogProperties.EventDomainType, notification.GetType());
+        _logger.Information("Publishing domain event");
         var isPublished = await eventPublisher.PublishAsync(notification, cancellationToken).ConfigureAwait(false);
 
         if (isPublished)
         {
-            logger.LogInformation("Publishing domain event: {DomainEvent} was successfully published",
-                notification.GetType());
+            _logger.Information("Successfully published event");
             
             var @event = await context.Outboxes.FirstOrDefaultAsync(x =>
                     x.AggregateId.Equals(AggregateId.From(notification.OrderId)) &&
@@ -28,6 +29,7 @@ public class OrderDeletedEventHandler(
             context.Outboxes.Update(@event!);
             
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _logger.Information("Order was marked as dispatched");
         }
     }
 }

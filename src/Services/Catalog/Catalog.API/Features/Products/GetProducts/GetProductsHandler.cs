@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using eshop.Shared.CQRS.Query;
 using eshop.Shared.Pagination;
 
@@ -9,11 +8,14 @@ public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<Get
 
 public record GetProductsResult(PaginatedItems<ProductModule> PaginatedResult);
 
-internal class GetProductQueryHandler(
+internal class GetProductsQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductsQuery, GetProductsResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetProductsQueryHandler>();
+    
     public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
     {
+        _logger.Information("Getting products.");
         var pageSize = query.PaginationRequest.PageSize;
         var pageIndex = query.PaginationRequest.PageIndex;
         var productsAsQueryable = session.Query<ProductDocument>().AsQueryable();
@@ -23,6 +25,7 @@ internal class GetProductQueryHandler(
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        _logger.Information("Successfully retrieving the list of product.");
         var result = MapToResult(products);
 
         return new GetProductsResult(new PaginatedItems<ProductModule>(pageIndex, pageSize, totalItems, result));

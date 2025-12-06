@@ -1,6 +1,3 @@
-using IntegrationTests.Common;
-using Order.Command.API.Authorization;
-using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.CreateOrder;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.CreateOrder;

@@ -1,5 +1,4 @@
 using eshop.Shared.Pagination;
-using Order.Command.API.Authorization;
 using Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
 namespace Order.Command.API.Endpoints.GetOrdersByCustomer;
@@ -21,6 +20,8 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, request.CustomerId);
+        
         var isAuthorize = await AuthorizationService.CanGetOrdersByCustomerIdAsync(
             Context, request.CustomerId).ConfigureAwait(false);
         
