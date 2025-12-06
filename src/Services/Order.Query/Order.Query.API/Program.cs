@@ -1,8 +1,8 @@
 using eshop.Shared;
 using eshop.Shared.Exceptions.Handler;
-using FastEndpoints;
-using Microsoft.AspNetCore.Authorization;
-using Order.Query.API.Authorization;
+using eshop.Shared.Logger;
+using eshop.Shared.Middlewares;
+using eshop.Shared.OpenTelemetry;
 using Order.Query.API.Configurations;
 using Order.Query.PostgresConfig;
 
@@ -16,6 +16,18 @@ builder.Services
 
 var connectionString = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 
+builder.Services
+    .AddOptions<LoggerConfigurations>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
+
+var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+const string serviceName = "eshop.order.query.api";
+builder.Services.AddOpenTelemetryOtl(serviceName);
+builder.SetupLogging("Order Query Service", environment, loggerConfigurations.ElasticSearch);
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 // builder.Services.AddOpenApi();
@@ -26,13 +38,19 @@ builder.Services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>()
 builder.AddDefaultAuthentication(Policies.ConfigureAuthorization);
 
 var app = builder.Build();
-
+app.UseSerilogRequestLogging(options =>
+{
+    options.IncludeQueryInRequestPath = true;
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     // app.MapOpenApi();
 }
 
+app.UseTraceIdentifierHeader();
 app.UseHttpsRedirection();
 
 app.UseFastEndpoints(c =>
@@ -46,8 +64,19 @@ app.UseFastEndpoints(c =>
 
 app.UseProblemDetailsResponseExceptionHandler();
 
-app.Run();
-
+try
+{ 
+    await app.RunAsync();
+}
+catch (Exception e)
+{
+    Log.Fatal(e,"Unhandled Exception");
+}
+finally
+{
+    Log.Information("Log Complete");
+    Log.CloseAndFlush();
+}
 
 namespace Order.Query.Api
 {

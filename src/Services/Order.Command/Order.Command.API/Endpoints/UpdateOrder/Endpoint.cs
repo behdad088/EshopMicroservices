@@ -1,5 +1,4 @@
-using Order.Command.API.Authorization;
-using Order.Command.Application.Dtos;
+using System.Net;
 using Order.Command.Application.Orders.Commands.UpdateOrder;
 
 namespace Order.Command.API.Endpoints.UpdateOrder;
@@ -23,6 +22,9 @@ public class Endpoint : EndpointBase<Request>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, request.Id);
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
+        
         var isAuthorize = await AuthorizationService.CanGetUpdateOrderAsync(
             Context, request.CustomerId).ConfigureAwait(false);
         
@@ -32,9 +34,15 @@ public class Endpoint : EndpointBase<Request>
         var eTag = Context.Request.Headers.IfMatch;
 
         var command = MapToCommand(request, eTag);
-        await SendAsync(command).ConfigureAwait(false);
+        var result = await SendAsync(command).ConfigureAwait(false);
 
-        return TypedResults.NoContent();
+        return result switch
+        {
+            Result.Succeed => Results.NoContent(),
+            Result.InvalidEtag => Results.StatusCode((int)HttpStatusCode.PreconditionFailed),
+            Result.OrderNotFound => Results.NotFound(request.Id),
+            _ => Results.InternalServerError()
+        };
     }
 
     private static UpdateOrderCommand MapToCommand(Request request, string? eTag)

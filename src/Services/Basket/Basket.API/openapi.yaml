@@ -2,6 +2,16 @@ openapi: 3.0.1
 info:
   title: Basket.API
   version: v1
+  
+servers:
+  - url: http://localhost:5001/
+    description: Local
+  - url: https://localhost:5051/
+    description: Local
+  - url: http://localhost:6001/
+    description: Docker
+  - url: https://localhost:6061/
+    description: Docker
 paths:
   /api/v1/basket/customers/{username}:
     get:

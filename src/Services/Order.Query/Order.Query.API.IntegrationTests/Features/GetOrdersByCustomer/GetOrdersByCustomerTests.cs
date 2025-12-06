@@ -1,11 +1,4 @@
-using System.Net;
-using FastEndpoints;
-using IntegrationTests.Common;
-using Order.Query.API.Authorization;
 using Order.Query.API.Features.GetOrdersByCustomer;
-using Order.Query.API.IntegrationTests.AutoFixture;
-using Order.Query.API.IntegrationTests.Given.DbGiven;
-using Shouldly;
 
 namespace Order.Query.API.IntegrationTests.Features.GetOrdersByCustomer;
 

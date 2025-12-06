@@ -6,14 +6,19 @@ namespace Basket.API.Data;
 
 internal class CachedBasketRepository(IBasketRepository repository, IDistributedCache cache) : IBasketRepository
 {
+    private readonly ILogger _logger = Log.ForContext<CachedBasketRepository>();
+    
     public async Task<ShoppingCart> GetBasketAsync(string username, CancellationToken cancellationToken = default)
     {
+        _logger.Information("Trying to fetch basket from cache.");
         var cachedBasket = await cache.GetAsync(username, cancellationToken).ConfigureAwait(false);
         if (cachedBasket is not null && TryParseBasket(cachedBasket, out var shoppingCart))
             return shoppingCart;
-
+        
         var basketInDb = await repository.GetBasketAsync(username, cancellationToken).ConfigureAwait(false);
         var basketByteArray = GetShoppingCartAsByteArray(basketInDb);
+        
+        _logger.Information("Saving basket to the cache.");
         await cache.SetAsync(username, basketByteArray, cancellationToken)
             .ConfigureAwait(false);
 
@@ -24,6 +29,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
     {
         await repository.StoreBasketAsync(basket, cancellationToken).ConfigureAwait(false);
         var basketByteArray = GetShoppingCartAsByteArray(basket);
+        _logger.Information("Saving basket to the cache.");
         await cache.SetAsync(basket.Username, basketByteArray, cancellationToken).ConfigureAwait(false);
 
         return basket;
@@ -32,6 +38,8 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
     public async Task<bool> DeleteBasketAsync(string username, CancellationToken cancellationToken = default)
     {
         var isSuccess = await repository.DeleteBasketAsync(username, cancellationToken).ConfigureAwait(false);
+        
+        _logger.Information("Deleting basket from cache.");
         await cache.RemoveAsync(username, cancellationToken).ConfigureAwait(false);
         return isSuccess;
     }

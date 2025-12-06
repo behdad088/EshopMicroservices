@@ -1,7 +1,4 @@
 using System.Net.Http.Headers;
-using IntegrationTests.Common;
-using Order.Command.API.Authorization;
-using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.UpdateOrder;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;

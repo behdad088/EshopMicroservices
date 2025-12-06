@@ -1,4 +1,3 @@
-using Order.Command.API.Authorization;
 using Order.Command.Application.Orders.Queries.GetOrderById;
 
 namespace Order.Command.API.Endpoints.GetOrderById;
@@ -21,6 +20,9 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, request.Id);
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
+        
         var isAuthorize = await AuthorizationService.CanGetOrderByIdAsync(
             Context, request.CustomerId).ConfigureAwait(false);
         

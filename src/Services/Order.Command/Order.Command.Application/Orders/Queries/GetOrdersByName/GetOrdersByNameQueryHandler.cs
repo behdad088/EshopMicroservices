@@ -13,12 +13,15 @@ public record GetOrdersByNameResult(PaginatedItems<GetOrderByNameResponse> Order
 public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
     : IQueryHandler<GetOrdersByNameQuery, GetOrdersByNameResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrdersByNameQueryHandler>();
     public async Task<GetOrdersByNameResult> Handle(GetOrdersByNameQuery query, CancellationToken cancellationToken)
     {
+        _logger.Information("Get orders by name");
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders.Where(
                 x => x.OrderName.Equals(OrderName.From(query.Name)) && x.DeleteDate == null)
+            .AsNoTracking()
             .LongCountAsync(cancellationToken);
 
         var orders = await dbContext.Orders
@@ -31,6 +34,7 @@ public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         var result = MapResult(orders, pageIndex, pageSize, totalCount);
+        _logger.Information("Successfully retrieved orders by name");
         return new GetOrdersByNameResult(result);
     }
 

@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Marten" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="OpenTelemetry.SemanticConventions" />
         <PackageReference Include="ReHackt.Extensions.Options.Validation" />
         <PackageReference Include="MassTransit"/>
         <PackageReference Include="MassTransit.RabbitMQ"/>

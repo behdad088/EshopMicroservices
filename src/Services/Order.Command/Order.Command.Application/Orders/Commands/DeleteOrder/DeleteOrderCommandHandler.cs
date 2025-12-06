@@ -1,21 +1,28 @@
 using eshop.Shared.CQRS.Command;
-using eshop.Shared.Exceptions;
 using Microsoft.Data.SqlClient;
-using Order.Command.Application.Exceptions;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;
 
-public record DeleteOrderCommand(string? CustomerId, string? OrderId, string? Version) : ICommand<DeleteOrderResult>;
+public record DeleteOrderCommand(string? CustomerId, string? OrderId, string? Version) : ICommand<Result>;
 
-public record DeleteOrderResult(bool IsSuccess);
+public abstract record Result
+{
+    public record Succeed : Result;
+    public record InvalidEtag(string Etag) : Result;
+    public record OrderNotFound(string Id) : Result;
+}
 
 public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
-    : ICommandHandler<DeleteOrderCommand, DeleteOrderResult>
+    : ICommandHandler<DeleteOrderCommand, Result>
 {
-    public async Task<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
+    private readonly ILogger _logger = Log.ForContext<DeleteOrderCommandHandler>();
+    
+    public async Task<Result> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
     {
         try
         {
+            using var _ = LogContext.PushProperty(LogProperties.ETag, command.Version);
+            _logger.Information("Delete Order Command.");
             var customerId = CustomerId.From(Guid.Parse(command.CustomerId!));
             var orderId = OrderId.From(Ulid.Parse(command.OrderId));
             var version = VersionId.FromWeakEtag(command.Version!).Value;
@@ -26,7 +33,10 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
                 .FirstOrDefaultAsync(x => x.Id.Equals(orderId) && x.DeleteDate == null, cancellationToken)
                 .ConfigureAwait(false);
 
-            AssertOrder(order, command.OrderId!, version);
+            var assertResult = IsOrderValid(order, command.OrderId!, version);
+            if (assertResult is not null)
+                return assertResult;
+            
             order!.Delete(order.RowVersion.Increment());
             var outbox = MapOutbox(customerId, order);
 
@@ -38,26 +48,37 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-            return new DeleteOrderResult(true);
+            _logger.Information("Successfully deleted Order.");
+            return new Result.Succeed();
         }
         catch (DbUpdateException ex)
         {
             if (ex.InnerException is SqlException { Number: 2627 or 2601 })
             {
-                throw new InvalidEtagException(command.Version!);
+                _logger.Error("Invalid etag.");
+                return new Result.InvalidEtag(command.Version!);
             }
 
             throw;
         }
     }
 
-    private static void AssertOrder(Domain.Models.Order? orderDb, string orderId, int version)
+    private Result? IsOrderValid(Domain.Models.Order? orderDb, string orderId, int version)
     {
         if (orderDb is null)
-            throw new OrderNotFoundExceptions(Ulid.Parse(orderId));
+        {
+            _logger.Error("No order found.");
+            return new Result.OrderNotFound(orderId);
+        }
+            
 
         if (version != orderDb.RowVersion.Value)
-            throw new InvalidEtagException(version);
+        {
+            _logger.Error("Order version doesn't match order version.");
+            return new Result.InvalidEtag(version.ToString());
+        }
+
+        return null;
     }
 
     private static void AddOrderDeletedEvent(CustomerId customerId, Domain.Models.Order order)

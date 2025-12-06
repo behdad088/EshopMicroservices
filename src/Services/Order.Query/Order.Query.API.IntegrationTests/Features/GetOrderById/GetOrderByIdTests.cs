@@ -1,12 +1,5 @@
-using System.Net;
-using FastEndpoints;
-using IntegrationTests.Common;
-using Order.Query.API.Authorization;
 using Order.Query.API.Features.GetOrderById;
-using Order.Query.API.IntegrationTests.AutoFixture;
-using Order.Query.API.IntegrationTests.Given.DbGiven;
 using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
-using Shouldly;
 
 namespace Order.Query.API.IntegrationTests.Features.GetOrderById;
 

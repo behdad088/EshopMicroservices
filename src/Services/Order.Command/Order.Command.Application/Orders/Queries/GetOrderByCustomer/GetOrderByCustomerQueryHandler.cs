@@ -13,9 +13,12 @@ public record GetOrderByCustomerResult(PaginatedItems<GetOrderByCustomerResponse
 public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
     : IQueryHandler<GetOrderByCustomerQuery, GetOrderByCustomerResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrderByCustomerQueryHandler>();
+    
     public async Task<GetOrderByCustomerResult> Handle(GetOrderByCustomerQuery query,
         CancellationToken cancellationToken)
     {
+        _logger.Information("Get order by Customer Id.");
         var customerId = Guid.Parse(query.CustomerId);
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
@@ -34,6 +37,7 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         var result = MapResult(orders, pageIndex, pageSize, totalCount);
+        _logger.Information("Successfully retrieved orders by Customer Id.");
         return new GetOrderByCustomerResult(result);
     }
 

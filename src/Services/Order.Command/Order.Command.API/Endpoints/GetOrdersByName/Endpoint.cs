@@ -21,6 +21,8 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.CustomerName, request.CustomerName);
+        
         var query = MapToQuery(request);
         var result = await SendAsync(query).ConfigureAwait(false);
         var response = MapToResponse(result);

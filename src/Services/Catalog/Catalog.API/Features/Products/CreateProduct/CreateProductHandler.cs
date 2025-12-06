@@ -1,4 +1,5 @@
 ﻿using eshop.Shared.CQRS.Command;
+using eshop.Shared.Logger;
 
 namespace Catalog.API.Features.Products.CreateProduct;
 
@@ -16,8 +17,13 @@ public record CreateProductResult(
 internal class CreateProductCommandHandler(IDocumentSession session)
     : ICommandHandler<CreateProductCommand, CreateProductResult>
 {
+    private readonly ILogger _logger = Log.ForContext<CreateProductCommandHandler>();
     public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
     {
+        using var _ = LogContext.PushProperty(LogProperties.ProductId, command.Id);
+
+        _logger.Information("Creating product.");
+        
         var product = new ProductDocument
         {
             Id = command.Id,
@@ -31,6 +37,7 @@ internal class CreateProductCommandHandler(IDocumentSession session)
 
         session.Store(product);
         await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        _logger.Information("Successfully created product.");
         var result = MapResult(product);
         return result;
     }

@@ -1,5 +1,3 @@
-using Order.Command.Domain.Models;
-
 namespace Order.Command.API.IntegrationTests.Given.SqlGiven;
 
 public record OrderConfiguration

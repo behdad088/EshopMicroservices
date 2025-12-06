@@ -1,0 +1,11 @@
+global using Shouldly;
+global using System.Net;
+global using System.Net.Http.Json;
+global using Basket.API.IntegrationTests.AutoFixture;
+global using Basket.API.IntegrationTests.Database.Postgres;
+global using Basket.API.IntegrationTests.Database.Redis;
+global using Basket.API.Models;
+global using IntegrationTests.Common;
+global using Basket.API.Authorization;
+global using Newtonsoft.Json;
+global using Microsoft.AspNetCore.Mvc;

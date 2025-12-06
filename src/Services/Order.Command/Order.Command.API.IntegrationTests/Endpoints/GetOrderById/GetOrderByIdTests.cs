@@ -1,6 +1,3 @@
-using IntegrationTests.Common;
-using Order.Command.API.Authorization;
-using Order.Command.Domain.Models;
 using Order.Command.API.Endpoints.GetOrderById;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrderById;

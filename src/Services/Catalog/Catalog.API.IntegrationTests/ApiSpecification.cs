@@ -20,7 +20,10 @@ public class ApiSpecification : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _webApiContainer.InitializeAsync();
-        _factory = new ApiFactory(_webApiContainer.PostgresConnectionString);
+        _factory = new ApiFactory(
+            _webApiContainer.PostgresConnectionString,
+            _webApiContainer.ElasticSearchUri);
+        
         _store = _factory.Services.GetRequiredService<IDocumentStore>();
         await Task.CompletedTask;
     }

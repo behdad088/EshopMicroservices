@@ -1,6 +1,6 @@
 ﻿using eshop.Shared.CQRS.Command;
+using eshop.Shared.Logger;
 using Marten.Exceptions;
-using Exception = System.Exception;
 
 namespace Catalog.API.Features.Products.UpdateProduct;
 
@@ -23,17 +23,30 @@ public abstract record Result
 internal class UpdateProductsCommandHandler(
     IDocumentSession session) : ICommandHandler<UpdateProductCommand, Result>
 {
+    private readonly ILogger _logger = Log.ForContext<UpdateProductsCommandHandler>();
+    
     public async Task<Result> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
     {
+        using var _ = LogContext.PushProperty(LogProperties.ProductId, command.Id);
+        using var __ = LogContext.PushProperty(LogProperties.ETag, command.Etag);
+        
+        _logger.Information("Updating product.");
+        
         var product = await session.LoadAsync<ProductDocument>(command.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
+        {
+            _logger.Error("Product not found.");
             return new Result.NotFound(command.Id);
+        }
 
         var version = GetVersionFromEtag(command.Etag!);
 
         if (product.Version != version)
+        {
+            _logger.Error("Invalid product version.");
             return new Result.InvalidEtag(version.ToString());
+        }
 
         if (!string.IsNullOrEmpty(command.Name))
             product.Name = command.Name;
@@ -53,9 +66,11 @@ internal class UpdateProductsCommandHandler(
         }
         catch (ConcurrencyException)
         {
+            _logger.Error("Invalid product version.");
             return new Result.InvalidEtag(command.Etag!);
         }
 
+        _logger.Information("Successfully updated Product.");
         return new Result.Success();
     }
 

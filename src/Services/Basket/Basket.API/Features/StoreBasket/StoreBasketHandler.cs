@@ -1,6 +1,6 @@
-using System.Collections.ObjectModel;
 using Discount;
 using eshop.Shared.CQRS.Command;
+using eshop.Shared.Logger;
 
 namespace Basket.API.Features.StoreBasket;
 
@@ -13,8 +13,13 @@ public class StoreBasketCommandHandler(
     DiscountProtoService.DiscountProtoServiceClient discountClient)
     : ICommandHandler<StoreBasketCommand, StoreBasketResult>
 {
+    private readonly ILogger _logger = Log.ForContext<StoreBasketCommandHandler>();
     public async Task<StoreBasketResult> Handle(StoreBasketCommand request, CancellationToken cancellationToken)
     {
+        using var _ = LogContext.PushProperty(LogProperties.Username, request.ShoppingCart!.Username);
+
+        _logger.Information("Store Basket for user");
+        
         var shoppingCart = MapToShoppingCart(request.ShoppingCart!);
         await ApplyDiscountAsync(shoppingCart.Items, cancellationToken)
             .ConfigureAwait(false);

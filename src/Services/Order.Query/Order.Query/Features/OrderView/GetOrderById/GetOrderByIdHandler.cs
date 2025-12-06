@@ -1,5 +1,4 @@
 using FastEndpoints;
-using Marten;
 
 namespace Order.Query.Features.OrderView.GetOrderById;
 
@@ -53,8 +52,10 @@ public record GetOrderByIdResult(
 
 public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<GetOrderByIdQuery, Result>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrderByIdHandler>();
     public async Task<Result> ExecuteAsync(GetOrderByIdQuery command, CancellationToken ct)
     {
+        _logger.Information("Get orders by id.");
         var result = await session
             .Query<OrderView>()
             .FirstOrDefaultAsync(x => x.Id == command.OrderId && x.CustomerId == command.CustomerId,
@@ -62,8 +63,13 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
             .ConfigureAwait(false);
 
         if (result is null)
+        {
+            _logger.Information("Order not found.");
             return new Result.NotFound();
-
+        }
+        
+        _logger.Information("Successfully retrieved orders by id.");
+        
         return new Result.Success(MapResult(result));
     }
 

@@ -1,4 +1,6 @@
+using eshop.Shared.OpenTelemetry;
 using MassTransit;
+using Order.Command.Application.Observability;
 using Order.Command.Application.Rmq.CloudEvent;
 using Order.Command.Domain.Abstractions;
 
@@ -7,6 +9,7 @@ namespace Order.Command.Application.Rmq;
 public delegate Task<bool> PublishAsync(IDomainEvent @event, CancellationToken cancellationToken = default);
 
 internal class EventPublisher<TEvent>(
+    Telemetry telemetry,
     ILogger<EventPublisher<TEvent>> logger,
     ICloudEventFactory<TEvent> cloudEventFactory,
     IBus bus) : IEventPublisher<TEvent> where TEvent : class, IDomainEvent
@@ -16,6 +19,9 @@ internal class EventPublisher<TEvent>(
         try
         {
             var message = cloudEventFactory.Create(@event);
+            
+            using var activity = telemetry.Tracing.StartCloudEventPublisherActivity(message);
+            
             await bus.Publish(message, cancellationToken);
             return true;
         }

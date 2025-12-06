@@ -10,8 +10,10 @@ public record GetOrdersByIdResult(GetOrderByIdResponse Order);
 public class GetOrderByIdHandler(IApplicationDbContext dbContext)
     : IQueryHandler<GetOrdersByIdQuery, GetOrdersByIdResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrderByIdHandler>();
     public async Task<GetOrdersByIdResult> Handle(GetOrdersByIdQuery request, CancellationToken cancellationToken)
     {
+        _logger.Information("Get orders by id.");
         var orderId = Ulid.Parse(request.Id);
         var customerId = Guid.Parse(request.CustomerId!);
         var order = await dbContext.Orders
@@ -23,6 +25,7 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext)
             throw new OrderNotFoundExceptions(orderId);
 
         var result = MapResult(order);
+        _logger.Information("Successfully retrieved orders by id.");
         return new GetOrdersByIdResult(result);
     }
 

@@ -1,5 +1,4 @@
-using eshop.Shared.Pagination;
-using FastEndpoints;
+using eshop.Shared.Logger;
 using Order.Query.Features.OrderView.GetOrdersByName;
 
 namespace Order.Query.API.Features.GetOrdersByName;
@@ -16,6 +15,8 @@ public class Endpoint : Endpoint<Request, Response>
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        using var _ = LogContext.PushProperty(LogProperties.CustomerName, req.OrderName);
+
         var result = await new GetOrdersByOrderNameQuery
         {
             OrderName = req.OrderName!,
@@ -27,7 +28,7 @@ public class Endpoint : Endpoint<Request, Response>
         await Send.OkAsync(MapResponse(result), ct);
     }
     
-    private Response MapResponse(PaginatedItems<GetOrdersByOrderNameResult> res)
+    private static Response MapResponse(PaginatedItems<GetOrdersByOrderNameResult> res)
     {
         var result = res.Data.Select(x => new Order(
             x.Id,

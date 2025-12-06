@@ -1,7 +1,4 @@
-using eshop.Shared.Pagination;
-using FastEndpoints;
-using Microsoft.AspNetCore.Authorization;
-using Order.Query.API.Authorization;
+using eshop.Shared.Logger;
 using Order.Query.Features.OrderView.GetOrdersByCustomer;
 
 namespace Order.Query.API.Features.GetOrdersByCustomer;
@@ -17,6 +14,7 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
 
     public override async Task HandleAsync(Request req, CancellationToken ct)
     {
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, req.CustomerId);
         if (!await authorizationService.CanCanGetListOfOrdersByCustomerIdAsync(User, req.CustomerId))
         {
             await Send.ForbiddenAsync(ct);
@@ -34,7 +32,7 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
         await Send.OkAsync(MapResponse(result), ct);
     }
     
-    private Response MapResponse(PaginatedItems<GetOrdersByCustomerResult> res)
+    private static Response MapResponse(PaginatedItems<GetOrdersByCustomerResult> res)
     {
         var result = res.Data.Select(x => new Order(
             x.Id,

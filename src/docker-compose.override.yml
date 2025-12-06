@@ -83,10 +83,16 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/aspnetapp.pfx
       - ConnectionStrings__Database=Server=catalogdb;Port=5432;Database=CatalogDb;User Id=postgres;Password=postgres
+      - Logger__elasticsearch=http://elasticsearch:9200
       - Identity__Url=https://localhost:7063 # identity api url in docker 
       - Identity__Audience=catalog
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
       - catalogDb
+      - elasticsearch
     ports:
       - "6000:8080"
       - "6060:8081"
@@ -106,12 +112,18 @@ services:
       - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
       - ConnectionStrings__Redis=distributedCache:6379
       - Grpc__Discount=https://discount.grpc:8080
+      - Logger__elasticsearch=http://elasticsearch:9200
       - Identity__Url=https://localhost:7063 # identity api url in docker 
       - Identity__Audience=basket
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
       - basketDb
       - distributedCache
       - discount.grpc
+      - elasticsearch
     ports:
       - "6001:8080"
       - "6061:8081"
@@ -126,9 +138,16 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - Logger__elasticsearch=http://elasticsearch:9200
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/discount.pfx
       - ConnectionStrings__Database=Data Source=discountDb
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - elasticsearch
     ports:
       - "6002:8080"
       - "6062:8081"
@@ -151,8 +170,15 @@ services:
       - RabbitMQ__Password=guest
       - Identity__Url=https://localhost:7063 # identity api url in docker 
       - Identity__Audience=orders_command
+      - Logger__elasticsearch=http://elasticsearch:9200
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
       - order.command.db
+      - elasticsearch
+      - rabbitmq
     ports:
       - "6003:8080"
       - "6063:8081"
@@ -176,6 +202,11 @@ services:
       - EmailService__sender=hello@behdad.dev
       - EmailService__authentication_key # your mailtrap authentication key, I added mine to .env file
       - service_url=https://localhost:7063 # identity api url in docker
+      - Logger__elasticsearch=http://elasticsearch:9200
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     ports:
       - "7000:8080"
       - "7063:8081"
@@ -205,9 +236,15 @@ services:
       - QueueSettings__OrderViewQueues__OrderDeletedEvent__Name=order_deleted_event_queue
       - QueueSettings__OrderViewQueues__OrderDeletedEvent__Dlq=order_deleted_event_queue_dlq
       - QueueSettings__OrderViewQueues__OrderDeletedEvent__Exchange=order_deleted_event_exchange
+      - Logger__elasticsearch=http://elasticsearch:9200
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
       - rabbitmq
       - order.query.db
+      - elasticsearch
     ports:
       - "6004:8080"
       - "7064:8081"
@@ -225,8 +262,16 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/order-query-event-api.pfx
       - ConnectionStrings__Database=Host=order.query.db;Port=5432;Database=OrderQueryDb;User Id=postgres;Password=postgres
+      - Logger__elasticsearch=http://elasticsearch:9200
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Audience=orders_query
     depends_on:
       - order.query.db
+      - elasticsearch
     ports:
       - "6005:8080"
       - "7065:8081"
@@ -234,3 +279,63 @@ services:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
+    
+  elasticsearch:
+    container_name: elasticsearch
+    environment:
+      - xpack.monitoring.enabled=true
+      - xpack.watcher.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  kibana:
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+  
+  otel-collector:
+    container_name: otel-collector
+    command: --config /etc/otelcol/otel-collector-config.yml
+    volumes:
+      - ./otel/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml
+    ports:
+      - "4317:4317"
+    depends_on:
+      - jaeger
+      - prometheus
+      - loki
+
+  jaeger:
+    container_name: jaeger
+    command: --query.ui-config=/etc/jaeger/jaeger-ui.json --collector.otlp.enabled=true --prometheus.server-url=http://prometheus:9090 --prometheus.query.support-spanmetrics-connector=true
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+    volumes:
+      - ./otel/jaeger-ui.json:/etc/jaeger/jaeger-ui.json
+    ports:
+      - "16686:16686"
+
+  prometheus:
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./otel/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  loki:
+    container_name: loki
+    command: -config.file=/mnt/config/loki-config.yml
+    volumes:
+      - ./otel/loki.yml:/mnt/config/loki-config.yml
+    ports:
+      - "3100:3100"

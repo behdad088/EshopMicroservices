@@ -3,20 +3,21 @@ using Order.Command.Application.Rmq;
 namespace Order.Command.Application.Orders.EventHandlers;
 
 public class OrderCreatedEventHandler(
-    ILogger<OrderCreatedEventHandler> logger,
     IEventPublisher<OrderCreatedEvent> eventPublisher,
     IApplicationDbContext context)
     : INotificationHandler<OrderCreatedEvent>
 {
+    private readonly ILogger _logger = Log.ForContext<OrderCreatedEventHandler>();
     public async Task Handle(OrderCreatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Publishing domain event: {DomainEvent}", notification.GetType());
+        using var _ = LogContext.PushProperty(LogProperties.EventDomainType, notification.GetType());
+        
+        _logger.Information("Publishing domain event");
         var isPublished = await eventPublisher.PublishAsync(notification, cancellationToken).ConfigureAwait(false);
 
         if (isPublished)
         {
-            logger.LogInformation("Publishing domain event: {DomainEvent} was successfully published",
-                notification.GetType());
+            _logger.Information("Successfully published event");
 
             var @event = await context.Outboxes.FirstOrDefaultAsync(x =>
                     x.AggregateId.Equals(AggregateId.From(notification.Id)) &&
@@ -29,6 +30,7 @@ public class OrderCreatedEventHandler(
             context.Outboxes.Update(@event!);
             
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _logger.Information("Order was marked as dispatched");
         }
     }
 }

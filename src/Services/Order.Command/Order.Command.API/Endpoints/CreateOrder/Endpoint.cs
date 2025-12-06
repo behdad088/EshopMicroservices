@@ -1,4 +1,3 @@
-using Order.Command.API.Authorization;
 using Order.Command.Application.Orders.Commands.CreateOrder;
 
 namespace Order.Command.API.Endpoints.CreateOrder;
@@ -21,6 +20,9 @@ public class Endpoint : EndpointBase<Request, Response>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, request.Id);
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
+        
         var isAuthorize = await AuthorizationService.CanCreateOrderAsync(
             Context, request.CustomerId).ConfigureAwait(false);
         
@@ -32,8 +34,16 @@ public class Endpoint : EndpointBase<Request, Response>
             return Results.BadRequest("Null request");
 
         var result = await SendAsync(command).ConfigureAwait(false);
-        var response = MapResult(result);
-        return Results.Created($"customers/{request.CustomerId}/orders/{response.Id}", response);
+
+        switch (result)
+        {
+            case Result.Success res:
+                var response = MapResult(res);
+                return Results.Created($"customers/{request.CustomerId}/orders/{response.Id}", response);
+            case Result.DuplicatedOrderId:
+                return Results.BadRequest("Duplicated order id");
+            default: return Results.InternalServerError();
+        }
     }
 
     private static CreateOrderCommand? ToCommand(Request? request)
@@ -87,7 +97,7 @@ public class Endpoint : EndpointBase<Request, Response>
             )).ToList();
     }
 
-    private static Response MapResult(CreateOrderResult result)
+    private static Response MapResult(Result.Success result)
     {
         return new Response(result.Id.ToString());
     }

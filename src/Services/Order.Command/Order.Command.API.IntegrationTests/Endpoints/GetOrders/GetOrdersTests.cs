@@ -1,6 +1,4 @@
 using eshop.Shared.Pagination;
-using IntegrationTests.Common;
-using Order.Command.API.Authorization;
 using Order.Command.API.Endpoints.GetOrders;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.GetOrders;

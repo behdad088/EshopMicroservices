@@ -8,7 +8,11 @@ using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace Order.Command.API.IntegrationTests;
 
-public class ApiFactory(string mssqlConnectionString, RmqConfiguration rmqConfiguration) : WebApplicationFactory<Program>
+public class ApiFactory(
+    string mssqlConnectionString,
+    RmqConfiguration rmqConfiguration,
+    string elasticSearchString
+    ) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -16,6 +20,7 @@ public class ApiFactory(string mssqlConnectionString, RmqConfiguration rmqConfig
         Environment.SetEnvironmentVariable("RabbitMQ__URI", rmqConfiguration.Uri);
         Environment.SetEnvironmentVariable("RabbitMQ__Username", rmqConfiguration.Username);
         Environment.SetEnvironmentVariable("RabbitMQ__Password", rmqConfiguration.Password);
+        Environment.SetEnvironmentVariable("Logger__elasticsearch", elasticSearchString);
         builder.ConfigureTestServices(services =>
         {
             services.AddMassTransitTestHarness(cfg =>

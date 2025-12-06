@@ -1,4 +1,5 @@
 ﻿using eshop.Shared.CQRS.Query;
+using eshop.Shared.Logger;
 
 namespace Catalog.API.Features.Products.GetProductById;
 
@@ -13,13 +14,19 @@ public abstract record Result
 internal class GetProductByIQueryHandler(
     IDocumentSession session) : IQueryHandler<GetProductByIdQuery, Result>
 {
+    private readonly ILogger _logger = Log.ForContext<GetProductByIQueryHandler>();
+    
     public async Task<Result> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
+        using var _ = LogContext.PushProperty(LogProperties.ProductId, query.Id);
+        
+        _logger.Information("Getting product.");
         var product = await session.LoadAsync<ProductDocument>(query.Id, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
             return new Result.NotFound(query.Id);
 
+        _logger.Information("Successfully retrieving the product.");
         return MapResult(product);
     }
 

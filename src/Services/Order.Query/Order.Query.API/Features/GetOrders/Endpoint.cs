@@ -1,5 +1,3 @@
-using eshop.Shared.Pagination;
-using FastEndpoints;
 using Order.Query.Features.OrderView.GetOrders;
 
 namespace Order.Query.API.Features.GetOrders;
@@ -25,7 +23,7 @@ public class Endpoint : Endpoint<Request, Response>
         await Send.OkAsync(MapResponse(result), ct);
     }
 
-    private Response MapResponse(PaginatedItems<GetOrdersResult> res)
+    private static Response MapResponse(PaginatedItems<GetOrdersResult> res)
     {
         var result = res.Data.Select(x => new Order(
             x.Id,

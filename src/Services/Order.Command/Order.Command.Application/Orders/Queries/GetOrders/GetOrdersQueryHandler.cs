@@ -11,8 +11,10 @@ public record GetOrdersResult(PaginatedItems<GetOrderResponse> Orders);
 
 public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHandler<GetOrdersQuery, GetOrdersResult>
 {
+    private readonly ILogger _logger = Log.ForContext<GetOrdersQueryHandler>();
     public async Task<GetOrdersResult> Handle(GetOrdersQuery query, CancellationToken cancellationToken)
     {
+        _logger.Information("Get all orders");
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders
@@ -25,10 +27,12 @@ public class GetOrdersQueryHandler(IApplicationDbContext dbContext) : IQueryHand
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         var orderItems = MapResult(orders, pageIndex, pageSize, totalCount);
 
+        _logger.Information("Successfully retrieved all orders.");
         return new GetOrdersResult(orderItems);
     }
 

@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Order.Command.Domain.Models;
 
 namespace Order.Command.Application.Data;
 

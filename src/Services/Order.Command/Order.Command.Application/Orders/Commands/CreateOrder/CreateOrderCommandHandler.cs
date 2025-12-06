@@ -1,24 +1,30 @@
 using eshop.Shared.CQRS.Command;
 using Microsoft.Data.SqlClient;
-using Order.Command.Application.Exceptions;
-using Order.Command.Application.Identity;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
-public record CreateOrderCommand(OrderParameter OrderParameter) : ICommand<CreateOrderResult>;
+public record CreateOrderCommand(OrderParameter OrderParameter) : ICommand<Result>;
 
-public record CreateOrderResult(Ulid Id);
+public abstract record Result
+{
+    public record Success(Ulid Id) : Result;
+
+    public record DuplicatedOrderId : Result;
+}
 
 public class CreateOrderCommandHandler(
     IApplicationDbContext dbContext)
-    : ICommandHandler<CreateOrderCommand, CreateOrderResult>
+    : ICommandHandler<CreateOrderCommand, Result>
 {
-    public async Task<CreateOrderResult> Handle(
+    private readonly ILogger _logger = Log.ForContext<CreateOrderCommandHandler>();
+    
+    public async Task<Result> Handle(
         CreateOrderCommand command,
         CancellationToken cancellationToken)
     {
         try
         {
+            _logger.Information("Creating order.");
             var customerId = CustomerId.From(Guid.Parse(command.OrderParameter.CustomerId!));
             var order = MapOrder(command.OrderParameter);
             var outbox = MapOutbox(customerId, order);
@@ -32,13 +38,15 @@ public class CreateOrderCommandHandler(
 
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken);
-            return new CreateOrderResult(order.Id.Value);
+            _logger.Information("Successfully created order.");
+            return new Result.Success(order.Id.Value);
         }
         catch (DbUpdateException ex)
         {
             if (ex.InnerException is SqlException { Number: 2627 })
             {
-                throw new DuplicatedOrderIdException($"Order Id already exists: {command.OrderParameter.Id}"); 
+                _logger.Error("Failed to create order. Order Id already exists");
+                return new Result.DuplicatedOrderId();
             }
             throw;
         }

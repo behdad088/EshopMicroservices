@@ -24,6 +24,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         var postgresConnectionString = _webApiContainerFactory.PostgresConnectionString;
+        Environment.SetEnvironmentVariable("Logger__elasticsearch", _webApiContainerFactory.ElasticSearchUri);
         
         builder.ConfigureTestServices(services =>
         {
@@ -84,8 +85,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     }
 
     public new async Task DisposeAsync()
-    {
-       await _webApiContainerFactory.DisposeAsync();
-       HttpClient.Dispose();
+    { 
+        await _webApiContainerFactory.DisposeAsync(); 
+        HttpClient.Dispose();
     }
 }

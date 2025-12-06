@@ -15,6 +15,7 @@ public class ApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Environment.SetEnvironmentVariable("ConnectionStrings__Database", "Data Source=TestDiscountDb");
+        Environment.SetEnvironmentVariable("Logger__elasticsearch", "http://elasticSearchString");
         builder.ConfigureTestServices(services =>
         {
             services.Remove(services.Single(x => x.ImplementationType == typeof(DiscountContext)));

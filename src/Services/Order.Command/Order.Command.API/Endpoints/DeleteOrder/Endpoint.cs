@@ -1,4 +1,4 @@
-using Order.Command.API.Authorization;
+using System.Net;
 using Order.Command.Application.Orders.Commands.DeleteOrder;
 
 namespace Order.Command.API.Endpoints.DeleteOrder;
@@ -22,6 +22,9 @@ public class Endpoint : EndpointBase<Request>
 
     public override async Task<IResult> HandleAsync(Request request)
     {
+        using var _ = LogContext.PushProperty(LogProperties.OrderId, request.OrderId);
+        using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
+        
         var isAuthorize = await AuthorizationService.CanDeleteOrderAsync(
             Context, request.CustomerId).ConfigureAwait(false);
         
@@ -31,8 +34,15 @@ public class Endpoint : EndpointBase<Request>
         var eTag = Context.Request.Headers.IfMatch;
         var command = MapToCommand(request, eTag);
         
-        await SendAsync(command).ConfigureAwait(false);
-        return Results.NoContent();
+        var result = await SendAsync(command).ConfigureAwait(false);
+
+        return result switch
+        {
+            Result.Succeed => Results.NoContent(),
+            Result.InvalidEtag => Results.StatusCode((int)HttpStatusCode.PreconditionFailed),
+            Result.OrderNotFound => Results.NotFound(request.OrderId),
+            _ => Results.InternalServerError()
+        };
     }
 
     private static DeleteOrderCommand MapToCommand(Request request, string? etag)

@@ -1,12 +1,5 @@
 using System.Net.Http.Headers;
-using IntegrationTests.Common;
-using MassTransit.Testing;
-using Order.Command.API.Authorization;
-using Order.Command.API.IntegrationTests.AutoFixture;
 using Order.Command.API.Endpoints.UpdateOrder;
-using Order.Command.Application.Rmq.CloudEvent.Models;
-using Order.Command.Domain.Events;
-using Order.Command.Domain.Models;
 
 namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;
 
