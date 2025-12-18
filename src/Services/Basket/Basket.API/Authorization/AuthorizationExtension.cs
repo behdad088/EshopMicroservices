@@ -33,4 +33,14 @@ public static class AuthorizationExtension
 
         return result.Succeeded;
     }
+    
+    public static async Task<bool> CanCheckoutBasketAsync(this IAuthorizationService authorizationService,
+        HttpContext httpContext,
+        string username)
+    {
+        var result = await authorizationService.AuthorizeAsync(httpContext.User, username, Policies.CanCheckoutBasket)
+            .ConfigureAwait(false);
+
+        return result.Succeeded;
+    }
 }

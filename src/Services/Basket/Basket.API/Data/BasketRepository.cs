@@ -3,11 +3,11 @@ namespace Basket.API.Data;
 internal class BasketRepository(IDocumentSession session) : IBasketRepository
 {
     private readonly ILogger _logger = Log.ForContext<BasketRepository>();
-    public async Task<ShoppingCart> GetBasketAsync(string username, CancellationToken cancellationToken = default)
+    public async Task<ShoppingCart?> GetBasketAsync(string username, CancellationToken cancellationToken = default)
     {
         _logger.Information("Getting basket from database");
         var basket = await session.LoadAsync<ShoppingCart>(username, cancellationToken).ConfigureAwait(false);
-        return basket ?? throw new BasketNotFoundException(username);
+        return basket;
     }
 
     public async Task<ShoppingCart> StoreBasketAsync(ShoppingCart basket, CancellationToken cancellationToken = default)

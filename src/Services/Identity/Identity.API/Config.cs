@@ -11,6 +11,7 @@ public static class Config
         public const string BasketCanDeleteBasket = "basket:user-basket:delete";
         public const string BasketCanGetBasket = "basket:user-basket:get";
         public const string BasketCanStoreBasket = "basket:user-basket:store";
+        public const string BasketCanCheckoutBasket = "basket:user-basket:checkout";
         
         // Define policies for catalog operations
         public const string CatalogCanCreateCatalog = "catalog:product:create";
@@ -39,6 +40,7 @@ public static class Config
             { Policies.BasketCanDeleteBasket, [Roles.Admin , Roles.Customer] },
             { Policies.BasketCanStoreBasket, [Roles.Admin, Roles.Customer] },
             { Policies.BasketCanGetBasket, [Roles.Admin , Roles.Customer] },
+            { Policies.BasketCanCheckoutBasket, [ Roles.Customer] },
             
             { Policies.CatalogCanCreateCatalog, [Roles.Admin] },
             { Policies.CatalogCanDeleteCatalog, [Roles.Admin] },

@@ -1,5 +1,8 @@
+using Basket.API.ApiClient.AccessToken;
+using Basket.API.ApiClient.OrderCommand;
 using Basket.API.Authorization;
 using Basket.API.Common;
+using Basket.API.Features.CheckoutBasket.Commands;
 using Discount;
 using eshop.Shared;
 using eshop.Shared.CQRS.Extensions;
@@ -24,7 +27,7 @@ builder.Services
     .ValidateOnStart();
 
 builder.Services
-    .AddOptions<DiscountGrpcConfiguration>()
+    .AddOptions<DiscountGrpcConfigurations>()
     .Bind(builder.Configuration)
     .ValidateDataAnnotationsRecursively()
     .ValidateOnStart();
@@ -35,12 +38,25 @@ builder.Services
     .ValidateDataAnnotationsRecursively()
     .ValidateOnStart();
 
-var discountGrpcConfiguration = builder.Configuration.TryGetValidatedOptions<DiscountGrpcConfiguration>();
+builder.Services
+    .AddOptions<OrderCommandClientConfigurations>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotationsRecursively()
+    .ValidateOnStart();
+
+var discountGrpcConfiguration = builder.Configuration.TryGetValidatedOptions<DiscountGrpcConfigurations>();
 var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
 
 builder.SetupLogging("Basket Service", environment, loggerConfigurations.ElasticSearch);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
+builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
+
+
+builder.Services.AddOrderCommandClient(builder.Configuration);
+builder.Services.AddApiClientHandlers();
 
 builder.Services.AddMarten(options =>
 {
@@ -79,21 +95,22 @@ app.UseSerilogRequestLogging(options =>
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 });
 
-app.UseTraceIdentifierHeader();
-app.MapDefaultHealthChecks();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseTraceIdentifierHeader();
+app.MapDefaultHealthChecks();
+app.UseProblemDetailsResponseExceptionHandler();
+
 app.MapGroup("/api/v1/basket")
     .WithTags("Basket API")
     .WithOpenApi()
     .RegisterEndpoints();
 
-app.UseProblemDetailsResponseExceptionHandler();
 
 try
 {

@@ -8,7 +8,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
 {
     private readonly ILogger _logger = Log.ForContext<CachedBasketRepository>();
     
-    public async Task<ShoppingCart> GetBasketAsync(string username, CancellationToken cancellationToken = default)
+    public async Task<ShoppingCart?> GetBasketAsync(string username, CancellationToken cancellationToken = default)
     {
         _logger.Information("Trying to fetch basket from cache.");
         var cachedBasket = await cache.GetAsync(username, cancellationToken).ConfigureAwait(false);
@@ -16,6 +16,10 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
             return shoppingCart;
         
         var basketInDb = await repository.GetBasketAsync(username, cancellationToken).ConfigureAwait(false);
+        if (basketInDb is null)
+        {
+            return null;
+        }
         var basketByteArray = GetShoppingCartAsByteArray(basketInDb);
         
         _logger.Information("Saving basket to the cache.");

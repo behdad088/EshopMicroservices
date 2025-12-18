@@ -8,7 +8,9 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     public CreateOrderCommandValidator()
     {
         RuleFor(x => x.OrderParameter.Id).MustBeValidUlid();
-        RuleFor(x => x.OrderParameter.OrderName).NotEmpty().WithMessage("Name is required.");
+        RuleFor(x => x.OrderParameter.OrderName).NotEmpty().WithMessage("Name is required.")
+            .MinimumLength(5)
+            .WithMessage("order_name must be at least 5 characters long.");
         RuleFor(x => x.OrderParameter.CustomerId).MustBeValidGuid();
         RuleFor(x => x.OrderParameter.OrderItems).NotEmpty().WithMessage("OrderItems should not be empty.");
 

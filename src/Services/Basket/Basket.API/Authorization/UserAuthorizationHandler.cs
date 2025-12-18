@@ -57,7 +57,7 @@ public class UserAuthorizationHandler : AuthorizationHandler<UserIdRequirement, 
     
     private static string? GetUsername(ClaimsPrincipal claimsPrincipal)
     {
-        var userId = claimsPrincipal.FindFirst("name")?.Value;
+        var userId = claimsPrincipal.FindFirst("preferred_username")?.Value;
         return userId;
     }
     

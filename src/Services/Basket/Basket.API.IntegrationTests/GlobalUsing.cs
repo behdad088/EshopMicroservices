@@ -7,5 +7,4 @@ global using Basket.API.IntegrationTests.Database.Redis;
 global using Basket.API.Models;
 global using IntegrationTests.Common;
 global using Basket.API.Authorization;
-global using Newtonsoft.Json;
 global using Microsoft.AspNetCore.Mvc;

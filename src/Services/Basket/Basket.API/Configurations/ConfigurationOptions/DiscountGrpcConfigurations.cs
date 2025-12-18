@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Basket.API.Configurations.ConfigurationOptions;
 
-public sealed record DiscountGrpcConfiguration
+public sealed record DiscountGrpcConfigurations
 {
     [ConfigurationKeyName("Grpc:Discount")]
     [Required]

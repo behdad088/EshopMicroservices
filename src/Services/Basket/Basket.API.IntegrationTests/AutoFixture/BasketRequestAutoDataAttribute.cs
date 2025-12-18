@@ -11,6 +11,7 @@ public class BasketRequestAutoDataAttribute() : AutoDataAttribute(BasketRequestF
         {
             var fixture = new Fixture();
             fixture.Customize(new StoreBasketRequestCustomization());
+            fixture.Customize(new CheckoutBasketCustomization());
             return fixture;
         }
     }
