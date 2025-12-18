@@ -3,7 +3,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 
-namespace Basket.API.IntegrationTests.ServerGivens;
+namespace Basket.API.IntegrationTests.ApiGivens;
 
 public class DiscountGiven
 {

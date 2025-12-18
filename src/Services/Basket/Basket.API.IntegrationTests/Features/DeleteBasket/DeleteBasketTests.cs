@@ -14,7 +14,6 @@ public class DeleteBasketTests : BaseEndpoint
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
-
     }
 
     [Theory]

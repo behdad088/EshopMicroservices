@@ -36,8 +36,14 @@ public static class GetBasketEndpoint
             return TypedResults.Forbid();
         }
         
-        var queryResult = await sender.Send(new GetBasketQuery(username)).ConfigureAwait(false);
-        return TypedResults.Ok(Map(queryResult.ShoppingCart));
+        var result = await sender.Send(new GetBasketQuery(username)).ConfigureAwait(false);
+
+        return result switch
+        {
+            Result.NotFound => TypedResults.NotFound(),
+            Result.Success success => TypedResults.Ok(Map(success.ShoppingCart)),
+            _ => TypedResults.InternalServerError()
+        };
     }
 
     private static GetBasketResponse Map(ShoppingCart result)

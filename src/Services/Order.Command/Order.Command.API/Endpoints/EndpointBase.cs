@@ -159,7 +159,9 @@ public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TReque
 
     private static async Task<TRequest> BindRequestBody(HttpContext context)
     {
-        if (!context.Request.HasJsonContentType() || !(context.Request.ContentLength > 0)) return new TRequest();
+        if (!context.Request.HasJsonContentType() 
+            || !(context.Request.ContentLength > 0)
+            && !context.Request.Body.CanRead) return new TRequest();
 
         context.Request.EnableBuffering(); // Allow the stream to be read multiple times
         context.Request.Body.Position = 0; // Ensure we're at the start of the stream

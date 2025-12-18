@@ -20,6 +20,8 @@
         <PackageReference Include="Marten" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+        <PackageReference Include="Refit" />
+        <PackageReference Include="Refit.HttpClientFactory" />
         <PackageReference Include="ReHackt.Extensions.Options.Validation" />
         <PackageReference Include="Scrutor" />
         <PackageReference Include="Swashbuckle.AspNetCore" />

@@ -1,6 +1,7 @@
 using Basket.API.Features.StoreBasket;
-using Basket.API.IntegrationTests.ServerGivens;
+using Basket.API.IntegrationTests.ApiGivens;
 using Basket.API.Models.Dtos;
+using Newtonsoft.Json;
 
 namespace Basket.API.IntegrationTests.Features.StoreBasket;
 

@@ -111,7 +111,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/basket.pfx
       - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
       - ConnectionStrings__Redis=distributedCache:6379
-      - Grpc__Discount=https://discount.grpc:8080
+      - Grpc__Discount=http://discount.grpc:8080
+      - OrderCommandClient__BaseUrl=http://order.command.api:8080
       - Logger__elasticsearch=http://elasticsearch:9200
       - Identity__Url=https://localhost:7063 # identity api url in docker 
       - Identity__Audience=basket

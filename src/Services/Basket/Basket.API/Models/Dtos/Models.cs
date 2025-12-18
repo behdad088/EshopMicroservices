@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Basket.API.Models.Dtos;
 
 public record BasketDtoRequest(

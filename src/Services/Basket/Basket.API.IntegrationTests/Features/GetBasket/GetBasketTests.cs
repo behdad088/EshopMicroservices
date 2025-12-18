@@ -1,4 +1,5 @@
 using Basket.API.Features.GetBasket;
+using Newtonsoft.Json;
 
 namespace Basket.API.IntegrationTests.Features.GetBasket;
 
@@ -60,13 +61,9 @@ public class GetBasketTests : BaseEndpoint
                 FakePermission.GetPermissions([Policies.BasketUserBasketGetPermission],
                     username: username))
             .GetAsync($"api/v1/basket/customers/{username}", timeout);
-        var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(timeout);
 
         // Assert
         result.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-        response.ShouldNotBeNull();
-        response.Detail.ShouldNotBeNull();
-        response.Detail.ShouldBe($"Entity \"basket\" ({username}) was not found.");
     }
 
     [Fact]

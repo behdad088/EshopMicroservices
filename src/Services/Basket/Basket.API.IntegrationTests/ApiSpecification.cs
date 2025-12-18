@@ -1,7 +1,4 @@
-using Basket.API.IntegrationTests.Database.Postgres;
-using Basket.API.IntegrationTests.Database.Redis;
-using Basket.API.IntegrationTests.ServerGivens;
-using IntegrationTests.Common;
+using Basket.API.IntegrationTests.ApiGivens;
 using Marten;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +15,7 @@ public class ApiSpecification : IAsyncLifetime
 {
     private IDistributedCache? _cache;
     private WireMockServer? _discountWireMockServer;
+    private WireMockServer? _orderCommandWireMockServer;
     private ApiFactory? _factory;
 
     private HttpClient? _httpClient;
@@ -47,13 +45,16 @@ public class ApiSpecification : IAsyncLifetime
     public void ResetWireMockServer()
     {
         _discountWireMockServer?.Reset();
+        _orderCommandWireMockServer?.Reset();
     }
     
     public async Task InitializeAsync()
     {
         await _webApiContainer.InitializeAsync();
-        _discountWireMockServer = StartWireMockServer();
+        _discountWireMockServer = StartWireMockServer(useHttp2: true);
+        _orderCommandWireMockServer = StartWireMockServer();
         Environment.SetEnvironmentVariable("Grpc__Discount", _discountWireMockServer.Url);
+        Environment.SetEnvironmentVariable("OrderCommandClient__BaseUrl", _orderCommandWireMockServer.Url);
 
         _factory = new ApiFactory(
             _webApiContainer.PostgresConnectionString,
@@ -76,11 +77,14 @@ public class ApiSpecification : IAsyncLifetime
         await _webApiContainer.DisposeAsync();
         _discountWireMockServer?.Stop();
         _discountWireMockServer?.Dispose();
+
+        _orderCommandWireMockServer?.Stop();
+        _orderCommandWireMockServer?.Dispose();
     }
 
-    private static WireMockServer StartWireMockServer()
+    private static WireMockServer StartWireMockServer(bool useHttp2 = false)
     {
-        var server = WireMockServer.Start(useHttp2: true);
+        var server = WireMockServer.Start(useHttp2: useHttp2);
         return server;
     }
 
@@ -89,6 +93,11 @@ public class ApiSpecification : IAsyncLifetime
         return new DiscountGiven(_discountWireMockServer ?? throw new Exception("Failed starting Discount WireMockServer!"));
     }
 
+    public OrderCommandGiven CreateOrderCommandServerGiven()
+    {
+        return new OrderCommandGiven(_orderCommandWireMockServer ?? throw new Exception("Failed starting Order Command WireMockServer!"));
+    }
+    
     internal IDocumentStore GetDocumentStore()
     {
         return _store ??= _factory!.Services.GetRequiredService<IDocumentStore>();

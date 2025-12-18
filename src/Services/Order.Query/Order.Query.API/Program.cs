@@ -52,6 +52,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseTraceIdentifierHeader();
 app.UseHttpsRedirection();
+app.UseProblemDetailsResponseExceptionHandler();
 
 app.UseFastEndpoints(c =>
 {
@@ -61,8 +62,6 @@ app.UseFastEndpoints(c =>
     c.Serializer.Options.PropertyNamingPolicy = null;
     c.Serializer.Options.AllowOutOfOrderMetadataProperties = true;
 });
-
-app.UseProblemDetailsResponseExceptionHandler();
 
 try
 { 

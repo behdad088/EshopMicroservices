@@ -13,6 +13,7 @@ public class FakePermission
         var claims = new Dictionary<string, object>
         {
             { "sub", sub ?? Guid.NewGuid().ToString() },
+            { "preferred_username", username ?? Guid.NewGuid().ToString() },
             { "name", username ?? Guid.NewGuid().ToString() },
             { "role", roles ?? ["customer"] },
             { "scope", scopes ?? ["short"] },
