@@ -1,5 +1,6 @@
 using eshop.Shared.CQRS.Query;
 using eshop.Shared.Pagination;
+using System.Linq;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
@@ -25,8 +26,7 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
         var totalCount = await dbContext.Orders.Where(
                 x => x.CustomerId.Equals(CustomerId.From(customerId)) && x.DeleteDate == null)
             .LongCountAsync(cancellationToken);
-
-
+        
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
