@@ -1,5 +1,6 @@
 using Basket.API.ApiClient.AccessToken;
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using Refit;
 
 namespace Basket.API.ApiClient.OrderCommand;

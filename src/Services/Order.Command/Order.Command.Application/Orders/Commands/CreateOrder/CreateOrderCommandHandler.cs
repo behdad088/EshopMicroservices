@@ -1,5 +1,5 @@
 using eshop.Shared.CQRS.Command;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Order.Command.Application.Orders.Commands.CreateOrder;
 
@@ -41,13 +41,14 @@ public class CreateOrderCommandHandler(
             _logger.Information("Successfully created order.");
             return new Result.Success(order.Id.Value);
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx)
         {
-            if (ex.InnerException is SqlException { Number: 2627 })
+            if (pgEx.SqlState == "23505")
             {
                 _logger.Error("Failed to create order. Order Id already exists");
                 return new Result.DuplicatedOrderId();
             }
+
             throw;
         }
     }

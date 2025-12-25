@@ -1,9 +1,9 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 
-namespace Order.Command.API.Common.SqlHealthCheck;
+namespace Order.Command.API.Common.PostgresHealthCheck;
 
-public class SqlServerHealthCheckOptions
+public class PostgresHealthCheckOptions
 {
     /// <summary>
     /// The Sql Server connection string to be used.
@@ -15,10 +15,12 @@ public class SqlServerHealthCheckOptions
     /// </summary>
     public string CommandText { get; set; } = "SELECT 1;";
 
+    public NpgsqlDataSource? DataSource { get; internal set; }
+
     /// <summary>
     /// An optional action executed before the connection is opened in the health check.
     /// </summary>
-    public Action<SqlConnection>? Configure { get; set; }
+    public Action<NpgsqlConnection>? Configure { get; set; }
 
     /// <summary>
     /// An optional delegate to build health check result.

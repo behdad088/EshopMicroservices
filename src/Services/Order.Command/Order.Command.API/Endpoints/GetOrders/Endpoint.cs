@@ -42,9 +42,9 @@ public class Endpoint : EndpointBase<Request, Response>
         ));
     }
 
-    private static List<ModuleOrder> MapOrders(IEnumerable<GetOrderResponse> orders)
+    private static List<ModuleOrder>? MapOrders(IEnumerable<GetOrderResponse>? orders)
     {
-        return orders.Select(x => new ModuleOrder(
+        return orders?.Select(x => new ModuleOrder(
             x.Id.ToString(),
             x.CustomerId.ToString(),
             x.OrderName,

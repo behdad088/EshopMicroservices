@@ -11,7 +11,7 @@ public class ViewModel
     {
         AuthenticateResult = result;
 
-        if (result?.Properties?.Items.TryGetValue("client_list", out var encoded) == true)
+        if (result.Properties?.Items.TryGetValue("client_list", out var encoded) == true)
         {
             if (encoded != null)
             {

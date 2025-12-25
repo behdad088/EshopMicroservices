@@ -1,4 +1,4 @@
-namespace Identity.API.Pages.Login;
+namespace Identity.API.Pages.Account.Login;
 
 public static class LoginOptions
 {

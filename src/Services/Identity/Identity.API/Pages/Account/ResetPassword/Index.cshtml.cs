@@ -94,7 +94,7 @@ public class Index : PageModel
         }
         
         await _userManager.RemovePasswordAsync(user).ConfigureAwait(false);
-        var result = await _userManager.AddPasswordAsync(user, Input.Password).ConfigureAwait(false);
+        var result = await _userManager.AddPasswordAsync(user, Input.Password ?? string.Empty).ConfigureAwait(false);
         if (!result.Succeeded)
         {
             var errors = string.Join(" ", result.Errors.Select(e => e.Description));

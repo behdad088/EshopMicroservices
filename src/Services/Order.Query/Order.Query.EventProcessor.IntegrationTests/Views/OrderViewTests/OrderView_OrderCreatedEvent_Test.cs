@@ -14,7 +14,6 @@ namespace Order.Query.EventProcessor.IntegrationTests.Views.OrderViewTests;
 [Collection(TestCollection.Name)]
 public class OrderViewOrderCreatedEventTest : IAsyncLifetime
 {
-    private readonly ApiFactory _apiFactory;
     private readonly CancellationToken _cancellationToken;
     private readonly IDocumentStore _documentStore;
     private readonly ITestHarness  _testHarness;
@@ -23,12 +22,12 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
 
     public OrderViewOrderCreatedEventTest(WebApiContainerFactory webApiContainerFactory)
     {
-        _apiFactory = new ApiFactory(webApiContainerFactory);
-        _cancellationToken = _apiFactory.CancellationToken;
-        _documentStore = _apiFactory.GetDocumentStore;
-        _testHarness = _apiFactory.TestHarness;
+        var apiFactory = new ApiFactory(webApiContainerFactory);
+        _cancellationToken = apiFactory.CancellationToken;
+        _documentStore = apiFactory.GetDocumentStore;
+        _testHarness = apiFactory.TestHarness;
         _dbGiven = new DbGiven(_documentStore);
-        _consumeObserver = _apiFactory.ConsumeObserver;
+        _consumeObserver = apiFactory.ConsumeObserver;
     }
 
     [Theory, EventAutoData]
@@ -40,7 +39,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidOrderId = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 Id = invalidOrderId
             }
@@ -74,7 +73,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidOrderName = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderName = invalidOrderName
             }
@@ -103,7 +102,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCustomerId = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 CustomerId = invalidCustomerId
             }
@@ -132,7 +131,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var emptyOrderItems = new List<OrderCreatedEvent.OrderItem>();
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = emptyOrderItems
             }
@@ -161,7 +160,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidProductId = "invalid product id";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -197,7 +196,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         int? nullPrice = null;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -233,7 +232,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         int invalidPrice = 0;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -269,7 +268,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         int? nullPrice = null;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -305,7 +304,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         decimal totalPrice = 100;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -343,7 +342,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         int? invalidPrice = 0;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -379,7 +378,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingFirstname = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -411,7 +410,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingLastname = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -443,7 +442,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingEmailAddress = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -475,7 +474,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidEmailAddress = "invalid.email.address";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -507,7 +506,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingAddressLine = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -539,7 +538,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCountry = "invalid_country";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -571,7 +570,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingState = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -603,7 +602,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingZipCode = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -635,7 +634,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidZipCode = "123456";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 ShippingAddress = orderCreatedEvent.Data.ShippingAddress with
                 {
@@ -667,7 +666,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingFirstname = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -699,7 +698,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingLastname = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -731,7 +730,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingEmailAddress = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -763,7 +762,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidEmailAddress = "invalid.email.address";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -795,7 +794,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingAddressLine = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -827,7 +826,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCountry = "invalid_country";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -859,7 +858,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingState = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -891,7 +890,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingZipCode = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -923,7 +922,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidZipCode = "123456";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 BillingAddress = orderCreatedEvent.Data.BillingAddress with
                 {
@@ -955,7 +954,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingCvv = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -987,7 +986,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCvv = "string.Empty";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1019,7 +1018,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCvv = "1234";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1051,7 +1050,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var missingCardName = string.Empty;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1083,7 +1082,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidCardNumber = "1234543643";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1115,7 +1114,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var invalidExpirationDate = "6543645/234";
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1147,7 +1146,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         int? missingPaymentMethod = null;
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 PaymentMethod = orderCreatedEvent.Data.PaymentMethod with
                 {
@@ -1179,7 +1178,7 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         var orderId = Ulid.NewUlid();
         orderCreatedEvent = orderCreatedEvent with
         {
-            Data = orderCreatedEvent.Data with
+            Data = orderCreatedEvent.Data! with
             {
                 Id = orderId.ToString(),
                 Version = 1
@@ -1217,13 +1216,13 @@ public class OrderViewOrderCreatedEventTest : IAsyncLifetime
         // Assert
         result.ShouldNotBeNull();
         await using var session = _documentStore.LightweightSession();
-        var orderView = session.Query<OrderView>().First(x => x.Id == orderCreatedEvent.Data.Id);
-        var eventStream = session.Query<EventStream>().First(x => x.ViewId == orderCreatedEvent.Data.Id);
+        var orderView = session.Query<OrderView>().First(x => x.Id == orderCreatedEvent.Data!.Id);
+        var eventStream = session.Query<EventStream>().First(x => x.ViewId == orderCreatedEvent.Data!.Id);
         
         orderView.ShouldNotBeNull();
         eventStream.ShouldNotBeNull();
         
-        orderView.Id.ShouldBe(orderCreatedEvent.Data.Id);
+        orderView.Id.ShouldBe(orderCreatedEvent.Data!.Id);
         orderView.CreatedAt.ShouldBe(orderCreatedEvent.Data.CreatedAt);
         orderView.CreatedBy.ShouldBe(orderCreatedEvent.Data.CreatedBy);
         orderView.LastModified.ShouldBe(orderCreatedEvent.Data.LastModified);

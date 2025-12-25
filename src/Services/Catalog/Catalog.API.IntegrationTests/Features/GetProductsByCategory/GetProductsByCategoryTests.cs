@@ -25,7 +25,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
             var result = await _client.GetAsync($"api/v1/catalog/products/category/{category}");
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain($"Category cannot be null");
@@ -44,7 +44,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductsByCategory
             var response = await result.Content.ReadFromJsonAsync<GetProductByCategoryResponse>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
+            result.StatusCode.ShouldBe(HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.ProductModule.Count.ShouldBe(1);
             var expected = ToProductModule(product);

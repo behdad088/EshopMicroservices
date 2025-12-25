@@ -1,6 +1,4 @@
 using System.Text.Json.Serialization;
-using eshop.Shared.Pagination;
-using FastEndpoints;
 
 namespace Order.Query.API.Features.GetOrders;
 

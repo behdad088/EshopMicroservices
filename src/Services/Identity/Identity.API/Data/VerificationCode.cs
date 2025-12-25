@@ -8,15 +8,17 @@ public class VerificationCode
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public string Id { get; set; } 
-    
-    public string UserId { get; set; }
+    public string Id { get; set; } = null!;
+
+    [MaxLength(100)]
+    public required string UserId { get; set; }
     
     [Required]
     [MaxLength(10)]
-    public string Code { get; set; } = null!;
+    public required string Code { get; set; }
 
-    public string Type { get; set; } = null!;
+    [MaxLength(500)]
+    public required string Type { get; set; }
     
     public DateTime CreatedAt { get; set; }
 

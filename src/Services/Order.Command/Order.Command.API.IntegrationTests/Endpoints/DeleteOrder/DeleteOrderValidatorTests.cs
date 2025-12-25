@@ -6,8 +6,8 @@ namespace Order.Command.API.IntegrationTests.Endpoints.DeleteOrder;
 [Collection(TestCollection.Name)]
 public class DeleteOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
 
     public DeleteOrderValidatorTests(ApiSpecification apiSpecification)
     {

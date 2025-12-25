@@ -3,8 +3,6 @@ using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Identity.API.ApiClients.Mailtrap;
-using Identity.API.Data;
 using Identity.API.Models;
 using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Authentication;
@@ -12,9 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
 
-namespace Identity.API.Pages.Login;
+namespace Identity.API.Pages.Account.Login;
 
 [SecurityHeaders]
 [AllowAnonymous]

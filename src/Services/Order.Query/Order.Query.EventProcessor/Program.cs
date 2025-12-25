@@ -1,4 +1,5 @@
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.HealthChecks;
 using eshop.Shared.Logger;
 using eshop.Shared.OpenTelemetry;
@@ -11,45 +12,21 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddOptions<DatabaseConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-builder.Services
-    .AddOptions<RabbitMqConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-builder.Services
-    .AddOptions<QueueConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-builder.Services
-    .AddOptions<LoggerConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-var rabbitMqConfigurations = builder.Configuration.TryGetValidatedOptions<RabbitMqConfigurations>();
-var connectionString = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
-var queues = builder.Configuration.TryGetValidatedOptions<QueueConfigurations>();
-var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
+builder.Services.TrySetConfiguration<RabbitMqConfigurations>(builder.Configuration, out var rabbitMqConfigurations);
+builder.Services.TrySetConfiguration<DatabaseConfigurations>(builder.Configuration, out var connectionString);
+builder.Services.TrySetConfiguration<QueueConfigurations>(builder.Configuration, out var queues);
+builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 const string serviceName = "eshop.order.event.processor";
 builder.Services.AddOpenTelemetryOtl(serviceName);
 builder.SetupLogging("Order Event Processor", environment, loggerConfigurations.ElasticSearch);
 
-
 builder.Services.AddPostgresDb(connectionString.PostgresDb);
-
 builder.Services.AddApplicationServices(rabbitMqConfigurations, queues);
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddHealthChecks(builder.Configuration);
-
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(options =>

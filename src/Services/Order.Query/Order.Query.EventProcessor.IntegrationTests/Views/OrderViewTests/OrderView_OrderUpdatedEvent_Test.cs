@@ -13,7 +13,6 @@ namespace Order.Query.EventProcessor.IntegrationTests.Views.OrderViewTests;
 [Collection(TestCollection.Name)]
 public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
 {
-    private readonly ApiFactory _apiFactory;
     private readonly CancellationToken _cancellationToken;
     private readonly IDocumentStore _documentStore;
     private readonly ITestHarness  _testHarness;
@@ -22,12 +21,12 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
 
     public OrderViewOrderUpdatedEventTest(WebApiContainerFactory webApiContainerFactory)
     {
-        _apiFactory = new ApiFactory(webApiContainerFactory);
-        _cancellationToken = _apiFactory.CancellationToken;
-        _documentStore = _apiFactory.GetDocumentStore;
-        _testHarness = _apiFactory.TestHarness;
+        var apiFactory = new ApiFactory(webApiContainerFactory);
+        _cancellationToken = apiFactory.CancellationToken;
+        _documentStore = apiFactory.GetDocumentStore;
+        _testHarness = apiFactory.TestHarness;
         _dbGiven = new DbGiven(_documentStore);
-        _consumeObserver = _apiFactory.ConsumeObserver;
+        _consumeObserver = apiFactory.ConsumeObserver;
     }
     
     [Theory, EventAutoData]
@@ -39,7 +38,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidOrderId = string.Empty;
         orderUpdateEvent = orderUpdateEvent with
         {
-            Data = orderUpdateEvent.Data with
+            Data = orderUpdateEvent.Data! with
             {
                 Id = invalidOrderId
             }
@@ -68,7 +67,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidOrderName = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderName = invalidOrderName
             }
@@ -97,7 +96,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var emptyOrderItems = new List<OrderUpdatedEvent.OrderItem>();
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = emptyOrderItems
             }
@@ -126,7 +125,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidProductId = "invalid product id";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -162,7 +161,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         int? nullPrice = null;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -198,7 +197,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         int invalidPrice = 0;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -234,7 +233,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         int? nullPrice = null;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -270,7 +269,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         decimal totalPrice = 100;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -308,7 +307,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         int? invalidPrice = 0;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 OrderItems = 
                 [
@@ -344,7 +343,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingFirstname = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -376,7 +375,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingLastname = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -408,7 +407,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingEmailAddress = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -440,7 +439,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidEmailAddress = "invalid.email.address";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -472,7 +471,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingAddressLine = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -504,7 +503,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidCountry = "invalid_country";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -536,7 +535,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingState = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -568,7 +567,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingZipCode = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -600,7 +599,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidZipCode = "123456";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 ShippingAddress = orderUpdatedEvent.Data.ShippingAddress with
                 {
@@ -632,7 +631,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingFirstname = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -664,7 +663,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingLastname = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -696,7 +695,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingEmailAddress = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -728,7 +727,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidEmailAddress = "invalid.email.address";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -760,7 +759,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingAddressLine = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -792,7 +791,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidCountry = "invalid_country";
         orderUdatedEvent = orderUdatedEvent with
         {
-            Data = orderUdatedEvent.Data with
+            Data = orderUdatedEvent.Data! with
             {
                 BillingAddress = orderUdatedEvent.Data.BillingAddress with
                 {
@@ -824,7 +823,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingState = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -856,7 +855,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingZipCode = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -888,7 +887,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidZipCode = "123456";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 BillingAddress = orderUpdatedEvent.Data.BillingAddress with
                 {
@@ -920,7 +919,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingCvv = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -952,7 +951,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidCvv = "string.Empty";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -984,7 +983,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidCvv = "1234";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -1016,7 +1015,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var missingCardName = string.Empty;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -1048,7 +1047,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidCardNumber = "1234543643";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -1080,7 +1079,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var invalidExpirationDate = "6543645/234";
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -1112,7 +1111,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         int? missingPaymentMethod = null;
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 PaymentMethod = orderUpdatedEvent.Data.PaymentMethod with
                 {
@@ -1144,7 +1143,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var orderId = Ulid.NewUlid();
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 Id = orderId.ToString(),
                 Version = 1
@@ -1179,7 +1178,7 @@ public class OrderViewOrderUpdatedEventTest : IAsyncLifetime
         var orderId = Ulid.NewUlid();
         orderUpdatedEvent = orderUpdatedEvent with
         {
-            Data = orderUpdatedEvent.Data with
+            Data = orderUpdatedEvent.Data! with
             {
                 Id = orderId.ToString(),
                 Version = 3

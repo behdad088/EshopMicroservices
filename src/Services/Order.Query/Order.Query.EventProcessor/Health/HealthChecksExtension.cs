@@ -1,4 +1,5 @@
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.HealthChecks;
 using Order.Query.EventProcessor.Configurations;
 

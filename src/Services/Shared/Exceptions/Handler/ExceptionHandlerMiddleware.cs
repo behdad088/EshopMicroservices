@@ -64,7 +64,7 @@ public static class ExceptionHandlerMiddleware
                 Extensions = new Dictionary<string, object?>
                 {
                     {
-                        "ValidationErrors", exception?.Failures?.Select(x =>
+                        "ValidationErrors", exception.Failures?.Select(x =>
                             new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []
                     }
                 }
@@ -77,7 +77,7 @@ public static class ExceptionHandlerMiddleware
                 Extensions = new Dictionary<string, object?>()
                 {
                     {
-                        "ValidationErrors", exception?.Errors.Select(x =>
+                        "ValidationErrors", exception.Errors.Select(x =>
                             new InvalidPropertyResponse(x.PropertyName, x.ErrorMessage)).ToArray() ?? []
                     }
                 }

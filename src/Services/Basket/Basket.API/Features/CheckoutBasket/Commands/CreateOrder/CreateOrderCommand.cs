@@ -6,8 +6,8 @@ namespace Basket.API.Features.CheckoutBasket.Commands.CreateOrder;
 
 public record CreteOrderCommandParameters
 {
-    public string OrderId { get; set; }
-    public string CustomerId { get; set; }
+    public string? OrderId { get; set; }
+    public string? CustomerId { get; set; }
     public string? OrderName { get; set; }
     public ModuleAddress? ShippingAddress { get; set; }
     public ModuleAddress? BillingAddress { get; set; }
@@ -57,8 +57,8 @@ public class CreateOrderCommand(
         try
         {
             var response = await client.CreateOrder(
-                parameters.CustomerId,
-                parameters.OrderId,
+                parameters.CustomerId!,
+                parameters.OrderId!,
                 body,
                 cancellationToken);
             
@@ -74,7 +74,7 @@ public class CreateOrderCommand(
                 case StatusCodes.Status400BadRequest:
                 {
                     var errorContent = await e.GetContentAsAsync<ValidationErrors>();
-                    var errors = errorContent?.Errors?
+                    var errors = errorContent?.Errors
                         .Select(x => new Error(x.PropertyName, x.Reason))
                         .ToArray() ?? [];
                 

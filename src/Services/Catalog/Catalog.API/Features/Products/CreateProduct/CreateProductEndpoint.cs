@@ -28,7 +28,7 @@ public static class CreateProductEndpoint
         var result = await sender.Send(command).ConfigureAwait(false);
         context.Response.Headers.Append(HeaderNames.AccessControlExposeHeaders, new[] { HeaderNames.Location });
 
-        return TypedResults.Created($"/api/v1/catalog/products/{result?.Id}");
+        return TypedResults.Created($"/api/v1/catalog/products/{result.Id}");
     }
 
     private static CreateProductCommand ToCommand(this CreateProductRequest request)

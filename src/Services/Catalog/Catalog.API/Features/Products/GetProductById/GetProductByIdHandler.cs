@@ -35,10 +35,10 @@ internal class GetProductByIQueryHandler(
         return new Result.Success(
             Product: new GetProductById(
                 Id: Ulid.Parse(productDocument.Id),
-                Name: productDocument.Name,
+                Name: productDocument.Name!,
                 Category: productDocument.Category,
                 Description: productDocument.Description,
-                ImageFile: productDocument.ImageFile,
+                ImageFile: productDocument.ImageFile!,
                 Price: productDocument.Price,
                 productDocument.Version));
     }

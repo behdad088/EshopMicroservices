@@ -64,7 +64,7 @@ public class CheckoutBasketCommandHandler(
             BillingAddress = MapAddress(checkoutRequestModel.BillingAddress!),
             Payment = MapPayment(checkoutRequestModel.Payment!),
             OrderItems = shoppingCart.Items.Select(x => new CreteOrderCommandParameters.ModuleOrderItem(
-                x.ProductId, x.Quantity, x.Price)).ToList()
+                x.ProductId!, x.Quantity, x.Price)).ToList()
         };
     }
 

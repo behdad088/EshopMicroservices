@@ -1,7 +1,7 @@
 ﻿namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductRequest(
-    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("id")] string? Id,
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("category")]
     List<string> Category,

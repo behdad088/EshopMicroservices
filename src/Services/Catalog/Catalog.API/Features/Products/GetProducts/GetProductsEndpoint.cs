@@ -33,7 +33,7 @@ public static class GetProductsEndpoint
                 result.PageIndex,
                 result.PageSize,
                 result.Count,
-                result.Data.Select(x => new ProductResponse(
+                result.Data?.Select(x => new ProductResponse(
                     x.Id,
                     x.Name,
                     x.Category,

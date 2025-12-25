@@ -6,17 +6,17 @@ namespace Basket.API.IntegrationTests.Features.CheckoutBasket;
 [Collection(GetWebApiContainerFactory.Name)]
 public class CheckoutBasketTests : BaseEndpoint
 {
-    private HttpClient _client = default!;
-    private PostgresDataSeeder _postgresDataSeeder = default!;
-    private RedisDataSeeder _redisDataSeeder = default!;
-    private OrderCommandGiven _OrderCommandGiven = default!;
+    private readonly HttpClient _client;
+    private readonly PostgresDataSeeder _postgresDataSeeder;
+    private readonly RedisDataSeeder _redisDataSeeder;
+    private readonly OrderCommandGiven _orderCommandGiven;
     
     public CheckoutBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
-        _OrderCommandGiven = _apiSpecification.CreateOrderCommandServerGiven();
+        _orderCommandGiven = _apiSpecification.CreateOrderCommandServerGiven();
     }
     
     [Theory]
@@ -383,7 +383,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
-        _OrderCommandGiven.ReturningUnauthorized();
+        _orderCommandGiven.ReturningUnauthorized();
         
         // Act
         var response = await CallSutAsync(request, timeout);
@@ -416,7 +416,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
-        _OrderCommandGiven.ReturningForbidden();
+        _orderCommandGiven.ReturningForbidden();
         
         // Act
         var response = await CallSutAsync(request, timeout);
@@ -450,7 +450,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
-        _OrderCommandGiven.ReturningInternalServerError();
+        _orderCommandGiven.ReturningInternalServerError();
         
         // Act
         var response = await CallSutAsync(request, timeout);
@@ -484,7 +484,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
-        _OrderCommandGiven.ReturningBadRequest(new ValidationErrors(
+        _orderCommandGiven.ReturningBadRequest(new ValidationErrors(
             [
                 new ValidationError("order_id", "invalid order id")
             ]));
@@ -527,7 +527,7 @@ public class CheckoutBasketTests : BaseEndpoint
 
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
-        _OrderCommandGiven.ACreateOrderSuccessResponse(customerId, orderId);
+        _orderCommandGiven.ACreateOrderSuccessResponse(customerId, orderId);
         
         // Act
         var response = await _client
@@ -541,7 +541,7 @@ public class CheckoutBasketTests : BaseEndpoint
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         result.ShouldNotBeNull();
-        result!.OrderId.ShouldBe(orderId);
+        result.OrderId.ShouldBe(orderId);
     }
     
     private async Task<HttpResponseMessage> CallSutAsync(CheckoutBasketRequest request, CancellationToken timeout)

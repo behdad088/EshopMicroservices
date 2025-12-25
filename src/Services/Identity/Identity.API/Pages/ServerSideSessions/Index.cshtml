@@ -114,7 +114,7 @@
                                         <tr>
                                             <td colspan="6">
                                                 <strong>Clients:</strong>
-                                                @if (session.ClientIds?.Any() == true)
+                                                @if (session.ClientIds.Any() == true)
                                                 {
                                                     @(session.ClientIds.Aggregate((x, y) => $"{x}, {y}"))
                                                 }

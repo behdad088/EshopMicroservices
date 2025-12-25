@@ -77,12 +77,12 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
     {
         return new GetOrderByIdResult(
             Id: order.Id,
-            CustomerId: order.CustomerId,
-            OrderName: order.OrderName,
+            CustomerId: order.CustomerId!,
+            OrderName: order.OrderName!,
             ShippingAddress: MapAddress(order.ShippingAddress),
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
-            Status: order.OrderStatus,
+            Status: order.OrderStatus!,
             Version:  order.Version,
             OrderItems: order.OrderItems.Select(x => 
                 new  GetOrderByIdResult.OrderItem(
@@ -95,22 +95,22 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
     private static GetOrderByIdResult.Address MapAddress(OrderView.Address address)
     {
         return new GetOrderByIdResult.Address(
-            Firstname: address.Firstname,
-            Lastname: address.Lastname,
-            EmailAddress: address.EmailAddress,
-            AddressLine: address.AddressLine,
-            Country: address.Country,
-            State: address.State,
-            ZipCode: address.ZipCode);
+            Firstname: address.Firstname!,
+            Lastname: address.Lastname!,
+            EmailAddress: address.EmailAddress!,
+            AddressLine: address.AddressLine!,
+            Country: address.Country!,
+            State: address.State!,
+            ZipCode: address.ZipCode!);
     }
 
     private static GetOrderByIdResult.Payment MapPayment(OrderView.Payment payment)
     {
         return new GetOrderByIdResult.Payment(
-            CardName: payment.CardName,
-            CardNumber: payment.CardNumber,
-            Expiration: payment.Expiration,
-            Cvv: payment.Cvv,
+            CardName: payment.CardName!,
+            CardNumber: payment.CardNumber!,
+            Expiration: payment.Expiration!,
+            Cvv: payment.Cvv!,
             PaymentMethod: payment.PaymentMethod);
     }
 }

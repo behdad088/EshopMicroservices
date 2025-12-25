@@ -31,6 +31,12 @@ public sealed class EventConsumer<TView, TEvent> (
         
         var cancellationTokenToken = context.CancellationToken;
         var @event = context.Message.Data;
+        if (@event is null)
+        {
+            _logger.Warning("Received event data is null. Message Id: {messageId}", context.Message.Id);
+            throw new ValidationException($"Received event data is null. Message Id: {context.Message.Id}");
+        }
+        
         var source = context.Message.Source;
         var eventDocument = TView.CreateView(@event);
         
@@ -55,7 +61,7 @@ public sealed class EventConsumer<TView, TEvent> (
             return;
         }
         
-        var eventStream = GetEventStream(@event, source);
+        var eventStream = GetEventStream(@event, source!);
         
         view.Apply(@event);
         session.Store(view);

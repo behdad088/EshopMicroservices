@@ -111,7 +111,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         {
             Color = x.Color,
             Price = x.Price.ToString(CultureInfo.InvariantCulture),
-            ProduceId = x.ProductId.ToString(),
+            ProduceId = x.ProductId?.ToString(),
             ProductName = x.ProductName,
             Quantity = x.Quantity
         }));

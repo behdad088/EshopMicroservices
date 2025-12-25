@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +22,8 @@ public static class DependencyInjection
             option.AddInterceptors(
                 sp.GetRequiredService<IDbTransactionInterceptor>(),
                 new AuditableEntityInterceptor(user, TimeProvider.System.GetUtcNow));
-            option.UseSqlServer(connectionString);
+            option.UseNpgsql(connectionString);
         });
-
         services.AddTransient<IApplicationDbContext, ApplicationDbContext>();
 
         return services;

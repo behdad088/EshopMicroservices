@@ -6,9 +6,9 @@ namespace Basket.API.IntegrationTests.Features.GetBasket;
 [Collection(GetWebApiContainerFactory.Name)]
 public class GetBasketTests : BaseEndpoint
 {
-    private HttpClient _client = default!;
-    private PostgresDataSeeder _postgresDataSeeder = default!;
-    private RedisDataSeeder _redisDataSeeder = default!;
+    private HttpClient _client;
+    private PostgresDataSeeder _postgresDataSeeder;
+    private RedisDataSeeder _redisDataSeeder;
 
     public GetBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {

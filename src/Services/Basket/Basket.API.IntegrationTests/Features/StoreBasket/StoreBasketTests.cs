@@ -8,10 +8,10 @@ namespace Basket.API.IntegrationTests.Features.StoreBasket;
 [Collection(GetWebApiContainerFactory.Name)]
 public class StoreBasketTests : BaseEndpoint
 {
-    private HttpClient _client = default!;
-    private DiscountGiven _discountGiven = default!;
-    private PostgresDataSeeder _postgresDataSeeder = default!;
-    private RedisDataSeeder _redisDataSeeder = default!;
+    private HttpClient _client;
+    private DiscountGiven _discountGiven;
+    private PostgresDataSeeder _postgresDataSeeder;
+    private RedisDataSeeder _redisDataSeeder;
 
     public StoreBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {
@@ -168,7 +168,7 @@ public class StoreBasketTests : BaseEndpoint
         var resultInPostgresDb =
             await _postgresDataSeeder.GetBasketAsync(request.ShoppingCart!.Username, token);
         resultInPostgresDb.ShouldNotBeNull();
-        response.ShoppingCart.Username.ShouldBe(resultInPostgresDb!.Username);
+        response.ShoppingCart.Username.ShouldBe(resultInPostgresDb.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInPostgresDb.Items));
 
@@ -209,7 +209,7 @@ public class StoreBasketTests : BaseEndpoint
         var resultInPostgresDb =
             await _postgresDataSeeder.GetBasketAsync(validRequest.ShoppingCart!.Username, token);
         resultInPostgresDb.ShouldNotBeNull();
-        response.ShoppingCart.Username.ShouldBe(resultInPostgresDb!.Username);
+        response.ShoppingCart.Username.ShouldBe(resultInPostgresDb.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInPostgresDb.Items));
         resultInPostgresDb.TotalPrice.ShouldBe(180);

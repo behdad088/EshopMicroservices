@@ -2,7 +2,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Identity.API.Pages.Logout;
+namespace Identity.API.Pages.Account.Logout;
 
 [SecurityHeaders]
 [AllowAnonymous]
@@ -22,8 +22,8 @@ public class LoggedOut : PageModel
         View = new LoggedOutViewModel
         {
             AutomaticRedirectAfterSignOut = LogoutOptions.AutomaticRedirectAfterSignOut,
-            PostLogoutRedirectUri = logout?.PostLogoutRedirectUri,
-            ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout?.ClientName,
+            PostLogoutRedirectUri = logout.PostLogoutRedirectUri,
+            ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout.ClientName,
             SignOutIframeUrl = logout?.SignOutIFrameUrl
         };
     }

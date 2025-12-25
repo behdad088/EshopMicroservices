@@ -1,6 +1,4 @@
-﻿using System.Net;
-using Catalog.API.Authorization;
-using OpenTelemetry.Trace;
+﻿using Catalog.API.Authorization;
 
 namespace Catalog.API.Features.Products.UpdateProduct;
 

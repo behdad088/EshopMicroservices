@@ -5,10 +5,10 @@ namespace Order.Command.API.IntegrationTests.Endpoints.GetOrderById;
 [Collection(TestCollection.Name)]
 public class GetOrderByIdTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken = default!;
-    private SqlDbGiven _sqlDbGiven = default!;
-    private IApplicationDbContext _dbContext = default!;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
+    private readonly SqlDbGiven _sqlDbGiven;
+    private readonly IApplicationDbContext _dbContext;
 
     public GetOrderByIdTests(ApiSpecification apiSpecification)
     {

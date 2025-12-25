@@ -30,7 +30,7 @@ public class Endpoint : Endpoint<Request, Response>
     
     private static Response MapResponse(PaginatedItems<GetOrdersByOrderNameResult> res)
     {
-        var result = res.Data.Select(x => new Order(
+        var result = res.Data?.Select(x => new Order(
             x.Id,
             x.CustomerId,
             x.OrderName,

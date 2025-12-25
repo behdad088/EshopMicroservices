@@ -29,12 +29,12 @@ public record OrderCreatedEvent(
     int? Version) : Event
 {
     public override string StreamId { get; } = Id;
-    
+
     [property: JsonPropertyName("event_type")]
-    public override string EventType { get; }
+    public override string EventType => null!;
 
     [property: JsonPropertyName("created_at")]
-    public override string CreatedAt { get; set; }
+    public override string CreatedAt { get; set; } = null!;
 
     public record OrderItem(
         [property: JsonPropertyName("id")]

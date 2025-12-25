@@ -35,16 +35,16 @@ public class ApiFactory(WebApiContainerFactory webApiContainerFactory) : WebAppl
                 options.Connection(postgresConnectionString);
                 options.UseSystemTextJsonForSerialization(); 
                 options.Schema.For<OrderView>()
-                    .Index(x => x.CustomerId)
-                    .Index(x => x.OrderStatus)
+                    .Index(x => x.CustomerId!)
+                    .Index(x => x.OrderStatus!)
                     .Index(x => x.TotalPrice)
-                    .Index(x => x.CreatedAt)
+                    .Index(x => x.CreatedAt!)
                     .FullTextIndex(x => x.OrderName!)
                     .UniqueIndex(x => x.Id);
     
                 options.Schema.For<EventStream>()
                     .Index(x => x.Id)
-                    .Index(x => x.ViewId)
+                    .Index(x => x.ViewId!)
                     .Index(x => x.EventType)
                     .Index(x => x.CreatedAt)
                     .UniqueIndex(x => x.Id);

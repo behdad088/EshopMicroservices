@@ -12,20 +12,18 @@ public class WebApiContainerFactory : IAsyncLifetime
     private const string RmqPassword = "test";
     private const ushort ElasticSearchPort = 9200;
     
-    private const ushort MssqlPort = 1433;
-    private const string MssqlPassword = "BeH007826790";
-    private readonly IContainer _mssql = new ContainerBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server")
-        .WithPortBinding(MssqlPort)
-        .WithEnvironment("SA_PASSWORD", MssqlPassword)
-        .WithEnvironment("ACCEPT_EULA", "Y")
-        .WithWaitStrategy(Wait.ForUnixContainer()
-            .UntilPortIsAvailable(MssqlPort)
-            .UntilMessageIsLogged("SQL Server is now ready for client connections"))
+    private const ushort PostgresPort = 5432;
+    private readonly IContainer _postgres = new ContainerBuilder()
+        .WithImage("postgres")
+        .WithPortBinding(5432, true)
+        .WithEnvironment("POSTGRES_USER", "postgres")
+        .WithEnvironment("POSTGRES_PASSWORD", "postgres")
+        .WithEnvironment("POSTGRES_DB", "TestOrderDb")
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
         .Build();
 
-    internal string MssqlConnectionString =>
-        $"Server={_mssql.Hostname};Database=OrderDb;User Id=sa;Password={MssqlPassword};Trusted_Connection=False;TrustServerCertificate=True";
+    internal string PostgresConnectionString =>
+        $"Server={_postgres.Hostname};Port={_postgres.GetMappedPublicPort(PostgresPort)};Database=TestOrderDb;User Id=postgres;Password=postgres";
     
     internal string ElasticSearchUri =>
         $"http://{_elasticsearch.Hostname}:{_elasticsearch.GetMappedPublicPort(ElasticSearchPort)}";
@@ -48,14 +46,14 @@ public class WebApiContainerFactory : IAsyncLifetime
     
     public async Task InitializeAsync()
     {
-        await _mssql.StartAsync().ConfigureAwait(false);
+        await _postgres.StartAsync().ConfigureAwait(false);
         await _rmq.StartAsync().ConfigureAwait(false);
         await _elasticsearch.StartAsync().ConfigureAwait(false);
     }
 
     public async Task DisposeAsync()
     {
-        await _mssql.DisposeAsync().ConfigureAwait(false);
+        await _postgres.DisposeAsync().ConfigureAwait(false);
         await _rmq.DisposeAsync().ConfigureAwait(false);
         await _elasticsearch.DisposeAsync().ConfigureAwait(false);
     }

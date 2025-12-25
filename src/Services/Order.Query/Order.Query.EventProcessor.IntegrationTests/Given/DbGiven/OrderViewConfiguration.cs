@@ -5,13 +5,13 @@ namespace Order.Query.EventProcessor.IntegrationTests.Given.DbGiven;
 
 public class OrderViewConfiguration
 {
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
-    public string CreatedAt { get; init; } =
+    public string? CreatedAt { get; init; } =
         DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
     public string? CreatedBy  { get; set; } = Guid.NewGuid().ToString();
     public DateTimeOffset? LastModified  { get; set; } = DateTimeOffset.UtcNow;
-    public string CustomerId   { get; set; } = Guid.NewGuid().ToString();
+    public string? CustomerId   { get; set; } = Guid.NewGuid().ToString();
     public string? OrderName   { get; set; } = "Test Order name";
     public List<OrderItem> OrderItems { get; set; } = new()
     {
@@ -65,21 +65,21 @@ public class OrderViewConfiguration
 
     public record Address
     {
-        public string Firstname { get; set; }
-        public string Lastname { get; set; }
-        public string EmailAddress { get; set; }
-        public string AddressLine { get; set; }
-        public string Country { get; set; }
-        public string State { get; set; }
-        public string ZipCode { get; set; }
+        public string? Firstname { get; set; }
+        public string? Lastname { get; set; }
+        public string? EmailAddress { get; set; }
+        public string? AddressLine { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? ZipCode { get; set; }
     }
 
     public record Payment
     {
-        public string CardName { get; set; }
-        public string CardNumber { get; set; }
-        public string Expiration { get; set; }
-        public string Cvv { get; set; }
+        public string? CardName { get; set; }
+        public string? CardNumber { get; set; }
+        public string? Expiration { get; set; }
+        public string? Cvv { get; set; }
         public int PaymentMethod { get; set; }
     };
 }
@@ -90,12 +90,12 @@ public static class OrderViewConfigurationExtension
     {
         return new OrderView
         {
-            Id = configuration.Id,
+            Id = configuration.Id!,
             CreatedAt = configuration.CreatedAt,
             CreatedBy = configuration.CreatedBy,
             LastModified = configuration.LastModified,
-            CustomerId = configuration.CustomerId,
-            OrderName = configuration.OrderName,
+            CustomerId = configuration.CustomerId!,
+            OrderName = configuration.OrderName!,
             OrderItems = configuration.OrderItems
                 .Select(x => new OrderView.OrderItem(x.Id, x.ProductId, x.Quantity, x.Price)).ToList(),
             ShippingAddress = ToAddress(configuration.ShippingAddress),

@@ -1,5 +1,4 @@
 using System.Net.Mime;
-using FluentValidation;
 using MassTransit;
 using Order.Query.Events;
 using Order.Query.Projections;

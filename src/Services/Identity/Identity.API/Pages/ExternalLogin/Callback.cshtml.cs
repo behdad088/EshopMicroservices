@@ -40,13 +40,13 @@ public class Callback : PageModel
     {
         // read external identity from the temporary cookie
         var result = await HttpContext.AuthenticateAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
-        if (result.Succeeded != true)
+        if (!result.Succeeded)
         {
             throw new InvalidOperationException($"External authentication error: {result.Failure}");
         }
 
         var externalUser = result.Principal ??
-                           throw new InvalidOperationException("External authentication produced a null Principal");
+            throw new InvalidOperationException("External authentication produced a null Principal");
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
@@ -59,11 +59,11 @@ public class Callback : PageModel
         // the most common claim type for that are the sub claim and the NameIdentifier
         // depending on the external provider, some other claim type might be used
         var userIdClaim = externalUser.FindFirst(JwtClaimTypes.Subject) ??
-                          externalUser.FindFirst(ClaimTypes.NameIdentifier) ??
-                          throw new InvalidOperationException("Unknown userid");
+            externalUser.FindFirst(ClaimTypes.NameIdentifier) ??
+            throw new InvalidOperationException("Unknown userid");
 
         var provider = result.Properties.Items["scheme"] ??
-                       throw new InvalidOperationException("Null scheme in authentication properties");
+            throw new InvalidOperationException("Null scheme in authentication properties");
         var providerUserId = userIdClaim.Value;
 
         // find external user
@@ -96,7 +96,7 @@ public class Callback : PageModel
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
         await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.Id, user.UserName, true,
             context?.Client.ClientId));
-        Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider!);
+        Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider);
 
         if (context != null)
         {
@@ -137,7 +137,7 @@ public class Callback : PageModel
 
         // user's display name
         var name = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Name)?.Value ??
-                   claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+            claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
         if (name != null)
         {
             filtered.Add(new Claim(JwtClaimTypes.Name, name));
@@ -145,9 +145,9 @@ public class Callback : PageModel
         else
         {
             var first = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value ??
-                        claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value;
+                claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value;
             var last = claims.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value ??
-                       claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value;
+                claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value;
             if (first != null && last != null)
             {
                 filtered.Add(new Claim(JwtClaimTypes.Name, first + ' ' + last));

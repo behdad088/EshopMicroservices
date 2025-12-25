@@ -9,9 +9,9 @@ public record CloudEvent<TEvent> where TEvent : IDomainEvent
     [JsonPropertyName("type")] public required string Type { get; init; }
     [JsonPropertyName("source")] public required string Source { get; init; }
     [JsonPropertyName("specversion")] public required string SpecVersion { get; init; }
-    [JsonPropertyName("datacontenttype")] public string DataContentType { get; init; }
+    [JsonPropertyName("datacontenttype")] public string? DataContentType { get; init; }
 
-    [JsonPropertyName("dataschema")] public Uri DataSchema { get; init; }
+    [JsonPropertyName("dataschema")] public Uri? DataSchema { get; init; }
 
     [JsonPropertyName("subject")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

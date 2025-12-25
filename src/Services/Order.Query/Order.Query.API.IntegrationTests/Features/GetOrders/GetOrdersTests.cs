@@ -5,8 +5,8 @@ namespace Order.Query.API.IntegrationTests.Features.GetOrders;
 [Collection(TestCollection.Name)]
 public class GetOrdersTests(ApiFactory apiFactory) : IAsyncLifetime
 {
-    private HttpClient _client = default!;
-    private DbGiven _dbGiven;
+    private HttpClient _client = null!;
+    private DbGiven _dbGiven = null!;
     
     public async Task InitializeAsync()
     {
@@ -107,7 +107,7 @@ public class GetOrdersTests(ApiFactory apiFactory) : IAsyncLifetime
         result.ShouldNotBeNull();
         result.Orders.ShouldNotBeNull();
         result.Orders.Count.ShouldBe(3);
-        result.Orders.Data.Count().ShouldBe(3);
+        result.Orders.Data!.Count().ShouldBe(3);
     }
     
     [Fact]
@@ -140,14 +140,14 @@ public class GetOrdersTests(ApiFactory apiFactory) : IAsyncLifetime
         resultOne.ShouldNotBeNull();
         resultOne.Orders.ShouldNotBeNull();
         resultOne.Orders.Count.ShouldBe(5);
-        resultOne.Orders.Data.Count().ShouldBe(3);
+        resultOne.Orders.Data!.Count().ShouldBe(3);
         
         responseTwo.ShouldNotBeNull();
         responseTwo.StatusCode.ShouldBe(HttpStatusCode.OK);
         resultTwo.ShouldNotBeNull();
         resultTwo.Orders.ShouldNotBeNull();
         resultTwo.Orders.Count.ShouldBe(5);
-        resultTwo.Orders.Data.Count().ShouldBe(2);
+        resultTwo.Orders.Data!.Count().ShouldBe(2);
     }
     
     public async Task DisposeAsync()

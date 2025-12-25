@@ -3,7 +3,7 @@ using Duende.IdentityServer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Identity.API.Pages.Home;
+namespace Identity.API.Pages;
 
 [AllowAnonymous]
 public class Index : PageModel

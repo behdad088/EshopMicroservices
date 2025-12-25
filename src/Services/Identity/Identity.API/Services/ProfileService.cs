@@ -101,11 +101,14 @@ public class ProfileService : IProfileService
     {
             var claims = new List<Claim>
             {
-                new Claim(JwtClaimTypes.Subject, user.Id),
-                new Claim(JwtClaimTypes.PreferredUserName, user.UserName),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
+                new Claim(JwtClaimTypes.Subject, user.Id)
             };
 
+            if (user.UserName != null)
+            {
+                claims.Add(new Claim(JwtClaimTypes.PreferredUserName, user.UserName));
+                claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName));
+            }
             if (!string.IsNullOrWhiteSpace(user.Name))
                 claims.Add(new Claim("name", user.Name));
 
@@ -141,20 +144,22 @@ public class ProfileService : IProfileService
 
             if (_userManager.SupportsUserEmail)
             {
-                claims.AddRange(new[]
-                {
-                    new Claim(JwtClaimTypes.Email, user.Email),
+                claims.AddRange([
                     new Claim(JwtClaimTypes.EmailVerified, user.EmailConfirmed ? "true" : "false", ClaimValueTypes.Boolean)
-                });
+                ]);
+
+                if (user.Email != null)
+                {
+                    claims.Add(new Claim(JwtClaimTypes.Email, user.Email));
+                }
             }
 
             if (_userManager.SupportsUserPhoneNumber && !string.IsNullOrWhiteSpace(user.PhoneNumber))
             {
-                claims.AddRange(new[]
-                {
+                claims.AddRange([
                     new Claim(JwtClaimTypes.PhoneNumber, user.PhoneNumber),
                     new Claim(JwtClaimTypes.PhoneNumberVerified, user.PhoneNumberConfirmed ? "true" : "false", ClaimValueTypes.Boolean)
-                });
+                ]);
             }
 
             return claims;

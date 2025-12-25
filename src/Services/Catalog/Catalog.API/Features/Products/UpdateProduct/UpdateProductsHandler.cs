@@ -5,7 +5,7 @@ using Marten.Exceptions;
 namespace Catalog.API.Features.Products.UpdateProduct;
 
 public record UpdateProductCommand(
-    string Id,
+    string? Id,
     string Name,
     List<string>? Category,
     string? Description,
@@ -32,7 +32,7 @@ internal class UpdateProductsCommandHandler(
         
         _logger.Information("Updating product.");
         
-        var product = await session.LoadAsync<ProductDocument>(command.Id, cancellationToken).ConfigureAwait(false);
+        var product = await session.LoadAsync<ProductDocument>(command.Id!, cancellationToken).ConfigureAwait(false);
 
         if (product is null)
         {

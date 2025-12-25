@@ -1,5 +1,5 @@
 using eshop.Shared.CQRS.Command;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace Order.Command.Application.Orders.Commands.DeleteOrder;
 
@@ -51,9 +51,9 @@ public class DeleteOrderCommandHandler(IApplicationDbContext dbContext)
             _logger.Information("Successfully deleted Order.");
             return new Result.Succeed();
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx)
         {
-            if (ex.InnerException is SqlException { Number: 2627 or 2601 })
+            if (pgEx.SqlState == "23505")
             {
                 _logger.Error("Invalid etag.");
                 return new Result.InvalidEtag(command.Version!);

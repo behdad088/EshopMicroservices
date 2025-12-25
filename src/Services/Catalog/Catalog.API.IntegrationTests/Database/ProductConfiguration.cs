@@ -2,7 +2,7 @@ namespace Catalog.API.IntegrationTests.Database;
 
 public record ProductConfiguration
 {
-    public string Id { get; set; }
+    public string? Id { get; set; }
     public string Name { get; set; } = null!;
     public List<string> Category { get; set; } = [];
     public string? Description { get; set; }

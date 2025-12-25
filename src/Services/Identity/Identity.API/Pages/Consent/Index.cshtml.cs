@@ -114,7 +114,7 @@ public class Index : PageModel
             await _interaction.GrantConsentAsync(request, grantedConsent);
 
             // redirect back to authorization endpoint
-            if (request.IsNativeClient() == true)
+            if (request.IsNativeClient())
             {
                 // The client is native, so this change in how to
                 // return the response is for better UX for the end user.
@@ -161,11 +161,11 @@ public class Index : PageModel
         };
 
         vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources
-            .Select(x => CreateScopeViewModel(x, Input == null || Input.ScopesConsented.Contains(x.Name)))
+            .Select(x => CreateScopeViewModel(x, Input.ScopesConsented.Contains(x.Name)))
             .ToArray();
 
         var resourceIndicators = request.Parameters.GetValues(OidcConstants.AuthorizeRequest.Resource) ??
-                                 Enumerable.Empty<string>();
+            Enumerable.Empty<string>();
         var apiResources =
             request.ValidatedResources.Resources.ApiResources.Where(x => resourceIndicators.Contains(x.Name));
 
@@ -190,8 +190,8 @@ public class Index : PageModel
         if (ConsentOptions.EnableOfflineAccess && request.ValidatedResources.Resources.OfflineAccess)
         {
             apiScopes.Add(CreateOfflineAccessScope(Input == null ||
-                                                   Input.ScopesConsented.Contains(Duende.IdentityServer
-                                                       .IdentityServerConstants.StandardScopes.OfflineAccess)));
+                Input.ScopesConsented.Contains(Duende.IdentityServer
+                .IdentityServerConstants.StandardScopes.OfflineAccess)));
         }
 
         vm.ApiScopes = apiScopes;

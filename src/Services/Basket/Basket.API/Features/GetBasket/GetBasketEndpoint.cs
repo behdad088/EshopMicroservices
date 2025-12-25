@@ -57,6 +57,6 @@ public static class GetBasketEndpoint
 
     private static List<BasketItem> MapItems(List<ShoppingCartItem> items)
     {
-        return items.Select(x => new BasketItem(x.Quantity, x.Color, x.Price, x.ProductId, x.ProductName)).ToList();
+        return items.Select(x => new BasketItem(x.Quantity, x.Color, x.Price, x.ProductId!, x.ProductName)).ToList();
     }
 }
