@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Order.Command.Domain.Models;
 
 namespace Order.Command.Domain.Events;
 
@@ -17,5 +16,5 @@ public record OrderDeletedEvent(
     public DateTimeOffset OccurredAt => DateTimeOffset.Now;
 
     [property: JsonPropertyName("event_type")]
-    public string? EventType => "order_deleted_event";
+    public string EventType => "order_deleted_event";
 }

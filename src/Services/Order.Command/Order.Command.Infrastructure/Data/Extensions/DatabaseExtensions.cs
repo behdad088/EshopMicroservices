@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Order.Command.Domain.Models;
-using Order.Command.Domain.Models.ValueObjects;
 
 namespace Order.Command.Infrastructure.Data.Extensions;
 

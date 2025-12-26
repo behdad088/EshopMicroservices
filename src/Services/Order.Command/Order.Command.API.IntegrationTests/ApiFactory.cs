@@ -9,14 +9,14 @@ using WebMotions.Fake.Authentication.JwtBearer;
 namespace Order.Command.API.IntegrationTests;
 
 public class ApiFactory(
-    string mssqlConnectionString,
+    string postgresConnectionString,
     RmqConfiguration rmqConfiguration,
     string elasticSearchString
     ) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ConnectionStrings__Database", mssqlConnectionString);
+        Environment.SetEnvironmentVariable("ConnectionStrings__Database", postgresConnectionString);
         Environment.SetEnvironmentVariable("RabbitMQ__URI", rmqConfiguration.Uri);
         Environment.SetEnvironmentVariable("RabbitMQ__Username", rmqConfiguration.Username);
         Environment.SetEnvironmentVariable("RabbitMQ__Password", rmqConfiguration.Password);

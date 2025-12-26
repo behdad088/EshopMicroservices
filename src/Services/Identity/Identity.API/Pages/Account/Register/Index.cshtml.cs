@@ -1,13 +1,10 @@
 using System.Security.Claims;
 using Duende.IdentityModel;
-using Identity.API.ApiClients.Mailtrap;
-using Identity.API.Data;
 using Identity.API.Models;
 using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
 
 namespace Identity.API.Pages.Account.Register;
 
@@ -48,6 +45,7 @@ public class Index : PageModel
         {
             RegistrationMessage = message;
         }
+        await Task.CompletedTask;
         
         return Page();
     }
@@ -56,7 +54,7 @@ public class Index : PageModel
     {        
         if (ModelState.IsValid)
         {
-            var dbUser = await _userManager.FindByNameAsync(Input.Email.ToLowerInvariant());
+            var dbUser = await _userManager.FindByNameAsync(Input.Email!.ToLowerInvariant());
             
             if (dbUser != null)
             {
@@ -72,7 +70,7 @@ public class Index : PageModel
                 Name = Input.Email.Split('@')[0], // use the part before @ as name
             };
             
-            var result = await _userManager.CreateAsync(user, Input.Password);
+            var result = await _userManager.CreateAsync(user, Input.Password!);
 
             if (!result.Succeeded)
             {

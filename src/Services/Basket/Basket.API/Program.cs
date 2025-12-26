@@ -12,6 +12,7 @@ using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
 using Microsoft.AspNetCore.Authorization;
+using eshop.Shared.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterMediateR(typeof(Program).Assembly);
@@ -20,33 +21,10 @@ var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 const string serviceName = "eshop.basket.api";
 builder.Services.AddOpenTelemetryOtl(serviceName);
 
-builder.Services
-    .AddOptions<DatabaseConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-builder.Services
-    .AddOptions<DiscountGrpcConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-builder.Services
-    .AddOptions<LoggerConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-builder.Services
-    .AddOptions<OrderCommandClientConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-var discountGrpcConfiguration = builder.Configuration.TryGetValidatedOptions<DiscountGrpcConfigurations>();
-var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
-var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
+builder.Services.TrySetConfiguration<DiscountGrpcConfigurations>(builder.Configuration, out var discountGrpcConfiguration);
+builder.Services.TrySetConfiguration<DatabaseConfigurations>(builder.Configuration, out var databaseConfigurations);
+builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
+builder.Services.TrySetConfiguration<OrderCommandClientConfigurations>(builder.Configuration, out _);
 
 builder.SetupLogging("Basket Service", environment, loggerConfigurations.ElasticSearch);
 

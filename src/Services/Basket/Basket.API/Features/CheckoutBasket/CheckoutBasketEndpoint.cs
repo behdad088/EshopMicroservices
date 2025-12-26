@@ -34,7 +34,7 @@ public static class CheckoutBasketEndpoint
         var isAuthorized =
             await authorizationService.CanCheckoutBasketAsync(httpContext, request.Username ?? string.Empty);
 
-        var userId = httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
         
         if (!isAuthorized)
         {

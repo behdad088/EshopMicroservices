@@ -3,6 +3,7 @@ using Catalog.API.Common;
 using Catalog.API.Configurations.ConfigurationOptions;
 using Catalog.API.Data;
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.CQRS.Extensions;
 using eshop.Shared.Exceptions.Handler;
 using eshop.Shared.HealthChecks;
@@ -12,13 +13,8 @@ using eshop.Shared.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddOptions<LoggerConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
+builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
 
-var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 const string serviceName = "eshop.catalog.api";
 builder.Services.AddOpenTelemetryOtl(serviceName);

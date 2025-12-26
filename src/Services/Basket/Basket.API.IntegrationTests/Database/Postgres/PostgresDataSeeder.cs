@@ -1,4 +1,3 @@
-using Basket.API.Models;
 using Marten;
 
 namespace Basket.API.IntegrationTests.Database.Postgres;

@@ -13,13 +13,13 @@ public sealed class OrderView :
     public string? CreatedAt { get; set; }
     public string? CreatedBy  { get; set; }
     public DateTimeOffset? LastModified  { get; set; }
-    public string CustomerId   { get; set; } = null!;
-    public string OrderName   { get; set; } = null!;
+    public string? CustomerId   { get; set; }
+    public string? OrderName   { get; set; }
     public List<OrderItem> OrderItems { get; set; } = new();
     public Address ShippingAddress  { get; set; } = new();
     public Address BillingAddress  { get; set; } = new();
     public Payment PaymentMethod { get; set; } = new();
-    public string OrderStatus { get; set; } = null!;
+    public string? OrderStatus { get; set; }
     public string? DeletedDate { get; set; }
     public decimal TotalPrice {  get; set; }
     
@@ -37,21 +37,21 @@ public sealed class OrderView :
 
     public record Address
     {
-        public string Firstname { get; set; }
-        public string Lastname { get; set; }
-        public string EmailAddress { get; set; }
-        public string AddressLine { get; set; }
-        public string Country { get; set; }
-        public string State { get; set; }
-        public string ZipCode { get; set; }
+        public string? Firstname { get; set; }
+        public string? Lastname { get; set; }
+        public string? EmailAddress { get; set; }
+        public string? AddressLine { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? ZipCode { get; set; }
     }
 
     public record Payment
     {
-        public string CardName { get; set; }
-        public string CardNumber { get; set; }
-        public string Expiration { get; set; }
-        public string Cvv { get; set; }
+        public string? CardName { get; set; }
+        public string? CardNumber { get; set; }
+        public string? Expiration { get; set; }
+        public string? Cvv { get; set; }
         public int PaymentMethod { get; set; }
     };
     
@@ -67,33 +67,15 @@ public sealed class OrderView :
         CreatedBy = @event.CreatedBy;
         LastModified = @event.LastModified;
         CustomerId = @event.CustomerId;
-        OrderName = @event.OrderName;
+        OrderName = @event.OrderName!;
         OrderItems =  @event.OrderItems.Select(x => 
             new OrderItem(x.Id.ToString(), x.ProductId.ToString(), x.Quantity!.Value, x.Price!.Value )).ToList();
         
-        ShippingAddress = ShippingAddress with
-        {
-            Firstname = @event.ShippingAddress.Firstname,
-            Lastname = @event.ShippingAddress.Lastname,
-            EmailAddress = @event.ShippingAddress.EmailAddress,
-            AddressLine = @event.ShippingAddress.AddressLine,
-            Country = @event.ShippingAddress.Country,
-            State = @event.ShippingAddress.State,
-            ZipCode = @event.ShippingAddress.ZipCode
-        };
+        ShippingAddress = MapAddress(@event.ShippingAddress);
+
+        BillingAddress = MapAddress(@event.BillingAddress);
         
-        BillingAddress = BillingAddress with
-        {
-            Firstname = @event.BillingAddress.Firstname,
-            Lastname = @event.BillingAddress.Lastname,
-            EmailAddress = @event.BillingAddress.EmailAddress,
-            AddressLine = @event.BillingAddress.AddressLine,
-            Country = @event.BillingAddress.Country,
-            State = @event.BillingAddress.State,
-            ZipCode = @event.BillingAddress.ZipCode
-        };
-        
-        PaymentMethod = PaymentMethod with
+        PaymentMethod = new Payment
         {
             CardName = @event.PaymentMethod.CardName,
             CardNumber = @event.PaymentMethod.CardNumber,
@@ -109,6 +91,20 @@ public sealed class OrderView :
         {
             Version = @event.Version.Value;
         }
+    }
+
+    private static Address MapAddress(OrderCreatedEvent.Address address)
+    {
+        return new Address
+        {
+            Firstname = address.Firstname,
+            Lastname = address.Lastname,
+            EmailAddress = address.EmailAddress,
+            AddressLine = address.AddressLine,
+            Country = address.Country,
+            State = address.State,
+            ZipCode = address.ZipCode
+        };
     }
 
     public static OrderView CreateView(OrderCreatedEvent @event)
@@ -131,7 +127,7 @@ public sealed class OrderView :
         OrderItems =  @event.OrderItems.Select(x => 
             new OrderItem(x.Id.ToString(), x.ProductId.ToString(), x.Quantity!.Value, x.Price!.Value )).ToList();
         
-        ShippingAddress = ShippingAddress with
+        ShippingAddress = new Address
         {
             Firstname = @event.ShippingAddress.Firstname,
             Lastname = @event.ShippingAddress.Lastname,
@@ -142,7 +138,7 @@ public sealed class OrderView :
             ZipCode = @event.ShippingAddress.ZipCode
         };
         
-        BillingAddress = BillingAddress with
+        BillingAddress = new Address
         {
             Firstname = @event.BillingAddress.Firstname,
             Lastname = @event.BillingAddress.Lastname,
@@ -153,7 +149,7 @@ public sealed class OrderView :
             ZipCode = @event.BillingAddress.ZipCode
         };
         
-        PaymentMethod = PaymentMethod with
+        PaymentMethod = new Payment
         {
             CardName = @event.PaymentMethod.CardName,
             CardNumber = @event.PaymentMethod.CardNumber,

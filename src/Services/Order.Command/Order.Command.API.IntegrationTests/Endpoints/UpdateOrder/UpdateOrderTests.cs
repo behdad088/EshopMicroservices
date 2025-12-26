@@ -6,11 +6,11 @@ namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;
 [Collection(TestCollection.Name)]
 public class UpdateOrderTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken;
-    private SqlDbGiven _sqlDbGiven = default!;
-    private IApplicationDbContext _dbContext = default!;
-    private ITestHarness _testHarness = default!;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
+    private readonly SqlDbGiven _sqlDbGiven;
+    private readonly IApplicationDbContext _dbContext;
+    private readonly ITestHarness _testHarness;
 
     public UpdateOrderTests(ApiSpecification apiSpecification)
     {

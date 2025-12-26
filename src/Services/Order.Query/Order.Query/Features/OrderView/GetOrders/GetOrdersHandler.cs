@@ -73,12 +73,12 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
     {
         return new GetOrdersResult(
             Id: order.Id,
-            CustomerId: order.CustomerId,
-            OrderName: order.OrderName,
+            CustomerId: order.CustomerId!,
+            OrderName: order.OrderName!,
             ShippingAddress: MapAddress(order.ShippingAddress),
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
-            Status: order.OrderStatus,
+            Status: order.OrderStatus!,
             OrderItems: order.OrderItems.Select(x => 
                 new  GetOrdersResult.OrderItem(
                     x.ProductId, 
@@ -90,22 +90,22 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
     private static GetOrdersResult.Address MapAddress(OrderView.Address address)
     {
         return new GetOrdersResult.Address(
-            Firstname: address.Firstname,
-            Lastname: address.Lastname,
-            EmailAddress: address.EmailAddress,
-            AddressLine: address.AddressLine,
-            Country: address.Country,
-            State: address.State,
-            ZipCode: address.ZipCode);
+            Firstname: address.Firstname!,
+            Lastname: address.Lastname!,
+            EmailAddress: address.EmailAddress!,
+            AddressLine: address.AddressLine!,
+            Country: address.Country!,
+            State: address.State!,
+            ZipCode: address.ZipCode!);
     }
 
     private static GetOrdersResult.Payment MapPayment(OrderView.Payment payment)
     {
         return new GetOrdersResult.Payment(
-            CardName: payment.CardName,
-            CardNumber: payment.CardNumber,
-            Expiration: payment.Expiration,
-            Cvv: payment.Cvv,
+            CardName: payment.CardName!,
+            CardNumber: payment.CardNumber!,
+            Expiration: payment.Expiration!,
+            Cvv: payment.Cvv!,
             PaymentMethod: payment.PaymentMethod);
     }
 }

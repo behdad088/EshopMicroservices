@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 
 namespace Order.Command.Domain.Models;
@@ -15,6 +14,8 @@ public class Outbox : Aggregate<OutboxId>
     public NumberOfDispatchTry NumberOfDispatchTry { get; private set; } = default!;
     public EventType EventType { get; private set; } = default!;
     public Payload Payload { get; private set; } = default!;
+    
+    public Order? Order { get; private set; }
 
     public Outbox Create(
         AggregateId aggregateId,

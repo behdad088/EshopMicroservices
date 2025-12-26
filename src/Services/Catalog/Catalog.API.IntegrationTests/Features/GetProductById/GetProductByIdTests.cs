@@ -52,7 +52,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProductById
             var response = await result.Content.ReadFromJsonAsync<GetProductByIdResponse>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
+            result.StatusCode.ShouldBe(HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.Id.ShouldBe(Ulid.Parse(productId));
             response.Name.ShouldBe("IPhone X");

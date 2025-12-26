@@ -4,7 +4,7 @@ using eshop.Shared.Pagination;
 namespace Order.Command.Application.Orders.Queries.GetOrdersByName;
 
 public record GetOrdersByNameQuery(
-    string Name,
+    string? Name,
     int PageSize = 10,
     int PageIndex = 0) : IQuery<GetOrdersByNameResult>;
 
@@ -20,14 +20,14 @@ public class GetOrdersByNameQueryHandler(IApplicationDbContext dbContext)
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders.Where(
-                x => x.OrderName.Equals(OrderName.From(query.Name)) && x.DeleteDate == null)
+                x => x.OrderName.Equals(OrderName.From(query.Name!)) && x.DeleteDate == null)
             .AsNoTracking()
             .LongCountAsync(cancellationToken);
 
         var orders = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .Where(x => x.OrderName.Equals(OrderName.From(query.Name)) && x.DeleteDate == null)
+            .Where(x => x.OrderName.Equals(OrderName.From(query.Name!)) && x.DeleteDate == null)
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)

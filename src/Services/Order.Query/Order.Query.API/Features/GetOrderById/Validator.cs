@@ -1,5 +1,4 @@
 using eshop.Shared;
-using FastEndpoints;
 
 namespace Order.Query.API.Features.GetOrderById;
 

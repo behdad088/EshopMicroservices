@@ -1,24 +1,24 @@
-namespace Identity.API.Pages.Login;
+namespace Identity.API.Pages.Account.Login;
 
 public class ViewModel
 {
     public bool AllowRememberLogin { get; set; } = true;
     public bool EnableLocalLogin { get; set; } = true;
 
-    public SendVerificationCodeViewModel? SendVerificationCode { get; set; } = null;
+    public SendVerificationCodeViewModel? SendVerificationCode { get; set; }
     
     public string? ShowSendVerificationMessage { get; set; }
 
-    public IEnumerable<ViewModel.ExternalProvider> ExternalProviders { get; set; } =
+    public IEnumerable<ExternalProvider> ExternalProviders { get; set; } =
         Enumerable.Empty<ExternalProvider>();
 
-    public IEnumerable<ViewModel.ExternalProvider> VisibleExternalProviders =>
+    public IEnumerable<ExternalProvider> VisibleExternalProviders =>
         ExternalProviders.Where(x => !string.IsNullOrWhiteSpace(x.DisplayName));
 
-    public bool IsExternalLoginOnly => EnableLocalLogin == false && ExternalProviders?.Count() == 1;
+    public bool IsExternalLoginOnly => EnableLocalLogin == false && ExternalProviders.Count() == 1;
 
     public string? ExternalLoginScheme =>
-        IsExternalLoginOnly ? ExternalProviders?.SingleOrDefault()?.AuthenticationScheme : null;
+        IsExternalLoginOnly ? ExternalProviders.SingleOrDefault()?.AuthenticationScheme : null;
 
     public class ExternalProvider
     {

@@ -1,4 +1,4 @@
-namespace Order.Command.Domain.Models.Enums;
+
 
 // public enum OrderStatus
 // {

@@ -14,7 +14,6 @@ namespace Order.Query.EventProcessor.IntegrationTests.Views.OrderViewTests;
 [Collection(TestCollection.Name)]
 public class OrderViewOrderDeletedEventTests : IAsyncLifetime
 {
-    private readonly ApiFactory _apiFactory;
     private readonly CancellationToken _cancellationToken;
     private readonly IDocumentStore _documentStore;
     private readonly ITestHarness  _testHarness;
@@ -23,12 +22,12 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
     
     public OrderViewOrderDeletedEventTests(WebApiContainerFactory webApiContainerFactory)
     {
-        _apiFactory = new ApiFactory(webApiContainerFactory);
-        _cancellationToken = _apiFactory.CancellationToken;
-        _documentStore = _apiFactory.GetDocumentStore;
-        _testHarness = _apiFactory.TestHarness;
+        var apiFactory = new ApiFactory(webApiContainerFactory);
+        _cancellationToken = apiFactory.CancellationToken;
+        _documentStore = apiFactory.GetDocumentStore;
+        _testHarness = apiFactory.TestHarness;
         _dbGiven = new DbGiven(_documentStore);
-        _consumeObserver = _apiFactory.ConsumeObserver;
+        _consumeObserver = apiFactory.ConsumeObserver;
     }
 
     [Theory, EventAutoData]
@@ -39,7 +38,7 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
         var messageId = Guid.NewGuid();
         orderDeletedEvent = orderDeletedEvent with
         {
-            Data = orderDeletedEvent.Data with
+            Data = orderDeletedEvent.Data! with
             {
                 OrderId = string.Empty
             }
@@ -69,7 +68,7 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
         var messageId = Guid.NewGuid();
         orderDeletedEvent = orderDeletedEvent with
         {
-            Data = orderDeletedEvent.Data with
+            Data = orderDeletedEvent.Data! with
             {
                 DeletedDate = "invalid date"
             }
@@ -98,7 +97,7 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
         var messageId = Guid.NewGuid();
         orderDeletedEvent = orderDeletedEvent with
         {
-            Data = orderDeletedEvent.Data with
+            Data = orderDeletedEvent.Data! with
             {
                 Version = 0
             }
@@ -128,7 +127,7 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
         var orderId = Ulid.NewUlid();
         orderDeletedEvent = orderDeletedEvent with
         {
-            Data = orderDeletedEvent.Data with
+            Data = orderDeletedEvent.Data! with
             {
                 OrderId = orderId.ToString(),
                 Version = 1
@@ -165,12 +164,12 @@ public class OrderViewOrderDeletedEventTests : IAsyncLifetime
 
         // Assert
         await using var session = _documentStore.LightweightSession();
-        var orderView = session.Query<OrderView>().First(x => x.Id == orderDeletedEvent.Data.OrderId);
-        var eventStream = session.Query<EventStream>().First(x => x.ViewId == orderDeletedEvent.Data.OrderId);
+        var orderView = session.Query<OrderView>().First(x => x.Id == orderDeletedEvent.Data!.OrderId);
+        var eventStream = session.Query<EventStream>().First(x => x.ViewId == orderDeletedEvent.Data!.OrderId);
         
         orderView.ShouldNotBeNull();
         result.ShouldNotBeNull();
-        orderView.Id.ShouldBe(orderDeletedEvent.Data.OrderId);
+        orderView.Id.ShouldBe(orderDeletedEvent.Data!.OrderId);
         orderView.DeletedDate.ShouldBe(orderDeletedEvent.Data.DeletedDate);
         orderView.OrderDeletedEventVersion.ShouldBe(orderDeletedEvent.Data.Version!.Value);
         

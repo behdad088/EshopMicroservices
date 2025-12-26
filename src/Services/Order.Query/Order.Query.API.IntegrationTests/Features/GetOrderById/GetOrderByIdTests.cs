@@ -6,8 +6,8 @@ namespace Order.Query.API.IntegrationTests.Features.GetOrderById;
 [Collection(TestCollection.Name)]
 public class GetOrderByIdTests(ApiFactory apiFactory) : IAsyncLifetime
 {
-    private HttpClient _client = default!;
-    private DbGiven _dbGiven;
+    private HttpClient _client = null!;
+    private DbGiven _dbGiven = null!;
     public async Task InitializeAsync()
     {
         _client = apiFactory.CreateClient();

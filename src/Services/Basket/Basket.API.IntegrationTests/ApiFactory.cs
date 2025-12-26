@@ -1,4 +1,3 @@
-using Basket.API.Models;
 using Marten;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

@@ -34,7 +34,7 @@ public class Endpoint(IAuthorizationService authorizationService) : Endpoint<Req
     
     private static Response MapResponse(PaginatedItems<GetOrdersByCustomerResult> res)
     {
-        var result = res.Data.Select(x => new Order(
+        var result = res.Data?.Select(x => new Order(
             x.Id,
             x.CustomerId,
             x.OrderName,

@@ -6,8 +6,8 @@ namespace Order.Command.API.IntegrationTests.Endpoints.UpdateOrder;
 [Collection(TestCollection.Name)]
 public class UpdateOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
 
     public UpdateOrderValidatorTests(ApiSpecification apiSpecification)
     {

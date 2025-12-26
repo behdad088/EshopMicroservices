@@ -5,10 +5,10 @@ namespace Order.Command.API.IntegrationTests.Endpoints.CreateOrder;
 [Collection(TestCollection.Name)]
 public class CreateOrderTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
+    private HttpClient _httpClient;
     private CancellationToken _cancellationToken;
-    private IApplicationDbContext _dbContext = default!;
-    private ITestHarness _testHarness = default!;
+    private IApplicationDbContext _dbContext;
+    private ITestHarness _testHarness;
 
     public CreateOrderTests(ApiSpecification apiSpecification)
     {
@@ -45,7 +45,7 @@ public class CreateOrderTests : IClassFixture<ApiSpecification>
         {
             // check if the message is dispatched from the outbox
             outboxMessage = await _dbContext.Outboxes
-                .Where(x => x.AggregateId == AggregateId.From(Ulid.Parse(result!.Id)) 
+                .Where(x => x.AggregateId == AggregateId.From(Ulid.Parse(result.Id)) 
                             && x.IsDispatched.Equals(IsDispatched.Yes))
                 .FirstOrDefaultAsync(_cancellationToken);
             if (outboxMessage != null)

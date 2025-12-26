@@ -3,7 +3,6 @@ using Order.Command.Application.Rmq;
 namespace Order.Command.Application.Orders.EventHandlers;
 
 public class OrderDeletedEventHandler(
-    ILogger<OrderDeletedEventHandler> logger,
     IEventPublisher<OrderDeletedEvent> eventPublisher,
     IApplicationDbContext context) : INotificationHandler<OrderDeletedEvent>
 {

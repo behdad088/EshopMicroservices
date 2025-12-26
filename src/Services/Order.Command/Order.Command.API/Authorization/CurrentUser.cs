@@ -13,10 +13,10 @@ public class CurrentUser : IUser
     }
 
     public string? Id =>
-        _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true
-            ? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+        _httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true
+            ? _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)
             : "system";
 
-    public List<string>? Roles => _httpContextAccessor.HttpContext?.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
+    public List<string>? Roles => _httpContextAccessor.HttpContext?.User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToList();
 
 }

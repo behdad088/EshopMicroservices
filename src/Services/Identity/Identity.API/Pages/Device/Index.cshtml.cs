@@ -163,7 +163,7 @@ public class Index : PageModel
         };
 
         vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x =>
-            CreateScopeViewModel(x, Input == null || Input.ScopesConsented.Contains(x.Name))).ToArray();
+            CreateScopeViewModel(x, Input.ScopesConsented.Contains(x.Name))).ToArray();
 
         var apiScopes = new List<ScopeViewModel>();
         foreach (var parsedScope in request.ValidatedResources.ParsedScopes)

@@ -92,7 +92,7 @@ namespace Catalog.API.IntegrationTests.Features.UpdateProduct
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("Category item cannot be null");

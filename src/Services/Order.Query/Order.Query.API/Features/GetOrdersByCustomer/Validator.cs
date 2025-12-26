@@ -1,5 +1,4 @@
 using eshop.Shared;
-using FastEndpoints;
 using FluentValidation;
 
 namespace Order.Query.API.Features.GetOrdersByCustomer;

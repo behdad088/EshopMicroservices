@@ -3,7 +3,6 @@ using Duende.IdentityModel;
 using Identity.API.Data;
 using Identity.API.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace Identity.API;

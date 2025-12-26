@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Order.Command.Domain.Events;
 
 namespace Order.Command.Domain.Models;
 
@@ -7,15 +6,15 @@ public class Order : Aggregate<OrderId>
 {
     private readonly List<OrderItem> _orderItems = new();
     public IReadOnlyList<OrderItem> OrderItems => _orderItems;
-    public CustomerId CustomerId { get; private set; } = default!;
-    public OrderName OrderName { get; private set; } = default!;
-    public Address ShippingAddress { get; private set; } = default!;
-    public Address BillingAddress { get; private set; } = default!;
-    public Payment Payment { get; private set; } = default!;
-    public OrderStatus Status { get; private set; } = default!;
+    public CustomerId CustomerId { get; private set; } = null!;
+    public OrderName OrderName { get; private set; } = null!;
+    public Address ShippingAddress { get; private set; } = null!;
+    public Address BillingAddress { get; private set; } = null!;
+    public Payment Payment { get; private set; } = null!;
+    public OrderStatus Status { get; private set; } = null!;
     public DeleteDate? DeleteDate { get; private set; }
-
-    [ConcurrencyCheck] public VersionId RowVersion { get; set; } = default!;
+    public ICollection<Outbox> Outboxes { get; private set; } = new List<Outbox>();
+    [ConcurrencyCheck] public VersionId RowVersion { get; set; } = null!;
 
     public Price TotalPrice
     {

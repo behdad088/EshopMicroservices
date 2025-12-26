@@ -1,11 +1,10 @@
 using eshop.Shared.CQRS.Query;
 using eshop.Shared.Pagination;
-using System.Linq;
 
 namespace Order.Command.Application.Orders.Queries.GetOrderByCustomer;
 
 public record GetOrderByCustomerQuery(
-    string CustomerId,
+    string? CustomerId,
     int PageSize = 10,
     int PageIndex = 0) : IQuery<GetOrderByCustomerResult>;
 
@@ -20,7 +19,7 @@ public class GetOrderByCustomerQueryHandler(IApplicationDbContext dbContext)
         CancellationToken cancellationToken)
     {
         _logger.Information("Get order by Customer Id.");
-        var customerId = Guid.Parse(query.CustomerId);
+        var customerId = Guid.Parse(query.CustomerId!);
         var pageIndex = query.PageIndex;
         var pageSize = query.PageSize;
         var totalCount = await dbContext.Orders.Where(

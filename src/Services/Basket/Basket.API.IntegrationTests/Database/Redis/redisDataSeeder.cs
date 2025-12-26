@@ -1,5 +1,4 @@
 using System.Globalization;
-using Basket.API.Models;
 using Google.Protobuf;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -60,7 +59,7 @@ public class RedisDataSeeder(IDistributedCache cache)
         {
             Color = x.Color,
             Price = x.Price.ToString(CultureInfo.InvariantCulture),
-            ProduceId = x.ProductId.ToString(),
+            ProduceId = x.ProductId?.ToString(),
             ProductName = x.ProductName,
             Quantity = x.Quantity
         }));

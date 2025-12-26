@@ -27,7 +27,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("Page index must be greater or equal to 0");
@@ -46,7 +46,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+            result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
             response.ShouldNotBeNull();
             response.Detail.ShouldNotBeNull();
             response.Detail.ShouldContain("Page size must be between 2 to 20");
@@ -65,7 +65,7 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             var response = await result.Content.ReadFromJsonAsync<GetProductResponse>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
+            result.StatusCode.ShouldBe(HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.Result.Data.ShouldBeEmpty();
         }
@@ -76,14 +76,14 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
             // Arrange
             var pageIndex = 0;
             var pageSize = 10;
-            await _dataSeeder!.SeedDataBaseAsync();
+            await _dataSeeder.SeedDataBaseAsync();
 
             // Act
             var result = await _client.GetAsync($"api/v1/catalog/products?page_size={pageSize}&page_index={pageIndex}");
             var response = await result.Content.ReadFromJsonAsync<GetProductResponse>();
 
             // Assert
-            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
+            result.StatusCode.ShouldBe(HttpStatusCode.OK);
             response.ShouldNotBeNull();
             response.Result.Data.ShouldNotBeEmpty();
             var expected = GetProductsModules(await _dataSeeder.GetAllData());
@@ -100,10 +100,10 @@ namespace Catalog.API.IntegrationTests.Features.GetProducts
         {
             return products.Select(x => new ProductResponse(
                 Id: Ulid.Parse(x.Id),
-                Name: x.Name,
+                Name: x.Name!,
                 Category: x.Category,
                 Description: x.Description,
-                ImageFile: x.ImageFile,
+                ImageFile: x.ImageFile!,
                 Price: x.Price)).ToList();
         }
     }

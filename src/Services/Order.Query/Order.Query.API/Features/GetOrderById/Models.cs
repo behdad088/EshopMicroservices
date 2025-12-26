@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using FastEndpoints;
 
 namespace Order.Query.API.Features.GetOrderById;
 

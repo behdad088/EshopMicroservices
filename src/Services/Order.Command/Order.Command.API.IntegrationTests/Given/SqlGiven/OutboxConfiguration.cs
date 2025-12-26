@@ -15,9 +15,9 @@ public record OutboxConfiguration
 
 public static class CreateOutboxConfiguration
 {
-    public static Domain.Models.Outbox ToOutboxDb(this OutboxConfiguration outbox)
+    public static Outbox ToOutboxDb(this OutboxConfiguration outbox)
     {
-        return new Domain.Models.Outbox().Create(
+        return new Outbox().Create(
             outbox.AggregateId,
             outbox.CustomerId,
             outbox.AggregateType,

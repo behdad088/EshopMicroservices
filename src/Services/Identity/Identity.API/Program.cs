@@ -1,4 +1,5 @@
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
@@ -10,13 +11,8 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services
-        .AddOptions<LoggerConfigurations>()
-        .Bind(builder.Configuration)
-        .ValidateDataAnnotationsRecursively()
-        .ValidateOnStart();
+    builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
 
-    var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
     var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
     const string serviceName = "eshop.identity.api";
     builder.Services.AddOpenTelemetryOtl(serviceName);

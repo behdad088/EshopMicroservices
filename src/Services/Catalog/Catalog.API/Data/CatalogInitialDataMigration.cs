@@ -2,7 +2,6 @@
 using Marten.Exceptions;
 using Marten.Schema;
 using Polly;
-using Serilog;
 
 namespace Catalog.API.Data;
 

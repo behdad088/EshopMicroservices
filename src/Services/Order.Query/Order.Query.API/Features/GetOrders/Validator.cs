@@ -1,4 +1,3 @@
-using FastEndpoints;
 using FluentValidation;
 
 namespace Order.Query.API.Features.GetOrders;

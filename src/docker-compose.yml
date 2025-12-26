@@ -17,8 +17,7 @@ services:
     image: redis:alpine
   
   order.command.db:
-    image: mcr.microsoft.com/mssql/server
-    platform: linux/amd64
+    image: postgres
     
   order.query.db:
     image: postgres
@@ -87,6 +86,7 @@ volumes:
   postgres_catalog_db:
   postgres_order_query_db:
   postgres_basket_db:
+  postgres_order_command_db:
   identity_catalog_db:
   rabbitmq_data:
   elasticsearch-data:

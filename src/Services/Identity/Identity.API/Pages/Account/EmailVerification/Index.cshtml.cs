@@ -46,7 +46,7 @@ public class Index : PageModel
         if (verificationCode.IsExpired)
             return new JsonResult(new { success = false, message = "This code has expired." });
 
-        var user = await _userManager.FindByIdAsync(verificationCode.UserId).ConfigureAwait(false);
+        var user = await _userManager.FindByIdAsync(verificationCode.UserId ?? string.Empty).ConfigureAwait(false);
         if (user == null)
             return new JsonResult(new { success = false, message = "User not found." });
 

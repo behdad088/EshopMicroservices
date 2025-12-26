@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace eshop.Shared.Pagination;
 
-public class PaginatedItems<TEntity>(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data) where TEntity : class
+public class PaginatedItems<TEntity>(int pageIndex, int pageSize, long count, IEnumerable<TEntity>? data) where TEntity : class
 {
     [JsonPropertyName("page_index")]
     public int PageIndex { get; } = pageIndex;
@@ -14,5 +14,5 @@ public class PaginatedItems<TEntity>(int pageIndex, int pageSize, long count, IE
     public long Count { get; } = count;
 
     [JsonPropertyName("data")]
-    public IEnumerable<TEntity> Data { get; } = data;
+    public IEnumerable<TEntity>? Data { get; } = data;
 }

@@ -6,10 +6,10 @@ namespace Order.Command.API.IntegrationTests.Endpoints.GetOrdersByCustomer;
 [Collection(TestCollection.Name)]
 public class GetOrdersByCustomerTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken;
-    private SqlDbGiven _sqlDbGiven = default!;
-    private IApplicationDbContext _dbContext = default!;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
+    private readonly SqlDbGiven _sqlDbGiven;
+    private readonly IApplicationDbContext _dbContext;
 
     public GetOrdersByCustomerTests(ApiSpecification apiSpecification)
     {

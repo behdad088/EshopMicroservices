@@ -29,7 +29,7 @@ public class DiscountService(DiscountContext dbContext)
         }
 
         var couponInDb = await dbContext.Coupons.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.ProductName == request.Coupon.ProductName).ConfigureAwait(false);
+            .FirstOrDefaultAsync(x => x.ProductName == request.Coupon!.ProductName).ConfigureAwait(false);
 
         if (couponInDb != null)
             return await UpdateDiscount(new UpdateDiscountRequest() { Coupon = MapToCoupon(couponInDb) }, context);

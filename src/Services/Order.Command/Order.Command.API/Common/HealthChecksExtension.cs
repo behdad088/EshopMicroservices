@@ -1,6 +1,6 @@
 using eshop.Shared.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Order.Command.API.Common.SqlHealthCheck;
+using Order.Command.API.Common.PostgresHealthCheck;
 
 namespace Order.Command.API.Common;
 
@@ -10,7 +10,7 @@ public static class HealthChecksExtension
         string configurationString)
     {
         services.AddDefaultHealthChecks()
-            .AddSqlServer(new SqlServerHealthCheckOptions()
+            .AddSqlServer(new PostgresHealthCheckOptions()
                 {
                     ConnectionString = configurationString
                 },
@@ -22,7 +22,7 @@ public static class HealthChecksExtension
 
     private static IHealthChecksBuilder AddSqlServer(
         this IHealthChecksBuilder builder,
-        SqlServerHealthCheckOptions options,
+        PostgresHealthCheckOptions options,
         string name = "sqlserver",
         HealthStatus? failureStatus = default,
         IEnumerable<string>? tags = default,
@@ -32,7 +32,7 @@ public static class HealthChecksExtension
 
         return builder.Add(new HealthCheckRegistration(
             name,
-            _ => new SqlServerHealthCheck(options),
+            _ => new PostgresServerHealthCheck(options),
             failureStatus,
             tags,
             timeout));

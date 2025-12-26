@@ -5,8 +5,8 @@ namespace Order.Command.API.IntegrationTests.Endpoints.CreateOrder;
 [Collection(TestCollection.Name)]
 public class CreateOrderValidatorTests : IClassFixture<ApiSpecification>
 {
-    private HttpClient _httpClient = default!;
-    private CancellationToken _cancellationToken;
+    private readonly HttpClient _httpClient;
+    private readonly CancellationToken _cancellationToken;
 
     public CreateOrderValidatorTests(ApiSpecification apiSpecification)
     {

@@ -1,4 +1,4 @@
-namespace Basket.API.ApiClient;
+namespace Basket.API.ApiClient.OrderCommand;
 
 public record CreateOrderRequest
 {

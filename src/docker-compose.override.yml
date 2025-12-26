@@ -64,15 +64,18 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     hostname: rabbitmq
-
+    
   order.command.db:
     container_name: order.command.db
     environment:
-      SA_PASSWORD: "BeH007826790"
-      ACCEPT_EULA: "Y"
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=OrderCommandDb
     restart: always
     ports:
-      - "1433:1433"
+      - "5436:5432"
+    volumes:
+      - postgres_order_command_db:/var/lib/postgresql/data/
   
   catalog.api:
     container_name: catalog.api
@@ -165,7 +168,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/order-command-api.pfx
-      - ConnectionStrings__Database=Server=order.command.db;Database=OrderDb;User Id=sa;Password=BeH007826790;Trusted_Connection=False;TrustServerCertificate=True
+      - ConnectionStrings__Database=Server=order.command.db;Database=OrderCommandDb;User Id=postgres;Password=postgres;
       - RabbitMQ__URI=rabbitmq
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest

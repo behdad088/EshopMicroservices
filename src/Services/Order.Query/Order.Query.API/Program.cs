@@ -1,4 +1,5 @@
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.Exceptions.Handler;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
@@ -8,21 +9,9 @@ using Order.Query.PostgresConfig;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddOptions<DatabaseConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
+builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
+builder.Services.TrySetConfiguration<DatabaseConfigurations>(builder.Configuration, out var connectionString);
 
-var connectionString = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
-
-builder.Services
-    .AddOptions<LoggerConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-
-var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 const string serviceName = "eshop.order.query.api";
 builder.Services.AddOpenTelemetryOtl(serviceName);

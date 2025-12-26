@@ -2,6 +2,7 @@ using Discount.Grpc.Configurations.ConfigurationOptions;
 using Discount.Grpc.Data;
 using Discount.Grpc.Services;
 using eshop.Shared;
+using eshop.Shared.Configurations;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
@@ -9,20 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services
-    .AddOptions<DatabaseConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
-builder.Services
-    .AddOptions<LoggerConfigurations>()
-    .Bind(builder.Configuration)
-    .ValidateDataAnnotationsRecursively()
-    .ValidateOnStart();
+builder.Services.TrySetConfiguration<DatabaseConfigurations>(builder.Configuration, out var databaseConfigurations);
+builder.Services.TrySetConfiguration<LoggerConfigurations>(builder.Configuration, out var loggerConfigurations);
 
-var databaseConfigurations = builder.Configuration.TryGetValidatedOptions<DatabaseConfigurations>();
-
-var loggerConfigurations = builder.Configuration.TryGetValidatedOptions<LoggerConfigurations>();
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
 const string serviceName = "eshop.discount.grpc";
 builder.Services.AddOpenTelemetryOtl(serviceName);

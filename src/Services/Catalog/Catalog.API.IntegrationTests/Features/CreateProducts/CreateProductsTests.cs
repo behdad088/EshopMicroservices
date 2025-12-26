@@ -129,7 +129,7 @@ public class CreateProductsTests(ApiSpecification apiSpecification) : IAsyncLife
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>();
 
         // Assert
-        result.StatusCode.ShouldBe(System.Net.HttpStatusCode.BadRequest);
+        result.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.ShouldNotBeNull();
         response.Detail.ShouldNotBeNull();
         response.Detail.ShouldContain("Price must be greater than 0");
@@ -161,7 +161,7 @@ public class CreateProductsTests(ApiSpecification apiSpecification) : IAsyncLife
     public async Task CreateProduct_With_Invalid_Id_Return_NotFound(CreateProductRequest createProductRequest)
     {
         // Arrange
-        createProductRequest = createProductRequest with { Id = default };
+        createProductRequest = createProductRequest with { Id = null! };
 
         // Act
         var result = await _client

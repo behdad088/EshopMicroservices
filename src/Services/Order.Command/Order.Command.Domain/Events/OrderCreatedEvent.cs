@@ -32,7 +32,7 @@ public record OrderCreatedEvent(
     public DateTimeOffset OccurredAt => DateTimeOffset.Now;
 
     [property: JsonPropertyName("event_type")]
-    public string? EventType => "order_created_event";
+    public string EventType => "order_created_event";
 
     public record OrderItem(
         [property: JsonPropertyName("id")] 

@@ -40,7 +40,7 @@ public class StoreBasketCommandHandler(
                         x.Quantity,
                         x.Color,
                         x.Price,
-                        x.ProductId,
+                        x.ProductId!,
                         x.ProductName)).ToList(),
                 shoppingCart.TotalPrice));
     }

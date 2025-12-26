@@ -35,8 +35,8 @@ public class OutboxConfiguration : IEntityTypeConfiguration<Outbox>
             dbAggregateType => AggregateType.From(dbAggregateType));
 
         builder.Property(x => x.DispatchDateTime).HasConversion(
-            dispatchDateTime => dispatchDateTime.Value,
-            dbDispatchDateTime => DispatchDateTime.From(dbDispatchDateTime));
+            dispatchDateTime => dispatchDateTime.Value.ToUniversalTime(),
+            dbDispatchDateTime => DispatchDateTime.From(dbDispatchDateTime.ToUniversalTime()));
 
         builder.Property(x => x.IsDispatched).HasConversion(
             isDispatched => isDispatched.Value,

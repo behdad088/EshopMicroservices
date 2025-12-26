@@ -6,6 +6,6 @@ public class CustomErrorQueueNameFormatter : IErrorQueueNameFormatter
 {
     public string FormatErrorQueueName(string queueName)
     {
-        return queueName + "_dlq";;
+        return queueName + "_dlq";
     }
 }

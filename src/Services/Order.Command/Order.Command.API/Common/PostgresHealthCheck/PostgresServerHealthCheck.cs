@@ -1,13 +1,13 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 
-namespace Order.Command.API.Common.SqlHealthCheck;
+namespace Order.Command.API.Common.PostgresHealthCheck;
 
-public class SqlServerHealthCheck : IHealthCheck
+public class PostgresServerHealthCheck : IHealthCheck
 {
-    private readonly SqlServerHealthCheckOptions _options;
+    private readonly PostgresHealthCheckOptions _options;
 
-    public SqlServerHealthCheck(SqlServerHealthCheckOptions options)
+    public PostgresServerHealthCheck(PostgresHealthCheckOptions options)
     {
         ArgumentNullException.ThrowIfNull(options.ConnectionString);
         ArgumentNullException.ThrowIfNull(options.CommandText);
@@ -20,7 +20,9 @@ public class SqlServerHealthCheck : IHealthCheck
     {
         try
         {
-            await using var connection = new SqlConnection(_options.ConnectionString);
+            await using var connection = _options.DataSource is not null
+                ? _options.DataSource.CreateConnection()
+                : new NpgsqlConnection(_options.ConnectionString);
 
             _options.Configure?.Invoke(connection);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -29,11 +31,13 @@ public class SqlServerHealthCheck : IHealthCheck
             command.CommandText = _options.CommandText;
             var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
-            return _options.HealthCheckResultBuilder?.Invoke(result) ?? HealthCheckResult.Healthy();
+            return _options.HealthCheckResultBuilder == null
+                ? HealthCheckResult.Healthy()
+                : _options.HealthCheckResultBuilder(result);
         }
         catch (Exception ex)
         {
-            return new HealthCheckResult(context.Registration.FailureStatus, exception: ex);
+            return new HealthCheckResult(context.Registration.FailureStatus, description: ex.Message, exception: ex);
         }
     }
 }

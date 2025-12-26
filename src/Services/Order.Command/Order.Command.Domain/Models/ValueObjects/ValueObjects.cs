@@ -51,7 +51,7 @@ public class DeleteDate : ValueOf<string, DeleteDate>
 {
     public static DeleteDate ToIso8601UtcFormat(DateTimeOffset dateTimeOffset)
     {
-        return From(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
+        return From(dateTimeOffset.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
     }
 }
 

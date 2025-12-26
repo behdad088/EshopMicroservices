@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Identity.API.Pages.Logout;
+namespace Identity.API.Pages.Account.Logout;
 
 [SecurityHeaders]
 [AllowAnonymous]
@@ -43,7 +43,7 @@ public class Index : PageModel
         else
         {
             var context = await _interaction.GetLogoutContextAsync(LogoutId);
-            if (context?.ShowSignoutPrompt == false)
+            if (context.ShowSignoutPrompt == false)
             {
                 // it's safe to automatically sign-out
                 showLogoutPrompt = false;

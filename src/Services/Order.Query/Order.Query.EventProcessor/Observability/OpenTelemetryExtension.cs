@@ -27,8 +27,6 @@ public static class OpenTelemetryExtension
     /// <summary>
     ///     Extract the PropagationContext of the upstream parent from the message headers
     /// </summary>
-    /// <param name="traceParent"></param>
-    /// <param name="traceState"></param>
     /// <param name="cloudEvent"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
@@ -57,7 +55,7 @@ public static class OpenTelemetryExtension
         GetSpanAttributes<TEvent>(CloudEvent<TEvent> cloudEvent)
         where TEvent : Event
     {
-        var attributes = new Dictionary<string, string>
+        var attributes = new Dictionary<string, string?>
         {
             [SpanTags.CloudEventId] = cloudEvent.Id,
             [SpanTags.CloudEventSource] = cloudEvent.Source,

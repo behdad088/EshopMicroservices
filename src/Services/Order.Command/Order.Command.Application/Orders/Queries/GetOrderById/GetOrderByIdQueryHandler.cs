@@ -19,10 +19,12 @@ public class GetOrderByIdHandler(IApplicationDbContext dbContext)
         var order = await dbContext.Orders
             .Include(x => x.OrderItems)
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id.Equals(OrderId.From(orderId)) && x.CustomerId.Equals(CustomerId.From(customerId)) && x.DeleteDate == null, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.Id.Equals(OrderId.From(orderId)) 
+                && x.CustomerId.Equals(CustomerId.From(customerId)) &&
+                x.DeleteDate == null, cancellationToken);
 
-        if (order is null)
-            throw new OrderNotFoundExceptions(orderId);
+        if (order is null) throw new OrderNotFoundExceptions(orderId);
 
         var result = MapResult(order);
         _logger.Information("Successfully retrieved orders by id.");

@@ -83,13 +83,12 @@ public static class Config
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
-        new ApiScope[]
-        {
-            new ApiScope(ScopeNames.Basket, "Basket Service"),
+    [
+        new ApiScope(ScopeNames.Basket, "Basket Service"),
             new ApiScope(ScopeNames.Catalog, "Catalog Service"),
             new ApiScope(ScopeNames.OrdersCommand, "Orders Command Service"),
             new ApiScope(ScopeNames.OrdersQuery, "Orders Query Service")
-        };
+    ];
 
     public static IEnumerable<ApiResource> ApiResources =>
     [
@@ -112,9 +111,8 @@ public static class Config
     ];
     
     public static IEnumerable<Client> Clients =>
-        new Client[]
-        {
-            new Client
+    [
+        new Client
             {
                 ClientId = "postman-client",
                 AllowedGrantTypes = GrantTypes.Implicit,
@@ -129,5 +127,5 @@ public static class Config
                 },
                 AllowAccessTokensViaBrowser = true
             }
-        };
+    ];
 }
