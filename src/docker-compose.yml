@@ -2,13 +2,13 @@ version: '3.4'
 
 services:
   catalogDb:
-    image: postgres
+    image: postgres:16-alpine
   
   basketDb:
-    image: postgres
+    image: postgres:16-alpine
   
   identityDb:
-    image: postgres
+    image: postgres:16-alpine
     
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -17,10 +17,10 @@ services:
     image: redis:alpine
   
   order.command.db:
-    image: postgres
+    image: postgres:16-alpine
     
   order.query.db:
-    image: postgres
+    image: postgres:16-alpine
   
   catalog.api:
     image: ${DOCKER_REGISTRY-}catalog.api
@@ -64,6 +64,12 @@ services:
       context: .
       dockerfile: Services/Order.Query/Order.Query.API/Dockerfile
   
+  api.gateway:
+    image: ${DOCKER_REGISTRY-}api.gateway
+    build:
+      context: .
+      dockerfile: Services/ApiGateways/Dockerfile
+      
   prometheus:
     image: prom/prometheus:v2.48.1
     
