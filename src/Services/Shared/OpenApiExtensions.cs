@@ -18,7 +18,7 @@ public static class OpenApiExtensions
             return app;
 
         app.UseSwagger();
-
+ 
         if (app.Environment.IsDevelopment())
         {
             app.UseSwaggerUI(setup =>
