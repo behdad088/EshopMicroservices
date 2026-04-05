@@ -84,7 +84,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/catalog.pfx
       - ConnectionStrings__Database=Server=catalogdb;Port=5432;Database=CatalogDb;User Id=postgres;Password=postgres
       - Logger__elasticsearch=http://elasticsearch:9200
       - Identity__Url=https://localhost:7063 # identity api url in docker 
@@ -279,6 +279,42 @@ services:
     ports:
       - "6005:8080"
       - "7065:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ./certificates:/app/certificates
+        
+  api.gateway:
+    container_name: api.gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/api-gateway.pfx
+      - Certificates__CaPath=/app/certificates/ca.crt
+      - ReverseProxy__Clusters__basket__Destinations__destination0__Address=https://basket.api:8081
+      - ReverseProxy__Clusters__catalog__Destinations__destination0__Address=https://catalog.api:8081
+      - ReverseProxy__Clusters__order-command__Destinations__destination0__Address=https://order.command.api:8081
+      - ReverseProxy__Clusters__order-query__Destinations__destination0__Address=https://order.query.api:8081
+      - ReverseProxy__Clusters__identity__Destinations__destination0__Address=https://identity.api:8081
+      - ReverseProxy__Clusters__discount__Destinations__destination0__Address=https://discount.grpc:8081
+      - Logger__elasticsearch=http://elasticsearch:9200
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - catalog.api
+      - basket.api
+      - discount.grpc
+      - order.command.api
+      - order.query.api
+      - identity.api
+      - elasticsearch
+    ports:
+      - "6006:8080"
+      - "7066:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro

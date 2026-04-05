@@ -18,9 +18,13 @@ public class WebApiContainerFactory : IAsyncLifetime
         .Build();
     
     private readonly IContainer _elasticsearch = new ContainerBuilder()
-        .WithImage("docker.elastic.co/elasticsearch/elasticsearch:8.1.2")
-        .WithPortBinding(9200, true)
-        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(ElasticSearchPort))
+        .WithImage("docker.elastic.co/elasticsearch/elasticsearch:8.12.2")
+        .WithEnvironment("discovery.type", "single-node")
+        .WithEnvironment("xpack.security.enabled", "false")
+        .WithEnvironment("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+        .WithPortBinding(ElasticSearchPort, true)
+        .WithWaitStrategy(Wait.ForUnixContainer()
+            .UntilHttpRequestIsSucceeded(r => r.ForPort(ElasticSearchPort)))
         .Build();
     
     internal string ElasticSearchUri =>

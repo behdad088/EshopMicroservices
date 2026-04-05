@@ -1,0 +1,42 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Api Gateways CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+    - src/Shared/**
+    - src/Services/ApiGateways/**
+    - .github/workflows/api-gateways-CI.yml
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - src/Shared/**
+    - src/Services/ApiGateways/**
+    - .github/workflows/api-gateways-CI.yml
+
+env:
+  SERVICE: api-gateways
+  IMAGE: api-gateways
+  ProjectPath: src/Services/ApiGateways
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - uses: ./.github/workflows/composite/build-push
+      with: 
+        service: ${{ env.SERVICE }}
+        image_name: ${{ env.IMAGE }}
+        project_path: ${{ env.ProjectPath }}
+        registry_username: ${{ vars.REGISTRYUSERNAME }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
