@@ -1,115 +1,555 @@
-openapi: 3.0.1
+openapi: 3.0.0
 info:
-  title: Basket.API
+  title: eshop — Basket API
   version: v1
-  
+  description: |
+    The **Basket** microservice manages shopping carts for eshop customers.
+    It uses a **decorator pattern** for storage: every read/write goes through a
+    Redis cache layer (`CachedBasketRepository`) backed by a PostgreSQL Marten
+    document store (`BasketRepository`). Cache entries are serialized as
+    Protobuf using `basket.proto`.
+
+    On checkout, the service calls the **Order Command API** over HTTP (Refit
+    client) using the caller's Bearer token forwarded via
+    `AuthenticatedHttpClientHandler`. It also calls the **Discount gRPC service**
+    on every `StoreBasket` to apply coupon discounts to item prices before
+    persisting.
+
+    ## Infrastructure
+
+    | Dependency | Purpose | Config key |
+    |---|---|---|
+    | PostgreSQL (Marten) | Primary basket storage — `ShoppingCart` document with `[Identity] Username` | `ConnectionStrings:Database` |
+    | Redis | Cache layer — Protobuf-serialized basket, keyed by `username` | `ConnectionStrings:Redis` |
+    | Discount gRPC | Applies coupon discounts to cart items on store | `Grpc:Discount` (default `http://localhost:6002`) |
+    | Order Command API | Creates order on checkout (Refit HTTP client) | `OrderCommandClient:BaseUrl` (default `http://localhost:6003`) |
+
+    ## Authentication & Authorization
+
+    All four endpoints require a valid Bearer JWT (`RequireAuthorization()`).
+    JWT audience: `basket` (from `appsettings.json > Identity > Audience`).
+
+    All four policies use **`UserIdRequirement`** — the same pattern as Order
+    Query API but keyed on **`preferred_username`** claim (not `sub`):
+
+    | Endpoint | Policy | Permission | admin bypass | customer check |
+    |---|---|---|---|---|
+    | `GET /customers/{username}` | `CanGetBasket` | `basket:user-basket:get` | ✓ | `preferred_username` == `{username}` |
+    | `POST /customers` | `CanStoreBasket` | `basket:user-basket:store` | ✓ | `preferred_username` == body `username` |
+    | `DELETE /customers/{username}` | `CanDeleteBasket` | `basket:user-basket:delete` | ✓ | `preferred_username` == `{username}` |
+    | `POST /customers/checkout` | `CanCheckoutBasket` | `basket:user-basket:checkout` | ✓ | `preferred_username` == body `username` |
+
+    `UserAuthorizationHandler` logic:
+    - If `role` claim == `admin` → skip username check, validate permission only
+    - Otherwise → require `preferred_username` claim to match the resource username,
+      AND require `permissions` claim to contain the required policy string
+
+    ## Checkout Flow
+
+    `POST /customers/checkout` is the most complex endpoint — it orchestrates
+    three external calls:
+
+    1. **Load basket** from repository by `username`
+    2. **Call Order Command API** (`POST /api/v1/customers/{customerId}/orders/{orderId}`)
+       with the basket items and checkout details. The `customerId` is the JWT
+       `sub` claim; the `orderId` is a new server-generated ULID.
+       The caller's Bearer token is forwarded automatically.
+    3. **Delete basket** from repository and cache on success
+
+    Error responses from the Order Command API are surfaced directly:
+    - Order 400 → Basket 400 with `ValidationErrors` in `extensions`
+    - Order 401 → Basket 401
+    - Order 403 → Basket 403
+    - Order 404 → Basket 404
+
 servers:
-  - url: http://localhost:5001/
-    description: Local
-  - url: https://localhost:5051/
-    description: Local
-  - url: http://localhost:6001/
-    description: Docker
-  - url: https://localhost:6061/
-    description: Docker
+  - url: https://localhost:5051
+    description: Local development (HTTPS)
+  - url: http://localhost:5001
+    description: Local development (HTTP)
+  - url: http://localhost:8080
+    description: Docker container (HTTP)
+
+tags:
+  - name: Basket
+    description: Shopping cart operations — all routes under `/api/v1/basket`
+  - name: Health
+    description: Health check endpoints (no auth required)
+
+security:
+  - BearerAuth: []
+
 paths:
+
+  # ── GET /api/v1/basket/customers/{username} ───────────────────────────────
   /api/v1/basket/customers/{username}:
     get:
-      tags:
-        - Basket API
-      summary: Get Basket by username
+      tags: [Basket]
+      summary: Get Basket
+      operationId: GetBasket
+      description: |
+        Returns the shopping cart for the given username.
+
+        **Auth:** Required
+        **Policy:** `CanGetBasket` (`UserIdRequirement`)
+        **Required permission:** `basket:user-basket:get`
+
+        **Authorization logic (`UserAuthorizationHandler`):**
+        - `admin` role → passes if `permissions` contains `basket:user-basket:get`
+        - any other role → additionally requires JWT `preferred_username` claim
+          to equal the `{username}` path parameter; returns `403` otherwise
+
+        Read path: Redis cache → PostgreSQL (Marten) on cache miss.
+        Cache entries are stored as Protobuf (see `basket.proto`).
+
+        Returns `404` if no basket exists for the given username.
+
+        **Validation:**
+        - `username` — must not be empty
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/Username'
       responses:
         '200':
-          description: Success
+          description: Basket found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetBasketResponse'
+              example:
+                Username: "AliceSmith@email.com"
+                items:
+                  - quantity: 2
+                    color: "black"
+                    price: 69.99
+                    product_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                    product_name: "Wireless Headphones"
+                total_price: 139.98
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
+          $ref: '#/components/responses/NotFound'
+
     delete:
-      tags:
-        - Basket API
-      summary: Delete Basket by username
+      tags: [Basket]
+      summary: Delete Basket
+      operationId: DeleteBasket
+      description: |
+        Deletes the shopping cart for the given username from both PostgreSQL
+        and the Redis cache.
+
+        **Auth:** Required
+        **Policy:** `CanDeleteBasket` (`UserIdRequirement`)
+        **Required permission:** `basket:user-basket:delete`
+
+        **Authorization logic:**
+        - `admin` role → passes if `permissions` contains `basket:user-basket:delete`
+        - other roles → additionally requires `preferred_username` == `{username}`
+
+        The handler calls `session.Delete<ShoppingCart>(username)` — a hard delete.
+        Always returns `200 { "is_success": true }` even if no basket existed
+        (Marten delete is a no-op for non-existent documents).
+
+        **Validation:**
+        - `username` — must not be empty
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/Username'
       responses:
         '200':
-          description: Success
+          description: Basket deleted successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteBasketResponse'
+              example:
+                is_success: true
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
+          $ref: '#/components/responses/NotFound'
+
+  # ── POST /api/v1/basket/customers ─────────────────────────────────────────
   /api/v1/basket/customers:
     post:
-      tags:
-        - Basket API
+      tags: [Basket]
       summary: Store Basket
+      operationId: StoreBasket
+      description: |
+        Creates or replaces the shopping cart for a user. If a basket already
+        exists for the username it is fully overwritten (upsert).
+
+        **Auth:** Required
+        **Policy:** `CanStoreBasket` (`UserIdRequirement`)
+        **Required permission:** `basket:user-basket:store`
+
+        **Authorization logic:**
+        - `admin` role → passes if `permissions` contains `basket:user-basket:store`
+        - other roles → additionally requires `preferred_username` == body `shopping_cart.username`
+
+        **Discount application:**
+        Before persisting, the handler calls the Discount gRPC service
+        (`GetDiscount { ProductName }`) for each item and subtracts the coupon
+        `Amount` from the item's `Price`. If no coupon exists, `Amount` is 0
+        and the price is unchanged.
+
+        **Write path:** Writes to PostgreSQL (Marten) then updates Redis cache.
+
+        **Validation (FluentValidation on `StoreBasketCommand`):**
+        - `shopping_cart` — must not be null
+        - `shopping_cart.username` — required
+        - `shopping_cart.items` — must not be empty
+        - Each item:
+          - `product_id` — required, must be a valid ULID
+          - `quantity` — must be > 0
+          - `price` — must be > 0
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/StoreBasketRequest'
+            example:
+              shopping_cart:
+                username: "AliceSmith@email.com"
+                items:
+                  - quantity: 2
+                    color: "black"
+                    price: 79.99
+                    product_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                    product_name: "Wireless Headphones"
       responses:
         '200':
-          description: Success
+          description: Basket stored successfully. Returns the updated basket with discounts applied.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StoreBasketResponse'
+              example:
+                shopping_cart:
+                  username: "AliceSmith@email.com"
+                  items:
+                    - quantity: 2
+                      color: "black"
+                      price: 69.99
+                      product_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                      product_name: "Wireless Headphones"
+                  total_price: 139.98
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
+
+  # ── POST /api/v1/basket/customers/checkout ────────────────────────────────
+  /api/v1/basket/customers/checkout:
+    post:
+      tags: [Basket]
+      summary: Checkout Basket
+      operationId: CheckoutBasket
+      description: |
+        Converts the basket into an order by calling the Order Command API,
+        then deletes the basket on success.
+
+        **Auth:** Required
+        **Policy:** `CanCheckoutBasket` (`UserIdRequirement`)
+        **Required permission:** `basket:user-basket:checkout`
+
+        **Authorization logic:**
+        - `admin` role → passes if `permissions` contains `basket:user-basket:checkout`
+        - other roles → requires `preferred_username` == body `username`
+
+        **Orchestration (3 steps):**
+        1. Load basket from repository by `username` → `404` if not found
+        2. Call Order Command API:
+           `POST /api/v1/customers/{customerId}/orders/{orderId}`
+           - `customerId` = JWT `sub` claim (extracted from `ClaimTypes.NameIdentifier`)
+           - `orderId` = new server-generated `Ulid.NewUlid()` (idempotency key)
+           - Request body: maps basket items + billing address + payment
+           - Bearer token is forwarded automatically via `AuthenticatedHttpClientHandler`
+             which reads the token from the incoming request's `Authorization` header
+           - **Note:** `ShippingAddress` is mapped from `BillingAddress` — there
+             is no separate shipping address in the checkout request
+        3. On Order Command success → delete basket from repository and cache
+
+        **Order Command error propagation:**
+        - Order 400 → returns 400 with `extensions.ValidationErrors` from Order API
+        - Order 401 → returns 401
+        - Order 403 → returns 403
+        - Order 404 → returns 404
+
+        **Validation (FluentValidation on `CheckoutBasketCommand`):**
+        - `username` — required
+        - `customerId` (from JWT `sub`) — must be a valid GUID
+        - `order_name` — minimum 5 characters
+        - `billing_address` — all fields required (see below)
+        - `payment` — all fields required (see below)
+
+        **Address validation:**
+        - `firstname`, `lastname`, `email_address`, `address_line`, `state` — required
+        - `email_address` — must be valid email format
+        - `country` — must be a valid country name (`MustBeValidCountryName()`)
+        - `zip_code` — required, exactly 5 characters
+
+        **Payment validation:**
+        - `cvv` — required, must be numeric, exactly 3 characters
+        - `card_name` — required
+        - `card_number` — must pass `MustBeValidCardNumber()`
+        - `expiration` — must pass `MustBeValidExpiryDate()`
+        - `payment_method` — required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutBasketRequest'
+            example:
+              username: "AliceSmith@email.com"
+              order_name: "Alice Order from Basket"
+              billing_address:
+                firstname: "Alice"
+                lastname: "Smith"
+                email_address: "AliceSmith@email.com"
+                address_line: "Medicinaregatan 20"
+                country: "Sweden"
+                state: "Vastra Gotaland"
+                zip_code: "41390"
+              payment:
+                card_name: "Alice Smith"
+                card_number: "XXXXXXXXXXXX1881"
+                expiration: "12/24"
+                cvv: "123"
+                payment_method: 1
+      responses:
+        '200':
+          description: Basket checked out successfully. Basket is deleted after this call.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutBasketResponse'
+              example:
+                order_id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        '400':
+          description: |
+            Bad Request — either local FluentValidation failed, or the Order
+            Command API returned 400. In the latter case, `extensions.ValidationErrors`
+            contains the downstream validation errors.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/CheckoutProblemDetails'
+              examples:
+                local_validation:
+                  summary: Local validation failure
+                  value:
+                    title: "Bad Request"
+                    status: 400
+                    errors:
+                      order_name: ["order_name must be at least 5 characters long."]
+                      billing_address.zip_code: ["zip_code is not valid."]
+                order_command_validation:
+                  summary: Order Command API validation failure
+                  value:
+                    title: "Order.Command.API_CreateOrder"
+                    status: 400
+                    detail: "One or more validation errors occurred."
+                    extensions:
+                      ValidationErrors:
+                        - property_name: "order_items"
+                          reason: "Order must contain at least one item."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
+          description: >-
+            Not Found — no basket exists for the given username. Store a basket
+            first with `POST /customers`.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  # ── Health ─────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Health Check
+      operationId: HealthCheck
+      description: |
+        Returns the health status of the Basket API and its dependencies:
+        - PostgreSQL (Marten)
+        - Redis cache
+
+        No authentication required.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service or a dependency is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# ── Components ────────────────────────────────────────────────────────────────
 components:
+
   securitySchemes:
-    Bearer:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        JWT issued by IdentityServer at `https://localhost:5007`.
+
+        Required claims:
+        - `aud`: must include `basket`
+        - `permissions`: array containing the required policy string
+        - `preferred_username`: used for ownership checks (not `sub`)
+        - `sub`: used as `customerId` on checkout
+        - `role`: `admin` or `customer`
+
+        Obtain a token:
+        ```bash
+        # Alice (customer) — can get/store/delete own basket and checkout
+        curl -X POST https://localhost:5007/connect/token \
+          -d grant_type=password \
+          -d client_id=postman-client-password \
+          -d username=AliceSmith@email.com \
+          -d password=Pass123$ \
+          -d "scope=openid profile basket"
+
+        # Bob (admin) — can access any basket
+        curl -X POST https://localhost:5007/connect/token \
+          -d grant_type=password \
+          -d client_id=postman-client-password \
+          -d username=BobSmith@email.com \
+          -d password=Pass123$ \
+          -d "scope=openid profile basket"
+        ```
+
+  parameters:
+    Username:
+      name: username
+      in: path
+      required: true
+      description: >-
+        The basket owner's username (email address). Must match the JWT
+        `preferred_username` claim for non-admin callers.
+      schema:
+        type: string
+        example: "AliceSmith@email.com"
+
+  responses:
+    BadRequest:
+      description: Bad Request — FluentValidation failed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+            title: "Bad Request"
+            status: 400
+            errors:
+              username: ["Username cannot be null"]
+
+    Unauthorized:
+      description: Unauthorized — missing or invalid Bearer token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7235#section-3.1"
+            title: "Unauthorized"
+            status: 401
+
+    Forbidden:
+      description: |
+        Forbidden — one of:
+        - Token's `permissions` claim does not contain the required policy string
+        - Non-admin caller's `preferred_username` does not match the resource username
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            title: "Forbidden"
+            status: 403
+
+    NotFound:
+      description: Not Found — no basket exists for the given username.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+            title: "Not Found"
+            status: 404
+
   schemas:
-    BasketDtoRequest:
+
+    # ── Shared sub-schemas ────────────────────────────────────────────────────
+
+    BasketItem:
       type: object
+      required: [quantity, color, price, product_id, product_name]
+      properties:
+        quantity:
+          type: integer
+          description: Must be > 0.
+          minimum: 1
+          example: 2
+        color:
+          type: string
+          description: Product colour variant.
+          example: "black"
+        price:
+          type: number
+          format: decimal
+          description: >-
+            Unit price. Must be > 0. On `StoreBasket` this is modified in-place
+            by the Discount gRPC service before the basket is persisted —
+            `price = price - coupon.amount`.
+          minimum: 0.01
+          example: 69.99
+        product_id:
+          type: string
+          description: Product ULID. Must pass `Ulid.TryParse()`.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        product_name:
+          type: string
+          description: >-
+            Product display name. Also used as the key for the Discount gRPC
+            `GetDiscount` call during `StoreBasket`.
+          example: "Wireless Headphones"
+
+    BasketDto:
+      type: object
+      description: Basket payload used in both request and response bodies.
       properties:
         username:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/BasketItem'
-    BasketDtoResponse:
-      type: object
-      properties:
-        username:
-          type: string
+          description: >-
+            Basket owner's username (email). Used as the Marten document
+            identity (`[Identity]`) and Redis cache key.
+          example: "AliceSmith@email.com"
         items:
           type: array
           items:
@@ -117,38 +557,239 @@ components:
         total_price:
           type: number
           format: decimal
-    BasketItem:
+          description: >-
+            Computed as `sum(item.price * item.quantity)`. Calculated by the
+            `ShoppingCart.TotalPrice` property. Only present in response bodies.
+          readOnly: true
+          example: 139.98
+
+    Address:
       type: object
+      description: Billing/shipping address for checkout.
+      required: [firstname, lastname, email_address, address_line, country, state, zip_code]
       properties:
-        quantity:
-          type: integer
-          format: int32
-        color:
+        firstname:
           type: string
-        price:
+          description: Required.
+          example: "Alice"
+        lastname:
+          type: string
+          description: Required.
+          example: "Smith"
+        email_address:
+          type: string
+          format: email
+          description: Required. Must be valid email format.
+          example: "AliceSmith@email.com"
+        address_line:
+          type: string
+          description: Required.
+          example: "Medicinaregatan 20"
+        country:
+          type: string
+          description: Required. Must be a valid country name (`MustBeValidCountryName()`).
+          example: "Sweden"
+        state:
+          type: string
+          description: Required.
+          example: "Vastra Gotaland"
+        zip_code:
+          type: string
+          description: Required. Exactly 5 characters.
+          minLength: 5
+          maxLength: 5
+          example: "41390"
+
+    Payment:
+      type: object
+      description: Payment details for checkout.
+      required: [card_name, card_number, expiration, cvv, payment_method]
+      properties:
+        card_name:
+          type: string
+          description: Required. Cardholder name.
+          example: "Alice Smith"
+        card_number:
+          type: string
+          description: Required. Must pass `MustBeValidCardNumber()` validation.
+          example: "XXXXXXXXXXXX1881"
+        expiration:
+          type: string
+          description: Required. Must pass `MustBeValidExpiryDate()` validation.
+          example: "12/24"
+        cvv:
+          type: string
+          description: Required. Must be numeric. Exactly 3 characters.
+          minLength: 3
+          maxLength: 3
+          pattern: '^\d{3}$'
+          example: "123"
+        payment_method:
+          type: integer
+          description: Required. Payment method type code (e.g. 1 = credit card).
+          example: 1
+
+    # ── Request bodies ────────────────────────────────────────────────────────
+
+    StoreBasketRequest:
+      type: object
+      required: [shopping_cart]
+      properties:
+        shopping_cart:
+          allOf:
+            - $ref: '#/components/schemas/BasketDto'
+          description: Required. Must include `username` and at least one item.
+
+    CheckoutBasketRequest:
+      type: object
+      required: [username, order_name, billing_address, payment]
+      description: |
+        Checkout request. Note: there is no `shipping_address` field —
+        `CheckoutBasketHandler` maps `BillingAddress` to both `ShippingAddress`
+        and `BillingAddress` when calling the Order Command API.
+      properties:
+        username:
+          type: string
+          description: Required. Must match JWT `preferred_username` for non-admin callers.
+          example: "AliceSmith@email.com"
+        order_name:
+          type: string
+          description: Required. Minimum 5 characters.
+          minLength: 5
+          example: "Alice Order from Basket"
+        billing_address:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/Payment'
+
+    # ── Responses ─────────────────────────────────────────────────────────────
+
+    GetBasketResponse:
+      type: object
+      description: >-
+        Response for `GET /customers/{username}`. Extends `BasketDtoResponse`.
+        Note: `Username` uses PascalCase (no `JsonPropertyName` attribute on
+        the record param in `GetBasketResponse`) while `items` and `total_price`
+        use snake_case.
+      properties:
+        Username:
+          type: string
+          description: >-
+            Basket owner username. PascalCase — no `JsonPropertyName` attribute
+            on this field in `GetBasket/Models.cs` (inherits from `BasketDtoResponse`
+            where `username` IS snake_case — so the actual JSON key is `username`).
+          example: "AliceSmith@email.com"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasketItem'
+        total_price:
           type: number
           format: decimal
-        product_id:
-          type: string
-        product_name:
-          type: string
+          example: 139.98
+
+    StoreBasketResponse:
+      type: object
+      properties:
+        shopping_cart:
+          allOf:
+            - $ref: '#/components/schemas/BasketDto'
+          description: The stored basket with discounts applied to item prices.
+
     DeleteBasketResponse:
       type: object
       properties:
         is_success:
           type: boolean
-    GetBasketResponse:
+          description: Always `true` when the handler completes without error.
+          example: true
+
+    CheckoutBasketResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: >-
+            The ULID of the newly created order. This is the same value as the
+            `orderId` passed to Order Command API — a server-generated
+            `Ulid.NewUlid()` used as an idempotency key.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+
+    # ── Health ────────────────────────────────────────────────────────────────
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [Healthy, Degraded, Unhealthy]
+          example: "Healthy"
+        results:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [Healthy, Degraded, Unhealthy]
+              description:
+                type: string
+          example:
+            postgres:
+              status: "Healthy"
+              description: "PostgreSQL (Marten) connection OK"
+            redis:
+              status: "Healthy"
+              description: "Redis cache connection OK"
+
+    # ── Problem Details ───────────────────────────────────────────────────────
+
+    ProblemDetails:
+      type: object
+      description: RFC 7807 Problem Details returned by `UseProblemDetailsResponseExceptionHandler()`.
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: object
+          description: Field-level validation errors (local 400 responses).
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    CheckoutProblemDetails:
       allOf:
-        - $ref: '#/components/schemas/BasketDtoResponse'
-    StoreBasketRequest:
-      type: object
+        - $ref: '#/components/schemas/ProblemDetails'
+      description: |
+        Extended Problem Details for `POST /customers/checkout` 400 responses.
+        When the error originates from the Order Command API, the `title` is
+        `"Order.Command.API_CreateOrder"` and `extensions.ValidationErrors`
+        contains the downstream errors.
       properties:
-        shopping_cart:
-          $ref: '#/components/schemas/BasketDtoRequest'
-    StoreBasketResponse:
-      type: object
-      properties:
-        shopping_cart:
-          $ref: '#/components/schemas/BasketDtoResponse'
-security:
-  - Bearer: []
+        extensions:
+          type: object
+          properties:
+            ValidationErrors:
+              type: array
+              description: >-
+                Validation errors propagated from Order Command API. Only
+                present when the 400 originates from the downstream service.
+              items:
+                type: object
+                properties:
+                  property_name:
+                    type: string
+                    example: "order_items"
+                  reason:
+                    type: string
+                    example: "Order must contain at least one item."

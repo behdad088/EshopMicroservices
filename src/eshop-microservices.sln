@@ -44,6 +44,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{4676C07F
 		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{4676C07F-D243-48AB-AF97-20C6B606F9DD}"
+	ProjectSection(SolutionItems) = preProject
+        README.md = README.md
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Command.API.IntegrationTests", "Services\Order.Command\Order.Command.API.IntegrationTests\Order.Command.API.IntegrationTests.csproj", "{73EE7B5B-F93F-4270-87C1-D123FD9EE4D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{C6DE6FC7-425C-4527-A444-FC1127DC5519}"
