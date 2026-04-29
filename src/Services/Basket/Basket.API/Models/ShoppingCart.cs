@@ -18,5 +18,8 @@ public class ShoppingCart
     public List<ShoppingCartItem> Items { get; set; } = [];
     public decimal TotalPrice => Items.Sum(x => x.Price * x.Quantity);
 
+    // Set before calling the Order Service; allows safe retries if basket delete fails.
+    public string? PendingCheckoutOrderId { get; set; }
+
     [Version] public int Version { get; set; }
 }

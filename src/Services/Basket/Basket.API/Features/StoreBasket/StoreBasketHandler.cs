@@ -1,4 +1,3 @@
-using Discount;
 using eshop.Shared.CQRS.Command;
 using eshop.Shared.Logger;
 
@@ -8,22 +7,18 @@ public record StoreBasketCommand(BasketDtoRequest? ShoppingCart) : ICommand<Stor
 
 public record StoreBasketResult(BasketDtoResponse ShoppingCart);
 
-public class StoreBasketCommandHandler(
-    IBasketRepository basketRepository,
-    DiscountProtoService.DiscountProtoServiceClient discountClient)
+public class StoreBasketCommandHandler(IBasketRepository basketRepository)
     : ICommandHandler<StoreBasketCommand, StoreBasketResult>
 {
     private readonly ILogger _logger = Log.ForContext<StoreBasketCommandHandler>();
+
     public async Task<StoreBasketResult> Handle(StoreBasketCommand request, CancellationToken cancellationToken)
     {
         using var _ = LogContext.PushProperty(LogProperties.Username, request.ShoppingCart!.Username);
 
         _logger.Information("Store Basket for user");
-        
-        var shoppingCart = MapToShoppingCart(request.ShoppingCart!);
-        await ApplyDiscountAsync(shoppingCart.Items, cancellationToken)
-            .ConfigureAwait(false);
 
+        var shoppingCart = MapToShoppingCart(request.ShoppingCart!);
         var result = await basketRepository.StoreBasketAsync(shoppingCart, cancellationToken)
             .ConfigureAwait(false);
 
@@ -45,22 +40,9 @@ public class StoreBasketCommandHandler(
                 shoppingCart.TotalPrice));
     }
 
-    private async Task ApplyDiscountAsync(IReadOnlyList<ShoppingCartItem> items, CancellationToken token)
-    {
-        foreach (var item in items)
-        {
-            var coupon = await discountClient.GetDiscountAsync(
-                    new GetDiscountRequest { ProductName = item.ProductName }, cancellationToken: token)
-                .ConfigureAwait(false);
-
-            item.Price -= coupon.Amount;
-        }
-    }
-
     private static ShoppingCart MapToShoppingCart(BasketDtoRequest shoppingCart)
     {
-        return new ShoppingCart(
-            username: shoppingCart.Username)
+        return new ShoppingCart(username: shoppingCart.Username)
         {
             Items = shoppingCart.Items!.Select(x => new ShoppingCartItem
             {
