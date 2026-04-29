@@ -1,280 +1,741 @@
 openapi: 3.0.0
 info:
-  title: Order Query API
+  title: eshop Order Query API
   version: 1.0.0
+  description: |
+    The **Order Query** microservice is the **read side** of the eshop CQRS
+    architecture. It maintains an eventually consistent `OrderView` read model
+    in PostgreSQL (via Marten document store), populated by consuming domain
+    events published by the Order Command service through RabbitMQ.
+
+    This service is split into two processes:
+
+    | Process | Role | Port |
+    |---|---|---|
+    | **Order.Query.API** | Serves HTTP read endpoints | `https://localhost:5054` |
+    | **Order.Query.EventProcessor** | Consumes RabbitMQ events, updates `OrderView` | `http://localhost:5136` |
+
+    ## Architecture — Event Sourcing Read Model
+
+    The `OrderView` is a projection built from three domain events:
+
+    | Event | RabbitMQ Exchange | Queue |
+    |---|---|---|
+    | `OrderCreatedEvent` | `order_created_event_exchange` | `order_created_event_queue` |
+    | `OrderUpdatedEvent` | `order_updated_event_exchange` | `order_updated_event_queue` |
+    | `OrderDeletedEvent` | `order_deleted_event_exchange` | `order_deleted_event_queue` |
+
+    Each event carries a `version` field used for **idempotency** — the
+    `EventConsumer` calls `CanUpdate()` on the view before applying an event,
+    rejecting out-of-order or duplicate messages.
+
+    Soft-deleted orders (`DeletedDate != null`) are excluded from all query
+    results. The `ETag` response header on single-order endpoints reflects the
+    current `Version` of the `OrderView`.
+
+    ## Authentication
+
+    All endpoints require a Bearer JWT issued by IdentityServer at
+    `https://localhost:5007` with:
+    - `aud`: `orders_query` (configured in `appsettings.json`)
+    - `permissions` claim matching the required policy
+    - `sub` claim matching the `CustomerId` path parameter (for customer role)
+
+    Obtain a token:
+    ```bash
+    curl -X POST https://localhost:5007/connect/token \
+      -d grant_type=password \
+      -d client_id=postman-client-password \
+      -d username=AliceSmith@email.com \
+      -d password=Pass123$ \
+      -d "scope=openid profile orders_query"
+    ```
+
+    ## Authorization Model
+
+    Two policies use different authorization strategies:
+
+    | Policy constant | Permission claim | Strategy | Roles |
+    |---|---|---|---|
+    | `CanGetOrder` | `orders_query:order:get` | `UserIdRequirement` — admin bypass OR customer must match `sub` | admin, customer |
+    | `CanGetAllOrders` | `orders_query:order:all` | `RequireClaim` — flat permission check | admin only |
+    | `CanGetListOfOrdersByCustomerId` | `orders_query:order:all-by-customer-id` | `UserIdRequirement` — admin bypass OR customer must match `sub` | admin, customer |
+    | `CanGetListOfOrdersByOrderName` | `orders_query:order:all-by-order-name` | `RequireClaim` — flat permission check | admin only |
+
+    `UserIdRequirement` is implemented by `UserAuthorizationHandler`:
+    - **admin role** → passes if `permissions` claim contains the required policy
+    - **customer role** → additionally requires `CustomerId` in URL to match JWT `sub` claim
+
+    ## Framework
+
+    Endpoints are built with **FastEndpoints** with versioning prefix `v`.
+    All routes are under `/v1/`.
+
+servers:
+  - url: https://localhost:5054
+    description: Order Query API — local development (HTTPS)
+  - url: http://localhost:5004
+    description: Order Query API — local development (HTTP)
+  - url: http://localhost:8080
+    description: Order Query API — Docker container
+
+tags:
+  - name: Orders
+    description: Order read operations against the `OrderView` projection
+  - name: Health
+    description: Health check endpoints (no auth required)
+  - name: Event Processor
+    description: |
+      The `Order.Query.EventProcessor` sidecar process has no REST API — it is
+      a background MassTransit consumer. Health checks for that process are
+      available at `http://localhost:5136/health`.
+
+security:
+  - BearerAuth: []
+
 paths:
-  /customer/{CustomerId}/orders/{OrderId}:
+
+  # ── GET /v1/customer/{CustomerId}/orders/{OrderId} ─────────────────────────
+  /v1/customer/{CustomerId}/orders/{OrderId}:
     get:
-      summary: Get Order By Id
-      security:
-        - BearerAuth: []
+      tags: [Orders]
+      summary: Get Order by ID
+      description: |
+        Returns a single order from the `OrderView` read model, identified by
+        both `CustomerId` and `OrderId`.
+
+        **Required permission:** `orders_query:order:get`
+        **Allowed roles:** `admin`, `customer`
+
+        **Authorization (`UserIdRequirement`):**
+        - `admin` — passes if `permissions` claim contains `orders_query:order:get`
+        - `customer` — additionally requires `CustomerId` in path to match JWT `sub` claim;
+          returns `403` if the customer tries to read another customer's order
+
+        **Optimistic concurrency:**
+        Returns `ETag: W/"<version>"` header where `<version>` is the
+        `OrderView.Version` integer, incremented each time an event is applied.
+        This can be used by clients to detect stale reads.
+
+        **Validation (FluentValidation):**
+        - `OrderId` — must be a valid ULID
+        - `CustomerId` — must be a valid GUID
+
+        Returns `404` if no `OrderView` exists with the given `OrderId` and
+        `CustomerId` combination.
       parameters:
-        - name: CustomerId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: OrderId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          description: Success
+          description: Order found
+          headers:
+            ETag:
+              description: >-
+                Optimistic concurrency token. Format: `W/"<version>"` where
+                `version` is the `OrderView.Version` integer.
+              schema:
+                type: string
+                example: W/"3"
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetOrderByIdResponse'
+              example:
+                id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                customer_id: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+                order_name: "Alice's Order #1"
+                shipping_address:
+                  first_name: "Alice"
+                  last_name: "Smith"
+                  email_address: "AliceSmith@email.com"
+                  address_line: "Medicinaregatan 20"
+                  country: "Sweden"
+                  state: "Vastra Gotaland"
+                  zip_code: "41390"
+                billing_address:
+                  first_name: "Alice"
+                  last_name: "Smith"
+                  email_address: "AliceSmith@email.com"
+                  address_line: "Medicinaregatan 20"
+                  country: "Sweden"
+                  state: "Vastra Gotaland"
+                  zip_code: "41390"
+                payment:
+                  card_name: "Alice Smith"
+                  card_number: "XXXXXXXXXXXX1881"
+                  expiration_date: "12/24"
+                  cvv: "123"
+                  payment_method: 1
+                status: "pending"
+                version: 3
+                order_items:
+                  - product_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    quantity: 2
+                    price: 79.99
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
-  /orders/all:
+          $ref: '#/components/responses/NotFound'
+
+  # ── GET /v1/customer/{CustomerId}/orders ───────────────────────────────────
+  /v1/customer/{CustomerId}/orders:
     get:
+      tags: [Orders]
+      summary: Get Orders by Customer ID
+      description: |
+        Returns a paginated list of orders for a specific customer from the
+        `OrderView` read model. Soft-deleted orders (`DeletedDate != null`) are
+        excluded. Results are ordered by `OrderName` ascending.
+
+        **Required permission:** `orders_query:order:all-by-customer-id`
+        **Allowed roles:** `admin`, `customer`
+
+        **Authorization (`UserIdRequirement`):**
+        - `admin` — passes if `permissions` claim contains the required policy
+        - `customer` — additionally requires `CustomerId` in path to match JWT `sub` claim
+
+        **Validation (FluentValidation):**
+        - `CustomerId` — must be a valid GUID
+        - `page_index` — must be >= 0
+        - `page_size` — must be between 1 and 100
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/page_size'
+        - $ref: '#/components/parameters/page_index'
+      responses:
+        '200':
+          description: Paginated list of orders for the customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ── GET /v1/orders/all ─────────────────────────────────────────────────────
+  /v1/orders/all:
+    get:
+      tags: [Orders]
       summary: Get All Orders
-      security:
-        - BearerAuth: []
+      description: |
+        Returns a paginated list of all non-deleted orders from the `OrderView`
+        read model. Results are ordered by `OrderName` ascending.
+
+        **Required permission:** `orders_query:order:all`
+        **Allowed roles:** `admin` only
+
+        Authorization uses `RequireClaim` — a flat check that the `permissions`
+        claim contains `orders_query:order:all`. No `UserIdRequirement` is
+        applied — any valid admin token passes regardless of `sub`.
+
+        **Validation (FluentValidation):**
+        - `page_index` — must be >= 0
+        - `page_size` — must be between 1 and 100
       parameters:
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: page_index
-          in: query
-          schema:
-            type: integer
-            default: 0
+        - $ref: '#/components/parameters/page_size'
+        - $ref: '#/components/parameters/page_index'
       responses:
         '200':
-          description: Success
+          description: Paginated list of all orders
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetOrdersResponse'
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
-  /customer/{CustomerId}/orders:
+          $ref: '#/components/responses/Forbidden'
+
+  # ── GET /v1/orders ─────────────────────────────────────────────────────────
+  /v1/orders:
     get:
-      summary: Get Orders By Customer
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: CustomerId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: page_index
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetOrdersByCustomerResponse'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-  /orders:
-    get:
-      summary: Get Orders By Name
-      security:
-        - BearerAuth: []
+      tags: [Orders]
+      summary: Get Orders by Name
+      description: |
+        Returns a paginated list of non-deleted orders matching the given
+        `customer_name` query parameter (exact match on `OrderView.OrderName`).
+        Results are ordered by `OrderName` ascending.
+
+        **Required permission:** `orders_query:order:all-by-order-name`
+        **Allowed roles:** `admin` only
+
+        Authorization uses `RequireClaim` — flat permission check, no user ID
+        validation.
+
+        **Note on parameter name:** The query parameter is named `customer_name`
+        in the HTTP request (bound via `[BindFrom("customer_name")]` in
+        `GetOrdersByName/Models.cs`) but maps to `OrderName` internally — it
+        searches by order name, not customer name.
+
+        **Validation (FluentValidation):**
+        - `customer_name` — must not be empty
+        - `page_index` — must be >= 0
+        - `page_size` — must be between 1 and 100
       parameters:
         - name: customer_name
           in: query
           required: true
+          description: >-
+            Order name to search for (exact match). Despite the parameter name,
+            this filters on `OrderView.OrderName`, not the customer's name.
           schema:
             type: string
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: page_index
-          in: query
-          schema:
-            type: integer
-            default: 0
+            example: "Alice's Order #1"
+        - $ref: '#/components/parameters/page_size'
+        - $ref: '#/components/parameters/page_index'
       responses:
         '200':
-          description: Success
+          description: Paginated list of matching orders
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetOrdersByNameResponse'
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
-  /orders/{Username}:
+          $ref: '#/components/responses/Forbidden'
+
+  # ── Health ─────────────────────────────────────────────────────────────────
+  /health:
     get:
-      summary: Get Orders By Username
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: Username
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: page_index
-          in: query
-          schema:
-            type: integer
-            default: 0
+      tags: [Health]
+      summary: Health Check — Order Query API
+      description: |
+        Returns the health status of the Order Query API and its PostgreSQL
+        dependency (Marten document store).
+
+        No authentication required.
+      security: []
       responses:
         '200':
-          description: Success
+          description: Service is healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetOrdersByUsernameResponse'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service or dependency is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# ── Event Processor Health (separate process) ─────────────────────────────────
+# The EventProcessor is not part of this API spec since it has no REST endpoints,
+# but its health check is available at:
+#   GET http://localhost:5136/health
+# It consumes three RabbitMQ queues:
+#   - order_created_event_queue   (exchange: order_created_event_exchange)
+#   - order_updated_event_queue   (exchange: order_updated_event_exchange)
+#   - order_deleted_event_queue   (exchange: order_deleted_event_exchange)
+# Each message is wrapped in a CloudEvent<TEvent> envelope by MassTransit.
+
+# ── Components ────────────────────────────────────────────────────────────────
 components:
-  schemas:
-    GetOrderByIdResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        customer_id:
-          type: string
-        order_name:
-          type: string
-        shipping_address:
-          $ref: '#/components/schemas/Address'
-        billing_address:
-          $ref: '#/components/schemas/Address'
-        payment:
-          $ref: '#/components/schemas/Payment'
-        status:
-          type: string
-        version:
-          type: integer
-        order_items:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderItem'
-    GetOrdersResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PaginatedItems'
-    GetOrdersByCustomerResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PaginatedItems'
-    GetOrdersByNameResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PaginatedItems'
-    GetOrdersByUsernameResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PaginatedItems'
-    PaginatedItems:
-      type: object
-      properties:
-        pageIndex:
-          type: integer
-        pageSize:
-          type: integer
-        count:
-          type: integer
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Order'
-    Order:
-      type: object
-      properties:
-        id:
-          type: string
-        customer_id:
-          type: string
-        order_name:
-          type: string
-        shipping_Address:
-          $ref: '#/components/schemas/Address'
-        billing_address:
-          $ref: '#/components/schemas/Address'
-        payment:
-          $ref: '#/components/schemas/Payment'
-        status:
-          type: string
-        order_items:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderItem'
-    Address:
-      type: object
-      properties:
-        firstname:
-          type: string
-        lastname:
-          type: string
-        email_address:
-          type: string
-        address_line:
-          type: string
-        country:
-          type: string
-        state:
-          type: string
-        zip_code:
-          type: string
-    Payment:
-      type: object
-      properties:
-        card_name:
-          type: string
-        card_number:
-          type: string
-        expiration:
-          type: string
-        cvv:
-          type: string
-        payment_method:
-          type: integer
-    OrderItem:
-      type: object
-      properties:
-        product_id:
-          type: string
-        quantity:
-          type: integer
-        price:
-          type: number
+
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        JWT issued by IdentityServer at `https://localhost:5007`.
+
+        Required claims:
+        - `aud`: must include `orders_query`
+        - `permissions`: array containing the required policy string
+        - `sub`: user GUID — must match `CustomerId` path param for customer role
+        - `role`: `admin` or `customer`
+
+  parameters:
+    CustomerId:
+      name: CustomerId
+      in: path
+      required: true
+      description: >-
+        Customer's unique identifier (UUID). For `customer` role, must match the
+        `sub` claim in the Bearer token. For `admin` role, any valid UUID is accepted.
+      schema:
+        type: string
+        format: uuid
+        example: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+
+    OrderId:
+      name: OrderId
+      in: path
+      required: true
+      description: >-
+        Order's unique identifier. Must be a valid **ULID** (validated by
+        `MustBeValidUlid()` in `GetOrderById/Validator.cs`).
+      schema:
+        type: string
+        example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      description: Number of items per page. Must be between 1 and 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+        example: 10
+
+    page_index:
+      name: page_index
+      in: query
+      required: false
+      description: Zero-based page index. Must be >= 0.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+        example: 0
+
+  responses:
+    BadRequest:
+      description: >-
+        Bad Request — FluentValidation failed. Check `errors` for field-level
+        details (e.g. invalid ULID, invalid GUID, page_size out of range).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+            title: "Bad Request"
+            status: 400
+            errors:
+              OrderId: ["'OrderId' is not a valid ULID."]
+
+    Unauthorized:
+      description: Unauthorized — missing or invalid Bearer token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7235#section-3.1"
+            title: "Unauthorized"
+            status: 401
+
+    Forbidden:
+      description: |
+        Forbidden — one of:
+        - Token is valid but `permissions` claim does not contain the required policy
+        - Customer token's `sub` does not match `CustomerId` in the path
+          (`UserIdRequirement` failed)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            title: "Forbidden"
+            status: 403
+
+    NotFound:
+      description: >-
+        Not Found — no `OrderView` exists with the given `OrderId` and
+        `CustomerId` combination, or the order has been soft-deleted.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+            title: "Not Found"
+            status: 404
+
+  schemas:
+
+    # ── Shared sub-schemas ────────────────────────────────────────────────────
+
+    Address:
+      type: object
+      description: >-
+        Address shape used in `GetOrderById` response. Note: `first_name` and
+        `last_name` are the JSON property names for this endpoint only. All
+        other order list endpoints use `firstname` / `lastname` (no underscore)
+        — this discrepancy exists in the source code (`GetOrderById/Models.cs`
+        vs `GetOrders/Models.cs`).
+      properties:
+        first_name:
+          type: string
+          example: "Alice"
+        last_name:
+          type: string
+          example: "Smith"
+        email_address:
+          type: string
+          format: email
+          example: "AliceSmith@email.com"
+        address_line:
+          type: string
+          example: "Medicinaregatan 20"
+        country:
+          type: string
+          example: "Sweden"
+        state:
+          type: string
+          example: "Vastra Gotaland"
+        zip_code:
+          type: string
+          example: "41390"
+
+    AddressList:
+      type: object
+      description: >-
+        Address shape used in list responses (GetOrders, GetOrdersByCustomer,
+        GetOrdersByName). Uses `firstname` / `lastname` without underscore,
+        unlike the `GetOrderById` response which uses `first_name` / `last_name`.
+      properties:
+        firstname:
+          type: string
+          example: "Alice"
+        lastname:
+          type: string
+          example: "Smith"
+        email_address:
+          type: string
+          format: email
+          example: "AliceSmith@email.com"
+        address_line:
+          type: string
+          example: "Medicinaregatan 20"
+        country:
+          type: string
+          example: "Sweden"
+        state:
+          type: string
+          example: "Vastra Gotaland"
+        zip_code:
+          type: string
+          example: "41390"
+
+    Payment:
+      type: object
+      properties:
+        card_name:
+          type: string
+          example: "Alice Smith"
+        card_number:
+          type: string
+          example: "XXXXXXXXXXXX1881"
+        expiration:
+          type: string
+          description: >-
+            JSON property name is `expiration` in list responses but
+            `expiration_date` in the `GetOrderById` response — source code
+            discrepancy in `GetOrderById/Models.cs`.
+          example: "12/24"
+        cvv:
+          type: string
+          example: "123"
+        payment_method:
+          type: integer
+          description: Payment method type code (e.g. 1 = credit card).
+          example: 1
+
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        quantity:
+          type: integer
+          example: 2
+        price:
+          type: number
+          format: decimal
+          example: 79.99
+
+    OrderStatus:
+      type: string
+      description: |
+        Current lifecycle status of the order as stored in `OrderView.OrderStatus`.
+        Set from `OrderCreatedEvent.OrderStatus` and updated by `OrderUpdatedEvent.OrderStatus`.
+        Values are lowercase strings matching Order Command conventions.
+      enum: [pending, completed, cancelled]
+      example: "pending"
+
+    # ── GetOrderById response ─────────────────────────────────────────────────
+
+    GetOrderByIdResponse:
+      type: object
+      description: >-
+        Response shape for `GET /v1/customer/{CustomerId}/orders/{OrderId}`.
+        Mapped from `OrderView` by `GetOrderById/Endpoint.cs > MapResponse()`.
+      properties:
+        id:
+          type: string
+          description: Order ULID.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        customer_id:
+          type: string
+          format: uuid
+          description: Owner's user ID — matches JWT `sub` for the customer.
+          example: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+        order_name:
+          type: string
+          example: "Alice's Order #1"
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        billing_address:
+          $ref: '#/components/schemas/Address'
+        payment:
+          allOf:
+            - $ref: '#/components/schemas/Payment'
+          description: >-
+            Note: JSON property name is `expiration_date` in this response
+            (unlike `expiration` in list endpoints).
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        version:
+          type: integer
+          description: >-
+            Current event version of the `OrderView`. Reflected in the
+            `ETag: W/"<version>"` response header. Increments with each applied
+            event (`OrderCreated`, `OrderUpdated`, `OrderDeleted`).
+          example: 3
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    # ── Order shape used in list responses ────────────────────────────────────
+
+    OrderInList:
+      type: object
+      description: >-
+        Order shape used inside paginated list responses. Uses `shipping_Address`
+        (capital A) as the JSON property name — this is a source-code quirk in
+        `GetOrders/Models.cs`, `GetOrdersByCustomer/Models.cs`, and
+        `GetOrdersByName/Models.cs`.
+      properties:
+        id:
+          type: string
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        customer_id:
+          type: string
+          format: uuid
+          example: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+        order_name:
+          type: string
+          example: "Alice's Order #1"
+        shipping_Address:
+          $ref: '#/components/schemas/AddressList'
+          description: >-
+            Note: capital `A` in `shipping_Address` — this matches the
+            `JsonPropertyName("shipping_Address")` attribute in the source models.
+        billing_address:
+          $ref: '#/components/schemas/AddressList'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    # ── Paginated wrapper ─────────────────────────────────────────────────────
+
+    PaginatedItems:
+      type: object
+      description: >-
+        Pagination wrapper from `eshop.Shared.Pagination.PaginatedItems<T>`.
+      properties:
+        page_index:
+          type: integer
+          description: Zero-based current page index.
+          example: 0
+        page_size:
+          type: integer
+          description: Number of items per page.
+          example: 10
+        count:
+          type: integer
+          format: int64
+          description: Total number of matching records (for calculating total pages).
+          example: 42
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderInList'
+
+    PaginatedOrdersResponse:
+      type: object
+      description: Top-level response wrapper for all paginated list endpoints.
+      properties:
+        data:
+          $ref: '#/components/schemas/PaginatedItems'
+
+    # ── Health ────────────────────────────────────────────────────────────────
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [Healthy, Degraded, Unhealthy]
+          example: "Healthy"
+        results:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [Healthy, Degraded, Unhealthy]
+              description:
+                type: string
+          example:
+            database:
+              status: "Healthy"
+              description: "PostgreSQL (Marten) connection OK"
+
+    # ── Problem Details ───────────────────────────────────────────────────────
+
+    ProblemDetails:
+      type: object
+      description: >-
+        RFC 7807 Problem Details. Returned by
+        `UseProblemDetailsResponseExceptionHandler()` middleware registered in
+        `Program.cs`.
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: object
+          description: Field-level validation errors (present on 400 responses).
+          additionalProperties:
+            type: array
+            items:
+              type: string

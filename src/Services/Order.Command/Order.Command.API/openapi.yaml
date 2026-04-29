@@ -1,200 +1,728 @@
 openapi: 3.0.0
 info:
-  title: Order Command API
+  title: eshop Order Command API
   version: 1.0.0
+  description: |
+    The **Order Command** microservice handles all write-side operations for orders
+    in the eshop platform (CQRS command side). It publishes domain events to
+    RabbitMQ for eventual consistency with the Order Query service.
+
+    ## Authentication
+    All endpoints require a Bearer JWT issued by the IdentityServer at
+    `https://localhost:5007`. The token must include the `orders_command` audience
+    and the relevant `permissions` claim for the operation being called.
+
+    Obtain a token via:
+    - **Postman UI** — Authorization Code + PKCE with `postman-client`
+    - **curl** — Password grant with `postman-client-password`
+
+    ## Authorization — Permissions Model
+    Authorization is claims-based. The JWT must contain a `permissions` claim
+    matching the required policy. Permissions are assigned per role:
+
+    | Permission | admin | customer |
+    |---|:---:|:---:|
+    | `orders_command:order:create` | | ✓ |
+    | `orders_command:order:delete` | ✓ | |
+    | `orders_command:order:get` | ✓ | ✓ |
+    | `orders_command:order:all` | ✓ | |
+    | `orders_command:order:all-by-customer-id` | ✓ | ✓ |
+    | `orders_command:order:all-by-order-name` | ✓ | |
+    | `orders_command:order:update` | ✓ | ✓ |
+
+    ## Infrastructure
+    - **Database:** PostgreSQL (`OrderDb`) via Entity Framework Core
+    - **Message Broker:** RabbitMQ (domain events published on order state changes)
+    - **Observability:** OpenTelemetry traces + Serilog → Elasticsearch
+    - **Base path:** `/api/v1/`
+
+servers:
+  - url: http://localhost:5175
+    description: Local development (from Order_Command_API.http)
+  - url: http://localhost:8080
+    description: Docker container (HTTP)
+  - url: https://localhost:8081
+    description: Docker container (HTTPS)
+
+tags:
+  - name: Orders
+    description: Order write operations — create, update, delete
+  - name: Health
+    description: Health check endpoints
+
+security:
+  - BearerAuth: []
+
 paths:
-  /customers/{customer_id}/orders/{order_id}:
-    post:
-      tags:
-        - Order
-      summary: Creates a new order
-      description: Creates a new order
+
+  # ── Orders ────────────────────────────────────────────────────────────────
+
+  /api/v1/orders:
+    get:
+      tags: [Orders]
+      summary: Get All Orders
+      description: |
+        Returns a paginated list of all orders in the system.
+
+        **Required permission:** `orders_command:order:all`
+        **Allowed roles:** `admin` only
+
+        Supports optional pagination via `pageIndex` and `pageSize` query
+        parameters. Results are ordered by creation date descending.
       parameters:
-        - name: customer_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: order_id
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/pageIndex'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Paginated list of orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Orders]
+      summary: Create Order
+      description: |
+        Creates a new order for the authenticated customer.
+
+        **Required permission:** `orders_command:order:create`
+        **Allowed roles:** `customer` only
+
+        On success, publishes an `OrderCreated` domain event to RabbitMQ.
+        The `customerId` is extracted from the JWT `sub` claim via `IUser`
+        (`CurrentUser` implementation) and does not need to be provided in
+        the request body.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              orderName: "Alice's Order #1"
+              shippingAddress:
+                firstName: "Alice"
+                lastName: "Smith"
+                emailAddress: "AliceSmith@email.com"
+                addressLine: "Medicinaregatan 20"
+                country: "Sweden"
+                state: "Vastra Gotaland"
+                zipCode: "41390"
+              billingAddress:
+                firstName: "Alice"
+                lastName: "Smith"
+                emailAddress: "AliceSmith@email.com"
+                addressLine: "Medicinaregatan 20"
+                country: "Sweden"
+                state: "Vastra Gotaland"
+                zipCode: "41390"
+              payment:
+                cardName: "Alice Smith"
+                cardNumber: "XXXXXXXXXXXX1881"
+                expiration: "12/24"
+                cvv: "123"
+                paymentMethod: 1
+              orderItems:
+                - productId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  productName: "Wireless Headphones"
+                  price: 79.99
+                  quantity: 2
       responses:
         '201':
-          description: Created
+          description: Order created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateOrderResponse'
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-    delete:
-      tags:
-        - Order
-      summary: Delete an existing order.
-      description: Delete an existing order
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get Order by ID
+      description: |
+        Returns a single order by its unique identifier.
+
+        **Required permission:** `orders_command:order:get`
+        **Allowed roles:** `admin`, `customer`
+
+        Customers can only retrieve their own orders. Admins can retrieve any
+        order. The ownership check is performed against the `sub` claim in the JWT.
       parameters:
-        - name: customer_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: order_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: If-Match
-          in: header
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/orderId'
       responses:
-        '204':
-          description: No Content
-        '400':
-          description: Bad Request
+        '200':
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
-        '412':
-          description: Precondition Failed
+          $ref: '#/components/responses/NotFound'
+
     put:
-      tags:
-        - Order
-      summary: Update an existing order.
-      description: Update an existing order
+      tags: [Orders]
+      summary: Update Order
+      description: |
+        Updates an existing order's details.
+
+        **Required permission:** `orders_command:order:update`
+        **Allowed roles:** `admin`, `customer`
+
+        Customers can only update their own orders. Some fields (e.g. status
+        transitions) may be restricted to `admin` only depending on business
+        rules enforced in the Application layer command handler.
+
+        On success, publishes an `OrderUpdated` domain event to RabbitMQ.
       parameters:
-        - name: customer_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: order_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: If-Match
-          in: header
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/orderId'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateOrderRequest'
       responses:
-        '204':
-          description: No Content
+        '200':
+          description: Order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateOrderResponse'
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
-        '412':
-          description: Precondition Failed
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    delete:
+      tags: [Orders]
+      summary: Delete Order
+      description: |
+        Permanently deletes an order by its ID.
+
+        **Required permission:** `orders_command:order:delete`
+        **Allowed roles:** `admin` only
+
+        On success, publishes an `OrderDeleted` domain event to RabbitMQ.
+        This operation is irreversible.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      responses:
+        '200':
+          description: Order deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteOrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/orders/customer/{customerId}:
+    get:
+      tags: [Orders]
+      summary: Get Orders by Customer ID
+      description: |
+        Returns all orders belonging to a specific customer.
+
+        **Required permission:** `orders_command:order:all-by-customer-id`
+        **Allowed roles:** `admin`, `customer`
+
+        Customers can only query using their own `customerId` (matched against
+        the JWT `sub` claim). Admins can query any customer's orders.
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: The customer's unique identifier (matches the JWT `sub` claim).
+          schema:
+            type: string
+            format: uuid
+            example: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+        - $ref: '#/components/parameters/pageIndex'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: List of orders for the customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/orders/name/{orderName}:
+    get:
+      tags: [Orders]
+      summary: Get Orders by Order Name
+      description: |
+        Returns orders matching the given order name (partial match supported).
+
+        **Required permission:** `orders_command:order:all-by-order-name`
+        **Allowed roles:** `admin` only
+      parameters:
+        - name: orderName
+          in: path
+          required: true
+          description: The order name or partial name to search for.
+          schema:
+            type: string
+            example: "Alice's Order"
+        - $ref: '#/components/parameters/pageIndex'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: List of matching orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ── Health ────────────────────────────────────────────────────────────────
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Health Check
+      description: |
+        Returns the health status of the service and its dependencies
+        (PostgreSQL database). Registered via `AddHealthChecks` in `Program.cs`.
+        Does not require authentication.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "Healthy"
+                results:
+                  database:
+                    status: "Healthy"
+                    description: "PostgreSQL connection OK"
+        '503':
+          description: Service or one of its dependencies is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
 components:
+
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        JWT access token issued by IdentityServer at `https://localhost:5007`.
+
+        **Required claims in the token:**
+        - `aud`: must include `orders_command` (configured in `appsettings.json > Identity > Audience`)
+        - `permissions`: array containing the required policy string for the endpoint
+        - `sub`: user GUID (used by `CurrentUser` / `IUser` to identify the caller)
+        - `role`: `admin` or `customer`
+
+        **Get a token (curl — password grant):**
+        ```
+        curl -X POST https://localhost:5007/connect/token \
+          -d grant_type=password \
+          -d client_id=postman-client-password \
+          -d username=AliceSmith@email.com \
+          -d password=Pass123$ \
+          -d "scope=openid profile orders_command"
+        ```
+
+  parameters:
+    orderId:
+      name: id
+      in: path
+      required: true
+      description: The order's unique identifier.
+      schema:
+        type: string
+        format: uuid
+        example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+    pageIndex:
+      name: pageIndex
+      in: query
+      required: false
+      description: Zero-based page index for pagination. Defaults to 0.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+        example: 0
+
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of items per page. Defaults to 10.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+        example: 10
+
+  responses:
+    BadRequest:
+      description: Bad Request — validation failed on the request body or parameters
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Unauthorized:
+      description: Unauthorized — missing or invalid Bearer token
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7235#section-3.1"
+            title: "Unauthorized"
+            status: 401
+
+    Forbidden:
+      description: |
+        Forbidden — token is valid but the `permissions` claim does not include
+        the required policy for this endpoint. Check the role assigned to the
+        user and the policy mapping in `Config.cs > RolePolicyDefinitions`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            title: "Forbidden"
+            status: 403
+
+    NotFound:
+      description: Not Found — the requested order does not exist
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+            title: "Not Found"
+            status: 404
+
+    UnprocessableEntity:
+      description: Unprocessable Entity — business rule violation (e.g. invalid order state transition)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
   schemas:
-    CreateOrderRequest:
+
+    # ── Address ──────────────────────────────────────────────────────────────
+    Address:
+      type: object
+      required: [firstName, lastName, emailAddress, addressLine, country, state, zipCode]
+      properties:
+        firstName:
+          type: string
+          example: "Alice"
+        lastName:
+          type: string
+          example: "Smith"
+        emailAddress:
+          type: string
+          format: email
+          example: "AliceSmith@email.com"
+        addressLine:
+          type: string
+          example: "Medicinaregatan 20"
+        country:
+          type: string
+          example: "Sweden"
+        state:
+          type: string
+          example: "Vastra Gotaland"
+        zipCode:
+          type: string
+          example: "41390"
+
+    # ── Payment ──────────────────────────────────────────────────────────────
+    Payment:
+      type: object
+      required: [cardName, cardNumber, expiration, cvv, paymentMethod]
+      properties:
+        cardName:
+          type: string
+          example: "Alice Smith"
+        cardNumber:
+          type: string
+          example: "XXXXXXXXXXXX1881"
+        expiration:
+          type: string
+          example: "12/24"
+        cvv:
+          type: string
+          example: "123"
+        paymentMethod:
+          type: integer
+          description: Payment method type code (e.g. 1 = credit card).
+          example: 1
+
+    # ── Order Item ────────────────────────────────────────────────────────────
+    OrderItem:
+      type: object
+      required: [productId, productName, price, quantity]
+      properties:
+        productId:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        productName:
+          type: string
+          example: "Wireless Headphones"
+        price:
+          type: number
+          format: decimal
+          example: 79.99
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+    # ── Order Status ──────────────────────────────────────────────────────────
+    OrderStatus:
+      type: string
+      description: |
+        Current lifecycle status of the order.
+        - `Pending` — created, awaiting processing
+        - `Processing` — payment being processed
+        - `Shipped` — dispatched to delivery
+        - `Delivered` — received by customer
+        - `Cancelled` — cancelled before fulfilment
+      enum: [Pending, Processing, Shipped, Delivered, Cancelled]
+      example: "Pending"
+
+    # ── Order (full) ──────────────────────────────────────────────────────────
+    Order:
       type: object
       properties:
-        order_name:
+        id:
           type: string
-        shipping_Address:
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        orderName:
+          type: string
+          example: "Alice's Order #1"
+        customerId:
+          type: string
+          format: uuid
+          description: Matches the `sub` claim of the customer's JWT.
+          example: "0abeb947-fd8e-4298-80cc-8a3a38083ad4"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        shippingAddress:
           $ref: '#/components/schemas/Address'
-        billing_address:
+        billingAddress:
           $ref: '#/components/schemas/Address'
         payment:
           $ref: '#/components/schemas/Payment'
-        order_items:
+        orderItems:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+        totalPrice:
+          type: number
+          format: decimal
+          description: Computed total — sum of (price × quantity) for all order items.
+          example: 159.98
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-04-29T10:00:00Z"
+        lastModified:
+          type: string
+          format: date-time
+          example: "2025-04-29T10:00:00Z"
+
+    # ── Requests ──────────────────────────────────────────────────────────────
+    CreateOrderRequest:
+      type: object
+      required: [orderName, shippingAddress, billingAddress, payment, orderItems]
+      properties:
+        orderName:
+          type: string
+          example: "Alice's Order #1"
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        orderItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    UpdateOrderRequest:
+      type: object
+      required: [id]
+      description: |
+        All fields except `id` are optional — only provided fields are updated.
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        orderName:
+          type: string
+          example: "Alice's Order #1 (updated)"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        orderItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    # ── Responses ─────────────────────────────────────────────────────────────
     CreateOrderResponse:
       type: object
       properties:
-        order_id:
+        id:
           type: string
-    UpdateOrderRequest:
+          format: uuid
+          description: The newly created order's ID.
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+    UpdateOrderResponse:
       type: object
       properties:
-        order_name:
-          type: string
-        shipping_Address:
-          $ref: '#/components/schemas/Address'
-        billing_address:
-          $ref: '#/components/schemas/Address'
-        payment:
-          $ref: '#/components/schemas/Payment'
-        status:
-          type: string
-        order_items:
+        isSuccess:
+          type: boolean
+          example: true
+
+    DeleteOrderResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+          example: true
+
+    OrderResponse:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/Order'
+
+    PaginatedOrdersResponse:
+      type: object
+      properties:
+        orders:
           type: array
           items:
-            $ref: '#/components/schemas/OrderItem'
-    Address:
-      type: object
-      properties:
-        firstname:
-          type: string
-        lastname:
-          type: string
-        email_address:
-          type: string
-        address_line:
-          type: string
-        country:
-          type: string
-        state:
-          type: string
-        zip_code:
-          type: string
-    Payment:
-      type: object
-      properties:
-        card_name:
-          type: string
-        card_number:
-          type: string
-        expiration:
-          type: string
-        cvv:
-          type: string
-        payment_method:
+            $ref: '#/components/schemas/Order'
+        pageIndex:
           type: integer
-    OrderItem:
+          example: 0
+        pageSize:
+          type: integer
+          example: 10
+        totalCount:
+          type: integer
+          example: 42
+
+    # ── Health ────────────────────────────────────────────────────────────────
+    HealthResponse:
       type: object
       properties:
-        product_id:
+        status:
           type: string
-        quantity:
+          enum: [Healthy, Degraded, Unhealthy]
+          example: "Healthy"
+        results:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [Healthy, Degraded, Unhealthy]
+              description:
+                type: string
+
+    # ── Problem Details ───────────────────────────────────────────────────────
+    ProblemDetails:
+      type: object
+      description: RFC 7807 Problem Details. Returned by `UseProblemDetailsResponseExceptionHandler` middleware.
+      properties:
+        type:
+          type: string
+          format: uri
+          example: "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+        title:
+          type: string
+          example: "Bad Request"
+        status:
           type: integer
-        price:
-          type: number
-security:
-  - BearerAuth: []
+          example: 400
+        detail:
+          type: string
+          example: "One or more validation errors occurred."
+        instance:
+          type: string
+          example: "/api/v1/orders"
+        errors:
+          type: object
+          description: Field-level validation errors (present on 400 responses).
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            orderItems: ["Order must contain at least one item."]
