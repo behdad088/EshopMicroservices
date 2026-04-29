@@ -9,7 +9,6 @@ namespace Basket.API.IntegrationTests.Features.StoreBasket;
 public class StoreBasketTests : BaseEndpoint
 {
     private HttpClient _client;
-    private DiscountGiven _discountGiven;
     private PostgresDataSeeder _postgresDataSeeder;
     private RedisDataSeeder _redisDataSeeder;
 
@@ -18,7 +17,6 @@ public class StoreBasketTests : BaseEndpoint
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
-        _discountGiven = _apiSpecification.CreateDiscountServerGiven();
     }
     
     [Theory]
@@ -149,9 +147,8 @@ public class StoreBasketTests : BaseEndpoint
     [BasketRequestAutoData]
     public async Task StoreBasket_Valid_Request_Saves_Data_In_PostgresDb_And_Redis(StoreBasketRequest request)
     {
-        // Arrange 
+        // Arrange
         var token = _apiSpecification.CreateTimeoutToken();
-        _discountGiven.GetDiscountGiven(request.ShoppingCart!.Items!.FirstOrDefault()!.ProductName);
 
         // Act
         var result = await _client
@@ -183,7 +180,7 @@ public class StoreBasketTests : BaseEndpoint
     [BasketRequestAutoData]
     public async Task StoreBasket_Valid_Request_Saves_Data_With_Valid_TotalPrice(StoreBasketRequest request)
     {
-        // Arrange 
+        // Arrange
         var token = _apiSpecification.CreateTimeoutToken();
         var validRequest = new StoreBasketRequest(new BasketDtoRequest(request.ShoppingCart!.Username,
             new List<BasketItem>
@@ -191,8 +188,6 @@ public class StoreBasketTests : BaseEndpoint
                 request.ShoppingCart.Items!.FirstOrDefault()!,
                 request.ShoppingCart.Items!.FirstOrDefault()!
             }));
-
-        _discountGiven.GetDiscountGiven(request.ShoppingCart.Items!.FirstOrDefault()!.ProductName);
 
         // Act
         var result = await _client
@@ -212,13 +207,13 @@ public class StoreBasketTests : BaseEndpoint
         response.ShoppingCart.Username.ShouldBe(resultInPostgresDb.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInPostgresDb.Items));
-        resultInPostgresDb.TotalPrice.ShouldBe(180);
+        resultInPostgresDb.TotalPrice.ShouldBe(200);
 
         var resultInRedis = await _redisDataSeeder.GetShoppingCartAsync(validRequest.ShoppingCart.Username, token);
         resultInRedis.ShouldNotBeNull();
         response.ShoppingCart.Username.ShouldBe(resultInRedis.Username);
         JsonConvert.SerializeObject(response.ShoppingCart.Items)
             .ShouldBe(JsonConvert.SerializeObject(resultInRedis.Items));
-        resultInRedis.TotalPrice.ShouldBe(180);
+        resultInRedis.TotalPrice.ShouldBe(200);
     }
 }

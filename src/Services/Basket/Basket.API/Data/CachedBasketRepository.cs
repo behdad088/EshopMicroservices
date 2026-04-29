@@ -93,7 +93,10 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         {
             Username = basket.Username,
             Items = shoppingCartItems,
-            Version = basket.Version
+            Version = basket.Version,
+            PendingCheckoutOrderId = string.IsNullOrEmpty(basket.PendingCheckoutOrderId)
+                ? null
+                : basket.PendingCheckoutOrderId
         };
 
         return true;
@@ -105,7 +108,8 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         {
             Username = basket.Username,
             TotalPrice = basket.TotalPrice.ToString(CultureInfo.InvariantCulture),
-            Version = basket.Version
+            Version = basket.Version,
+            PendingCheckoutOrderId = basket.PendingCheckoutOrderId ?? string.Empty
         };
         basketInDb.ShoppingCartItem.AddRange(basket.Items.Select(x => new Proto.ShoppingCartItem
         {
