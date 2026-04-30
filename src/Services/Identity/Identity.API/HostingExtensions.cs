@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Services;
 using Identity.API.ApiClients.Mailtrap;
@@ -6,6 +7,7 @@ using Identity.API.Models;
 using Identity.API.Services;
 using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -20,6 +22,32 @@ internal static class HostingExtensions
             options.Conventions.AddPageRoute("/Account/EmailVerification/Index", "/Account/email-verification");
             options.Conventions.AddPageRoute("/Account/ResetPassword/Index", "/Account/reset-password");
         });
+
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddFixedWindowLimiter("login", o =>
+            {
+                o.PermitLimit = 10;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+            options.AddFixedWindowLimiter("register", o =>
+            {
+                o.PermitLimit = 5;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+            options.AddFixedWindowLimiter("forgot-password", o =>
+            {
+                o.PermitLimit = 5;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+        });
         builder.Services.AddMailTrapServicesApiClient(builder.Configuration);
         
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -31,23 +59,27 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services
+        var identityServerBuilder = builder.Services
             .AddIdentityServer(options =>
             {
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
-
-                // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/#static-audience-claim
-                // options.EmitStaticAudienceClaim = false;
             })
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
             .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryClients(Config.Clients)
             .AddAspNetIdentity<ApplicationUser>();
-            // .AddDeveloperSigningCredential(); // don't use in production;
+
+        // In development use an ephemeral in-memory signing key so no key material
+        // is written to disk or committed to source control.
+        // In production, replace this with a certificate loaded from a secrets manager
+        // (e.g. Azure Key Vault) or configure Duende's automatic key management backed
+        // by a database store via AddOperationalStore().
+        if (builder.Environment.IsDevelopment())
+            identityServerBuilder.AddDeveloperSigningCredential();
 
         builder.Services.AddTransient<IProfileService, ProfileService>();
         builder.Services.AddTransient<IVerificationEmailService, VerificationEmailService>();
@@ -78,6 +110,7 @@ internal static class HostingExtensions
 
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseRateLimiter();
         app.UseIdentityServer();
         app.UseAuthorization();
 

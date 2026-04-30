@@ -101,22 +101,21 @@ public class VerificationEmailService(
         };
     }
     
-    private async Task<string> SaveVerificationCodeAsync(
-        string userId)
+    private async Task<string> SaveVerificationCodeAsync(string userId)
     {
-        var verificationCode = GenerateVerificationCode();
+        var plaintext = GenerateVerificationCode();
         var verificationCodeEntity = new VerificationCode
         {
             UserId = userId,
-            Code = verificationCode,
+            Code = VerificationCodeHasher.Hash(plaintext),
             Type = _emailType!,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         dbContext.VerificationCodes.Add(verificationCodeEntity);
         await dbContext.SaveChangesAsync().ConfigureAwait(false);
-    
-        return verificationCode;
+
+        return plaintext;
     }
     
     private static string GenerateVerificationCode()
