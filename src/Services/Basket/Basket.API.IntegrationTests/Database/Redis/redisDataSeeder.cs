@@ -34,7 +34,10 @@ public class RedisDataSeeder(IDistributedCache cache)
                     ProductId = x.ProduceId,
                     Quantity = x.Quantity
                 }).ToList(),
-                Version = cachedShoppingCart.Version
+                Version = cachedShoppingCart.Version,
+                PendingCheckoutOrderId = string.IsNullOrEmpty(cachedShoppingCart.PendingCheckoutOrderId)
+                    ? null
+                    : cachedShoppingCart.PendingCheckoutOrderId
             };
         }
 
@@ -53,7 +56,8 @@ public class RedisDataSeeder(IDistributedCache cache)
         {
             Username = basket.Username,
             TotalPrice = basket.TotalPrice.ToString(CultureInfo.InvariantCulture),
-            Version = basket.Version
+            Version = basket.Version,
+            PendingCheckoutOrderId = basket.PendingCheckoutOrderId ?? string.Empty
         };
         basketInDb.ShoppingCartItem.AddRange(basket.Items.Select(x => new Proto.ShoppingCartItem
         {

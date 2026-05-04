@@ -10,13 +10,15 @@ public class CheckoutBasketTests : BaseEndpoint
     private readonly PostgresDataSeeder _postgresDataSeeder;
     private readonly RedisDataSeeder _redisDataSeeder;
     private readonly OrderCommandGiven _orderCommandGiven;
-    
+    private readonly DiscountGiven _discountGiven;
+
     public CheckoutBasketTests(ApiSpecification apiSpecification) : base(apiSpecification)
     {
         _postgresDataSeeder = _apiSpecification.PostgresDataSeeder;
         _redisDataSeeder = _apiSpecification.RedisDataSeeder;
         _client = _apiSpecification.HttpClient;
         _orderCommandGiven = _apiSpecification.CreateOrderCommandServerGiven();
+        _discountGiven = _apiSpecification.CreateDiscountServerGiven();
     }
     
     [Theory]
@@ -383,6 +385,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
+        _discountGiven.GetDiscountGiven("test product name");
         _orderCommandGiven.ReturningUnauthorized();
         
         // Act
@@ -416,6 +419,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
+        _discountGiven.GetDiscountGiven("test product name");
         _orderCommandGiven.ReturningForbidden();
         
         // Act
@@ -450,6 +454,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
+        _discountGiven.GetDiscountGiven("test product name");
         _orderCommandGiven.ReturningInternalServerError();
         
         // Act
@@ -484,6 +489,7 @@ public class CheckoutBasketTests : BaseEndpoint
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
 
+        _discountGiven.GetDiscountGiven("test product name");
         _orderCommandGiven.ReturningBadRequest(new ValidationErrors(
             [
                 new ValidationError("order_id", "invalid order id")
@@ -527,8 +533,9 @@ public class CheckoutBasketTests : BaseEndpoint
 
         await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
         await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
+        _discountGiven.GetDiscountGiven("test product name");
         _orderCommandGiven.ACreateOrderSuccessResponse(customerId, orderId);
-        
+
         // Act
         var response = await _client
             .SetFakeBearerToken(FakePermission.GetPermissions(
@@ -543,7 +550,54 @@ public class CheckoutBasketTests : BaseEndpoint
         result.ShouldNotBeNull();
         result.OrderId.ShouldBe(orderId);
     }
-    
+
+    [Theory, BasketRequestAutoData]
+    public async Task CheckoutBasket_when_basket_already_has_pending_order_id_reuses_it_on_retry(
+        CheckoutBasketRequest request)
+    {
+        // Arrange
+        var customerId = Guid.NewGuid().ToString();
+        var existingOrderId = Ulid.NewUlid().ToString();
+        var timeout = _apiSpecification.CreateTimeoutToken();
+
+        // Simulate a basket that had its checkout started but delete failed on a previous attempt.
+        var shoppingCart = new ShoppingCart
+        {
+            Items =
+            [
+                new ShoppingCartItem
+                {
+                    Color = "test color",
+                    Price = 10,
+                    ProductId = Ulid.NewUlid().ToString(),
+                    ProductName = "test product name",
+                    Quantity = 1
+                }
+            ],
+            Username = request.Username!,
+            PendingCheckoutOrderId = existingOrderId
+        };
+
+        await _postgresDataSeeder.SeedDatabaseAsync(shoppingCart, timeout);
+        await _redisDataSeeder.AddShoppingCartAsync(shoppingCart, timeout);
+        _discountGiven.GetDiscountGiven("test product name");
+        _orderCommandGiven.ACreateOrderSuccessResponse(customerId, existingOrderId);
+
+        // Act
+        var response = await _client
+            .SetFakeBearerToken(FakePermission.GetPermissions(
+                [Policies.BasketUserBasketCheckoutPermission],
+                sub: customerId,
+                username: request.Username))
+            .PostAsJsonAsync("api/v1/basket/customers/checkout", request, timeout);
+        var result = await response.Content.ReadFromJsonAsync<CheckoutBasketResponse>(timeout);
+
+        // Assert — same orderId must be reused, not a new one
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.ShouldNotBeNull();
+        result.OrderId.ShouldBe(existingOrderId);
+    }
+
     private async Task<HttpResponseMessage> CallSutAsync(CheckoutBasketRequest request, CancellationToken timeout)
     {
         return await _client

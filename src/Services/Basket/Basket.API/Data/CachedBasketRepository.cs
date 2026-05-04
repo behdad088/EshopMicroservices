@@ -7,6 +7,10 @@ namespace Basket.API.Data;
 internal class CachedBasketRepository(IBasketRepository repository, IDistributedCache cache) : IBasketRepository
 {
     private readonly ILogger _logger = Log.ForContext<CachedBasketRepository>();
+    private readonly DistributedCacheEntryOptions _cacheEntryOptions = new()
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+    };
     
     public async Task<ShoppingCart?> GetBasketAsync(string username, CancellationToken cancellationToken = default)
     {
@@ -23,7 +27,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         var basketByteArray = GetShoppingCartAsByteArray(basketInDb);
         
         _logger.Information("Saving basket to the cache.");
-        await cache.SetAsync(username, basketByteArray, cancellationToken)
+        await cache.SetAsync(username, basketByteArray,_cacheEntryOptions, cancellationToken)
             .ConfigureAwait(false);
 
         return basketInDb;
@@ -34,8 +38,7 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         await repository.StoreBasketAsync(basket, cancellationToken).ConfigureAwait(false);
         var basketByteArray = GetShoppingCartAsByteArray(basket);
         _logger.Information("Saving basket to the cache.");
-        await cache.SetAsync(basket.Username, basketByteArray, cancellationToken).ConfigureAwait(false);
-
+        await cache.SetAsync(basket.Username, basketByteArray, _cacheEntryOptions, cancellationToken).ConfigureAwait(false);
         return basket;
     }
 
@@ -93,7 +96,10 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         {
             Username = basket.Username,
             Items = shoppingCartItems,
-            Version = basket.Version
+            Version = basket.Version,
+            PendingCheckoutOrderId = string.IsNullOrEmpty(basket.PendingCheckoutOrderId)
+                ? null
+                : basket.PendingCheckoutOrderId
         };
 
         return true;
@@ -105,7 +111,8 @@ internal class CachedBasketRepository(IBasketRepository repository, IDistributed
         {
             Username = basket.Username,
             TotalPrice = basket.TotalPrice.ToString(CultureInfo.InvariantCulture),
-            Version = basket.Version
+            Version = basket.Version,
+            PendingCheckoutOrderId = basket.PendingCheckoutOrderId ?? string.Empty
         };
         basketInDb.ShoppingCartItem.AddRange(basket.Items.Select(x => new Proto.ShoppingCartItem
         {

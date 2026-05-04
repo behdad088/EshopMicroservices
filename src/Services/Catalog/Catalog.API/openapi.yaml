@@ -1,284 +1,815 @@
-openapi: 3.0.1
+openapi: 3.0.0
 info:
-  title: Catalog API
+  title: eShop — Catalog HTTP API
   version: v1
+  description: |
+    The **Catalog** microservice is a data-driven CRUD service for eshop products.
+    It uses **Marten** (PostgreSQL document store) with **numeric revisions** for
+    optimistic concurrency control, and **MediatR** for CQRS command/query dispatch.
+
+    ## Storage — Marten Document Store
+
+    Products are stored as `ProductDocument` in PostgreSQL via Marten.
+    `ProductDocument.Version` is a numeric revision managed by Marten's
+    `UseNumericRevisions(true)` setting. This version is exposed in `ETag`
+    headers on read endpoints and required via `If-Match` on updates.
+
+    ## Optimistic Concurrency
+
+    `GET /products/{id}` returns `ETag: W/"<version>"`.
+
+    `PUT /products` requires `If-Match: W/"<version>"` matching the current
+    document revision. The handler calls `session.UpdateRevision(product, version + 1)`.
+    Mismatches return `412 Precondition Failed`.
+
+    `GET /products/{id}` also supports `If-None-Match`: if the client's ETag
+    matches the current version, the server returns `304 Not Modified` with no body.
+
+    ## Authentication & Authorization
+
+    | Endpoint | Auth | Policy | Permission claim |
+    |---|---|---|---|
+    | `GET /products` | Anonymous | — | — |
+    | `GET /products/{id}` | Anonymous | — | — |
+    | `GET /products/category/{category}` | Anonymous | — | — |
+    | `POST /products` | Required | `CanCreateProduct` | `catalog:product:create` |
+    | `PUT /products` | Required | `CanUpdateProduct` | `catalog:product:update` |
+    | `DELETE /products/{id}` | Required | `CanDeleteProduct` | `catalog:product:delete` |
+
+    All three write policies use `RequireClaim("permissions", <value>)` — a flat
+    check that the `permissions` array in the JWT contains the required string.
+    Only the `admin` role carries these claims (from `Config.cs > RolePolicyDefinitions`).
+
+    JWT audience: `catalog` (from `appsettings.json > Identity > Audience`).
+
+    ## ID Format — ULID
+
+    Product IDs are **ULIDs** (Universally Unique Lexicographically Sortable
+    Identifiers). All validators call `Ulid.TryParse()` and reject non-ULID
+    values with a 400. When creating a product the client supplies the ULID in
+    the request body — there is no server-generated ID.
+
+    Example ULID: `01ARZ3NDEKTSV4RRFFQ69G5FAV`
+
+servers:
+  - url: https://localhost:5050
+    description: Local development (HTTPS)
+  - url: http://localhost:5000
+    description: Local development (HTTP)
+  - url: http://localhost:8080
+    description: Docker container (HTTP)
+  - url: https://localhost:8081
+    description: Docker container (HTTPS)
+
+tags:
+  - name: Products
+    description: Product CRUD — all routes under `/api/v1/catalog/products`
+  - name: Health
+    description: Health check endpoints (no auth required)
+
 paths:
-  /products:
+
+  # ── GET /api/v1/catalog/products ──────────────────────────────────────────
+  /api/v1/catalog/products:
     get:
-      tags:
-        - Products
+      tags: [Products]
       summary: Get Products
-      description: Get a paginated list of products.
+      description: |
+        Returns a paginated list of all products from the Marten document store.
+
+        **Auth:** Anonymous — no token required (`AllowAnonymous()`).
+
+        Results are not sorted by any specific field — order is determined by
+        Marten's underlying PostgreSQL query execution.
+
+        **Validation (FluentValidation on `GetProductsQuery`):**
+        - `PageIndex` — must be >= 0
+        - `PageSize` — must be between **2 and 20** (note: tighter than other services)
+      operationId: GetProducts
+      security: []
       parameters:
-        - name: pageIndex
-          in: query
-          description: The page index.
-          schema:
-            type: integer
-            default: 0
-        - name: pageSize
-          in: query
-          description: The page size.
-          schema:
-            type: integer
-            default: 10
+        - $ref: '#/components/parameters/PageIndex'
+        - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
-          description: Success
+          description: Paginated product list
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetProductsResponse'
+              example:
+                Result:
+                  page_index: 0
+                  page_size: 10
+                  count: 42
+                  data:
+                    - id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                      name: "Wireless Headphones"
+                      category: ["Electronics", "Audio"]
+                      description: "High quality wireless headphones"
+                      image_file: "headphones.jpg"
+                      price: 79.99
         '400':
-          description: Bad Request
-    post:
-      tags:
-        - Products
-      summary: Create Product
-      description: Create a new product.
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateProductRequest'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateProductResponse'
-        '400':
-          description: Bad Request
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
+          $ref: '#/components/responses/BadRequest'
+
     put:
-      tags:
-        - Products
+      tags: [Products]
       summary: Update Product
-      description: Update an existing product.
-      security:
-        - bearerAuth: []
+      description: |
+        Updates an existing product identified by `id` in the request body.
+
+        **Auth:** Required — `CanUpdateProduct` policy
+        **Required permission:** `catalog:product:update` (admin only)
+
+        **Optimistic Concurrency — `If-Match` header required:**
+        The request must include `If-Match: W/"<version>"` where `<version>`
+        is the integer from the `ETag` header of the most recent
+        `GET /products/{id}` response.
+
+        The handler (`UpdateProductsHandler`) extracts the version integer
+        from the ETag string using `eTag[2..].Trim('"')`, then compares it to
+        `ProductDocument.Version`. If they differ, returns `412`. If they
+        match, calls `session.UpdateRevision(product, version + 1)`.
+
+        Returns `204 No Content` on success — no body.
+
+        **Validation (FluentValidation):**
+        - `id` — required, must be a valid ULID
+        - `If-Match` header — required, must match regex `^W\/"\\d+"$`
+          (e.g. `W/"3"` is valid, missing or malformed → 400)
+        - `name` — required, length 2–150 characters
+        - `category` items — each must not be empty (if provided)
+        - `image_file` — must not be empty (if provided)
+        - `price` — must be > 0 (if provided)
+      operationId: UpdateProduct
       parameters:
-        - name: If-Match
-          in: header
-          required: true
-          description: The ETag of the product to update.
-          schema:
-            type: string
+        - $ref: '#/components/parameters/IfMatch'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateProductRequest'
+            example:
+              id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+              name: "Wireless Headphones Pro"
+              category: ["Electronics", "Audio"]
+              description: "Updated high quality wireless headphones"
+              image_file: "headphones-pro.jpg"
+              price: 99.99
       responses:
         '204':
-          description: No Content
+          description: Product updated successfully. No body returned.
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Not Found
+          $ref: '#/components/responses/NotFound'
         '412':
-          description: Precondition Failed
-  /products/{id}:
+          $ref: '#/components/responses/PreconditionFailed'
+
+    post:
+      tags: [Products]
+      summary: Create Product
+      description: |
+        Creates a new product. The client supplies the product ID as a ULID in
+        the request body — the server does not generate IDs.
+
+        **Auth:** Required — `CanCreateProduct` policy
+        **Required permission:** `catalog:product:create` (admin only)
+
+        Returns `201 Created` with a `Location` header pointing to the new
+        resource at `/api/v1/catalog/products/{id}`. The `Location` header is
+        also exposed via `Access-Control-Expose-Headers` for browser clients.
+
+        **Validation (FluentValidation on `CreateProductCommand`):**
+        - `id` — required, must be a valid ULID
+        - `name` — required
+        - `category` — required, must not be empty list
+        - `image_file` — required
+        - `price` — required, must be > 0
+      operationId: CreateProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+            example:
+              id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+              name: "Wireless Headphones"
+              category: ["Electronics", "Audio"]
+              description: "High quality wireless headphones"
+              image_file: "headphones.jpg"
+              price: 79.99
+      responses:
+        '201':
+          description: Product created successfully
+          headers:
+            Location:
+              description: URL of the newly created product.
+              schema:
+                type: string
+                example: /api/v1/catalog/products/01ARZ3NDEKTSV4RRFFQ69G5FAV
+            Access-Control-Expose-Headers:
+              description: Exposes `Location` header to browser clients.
+              schema:
+                type: string
+                example: Location
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ── GET /api/v1/catalog/products/{id} ─────────────────────────────────────
+  /api/v1/catalog/products/{id}:
     get:
-      tags:
-        - Products
-      summary: Get Product by id
-      description: Get a single product by its ID.
+      tags: [Products]
+      summary: Get Product by ID
+      description: |
+        Returns a single product by its ULID.
+
+        **Auth:** Anonymous — no token required (`AllowAnonymous()`).
+
+        **ETag / Conditional GET:**
+        - Response includes `ETag: W/"<version>"` where `<version>` is
+          `ProductDocument.Version` (Marten numeric revision).
+        - If the request includes `If-None-Match: W/"<version>"` and it matches
+          the current version, the server returns `304 Not Modified` with no body.
+          Use this to avoid re-downloading an unchanged product.
+
+        **Validation:**
+        - `id` — must be a valid ULID (`Ulid.TryParse()`)
+
+        Returns `404` if no `ProductDocument` exists with the given ID.
+      operationId: GetProductById
+      security: []
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the product.
-          schema:
-            type: string
+        - $ref: '#/components/parameters/ProductId'
         - name: If-None-Match
           in: header
           required: false
-          description: The ETag of the product to compare against.
+          description: >-
+            Conditional GET. If the product's current ETag matches this value,
+            returns `304 Not Modified`. Format: `W/"<version>"` e.g. `W/"3"`.
           schema:
             type: string
+            example: 'W/"3"'
       responses:
         '200':
-          description: Success
+          description: Product found
           headers:
             ETag:
-              description: The ETag of the product.
+              description: >-
+                Optimistic concurrency token. Format: `W/"<version>"` where
+                `version` is `ProductDocument.Version` (Marten numeric revision).
+                Use this value in `If-Match` on `PUT /products` and in
+                `If-None-Match` on subsequent GETs.
               schema:
                 type: string
+                example: 'W/"3"'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/GetProductByIdResponse'
+              example:
+                id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                name: "Wireless Headphones"
+                category: ["Electronics", "Audio"]
+                description: "High quality wireless headphones"
+                image_file: "headphones.jpg"
+                price: 79.99
         '304':
-          description: Not Modified
+          description: >-
+            Not Modified — product hasn't changed since the version in
+            `If-None-Match`. No body returned. Client should use its cached copy.
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '404':
-          description: Not Found
+          $ref: '#/components/responses/NotFound'
+
     delete:
-      tags:
-        - Products
+      tags: [Products]
       summary: Delete Product
-      description: Delete a product by its ID.
-      security:
-        - bearerAuth: []
+      description: |
+        Permanently deletes a product from the Marten document store by its ULID.
+
+        **Auth:** Required — `CanDeleteProduct` policy
+        **Required permission:** `catalog:product:delete` (admin only)
+
+        The handler calls `session.Delete<ProductDocument>(id)` — this is a
+        hard delete with no soft-delete or audit trail.
+
+        Always returns `200 OK` with `{ "IsSuccess": true }` if the command
+        executes without error. Does **not** return 404 if the product does not
+        exist — Marten's `Delete` is a no-op for non-existent documents.
+
+        **Validation:**
+        - `id` — must be a valid ULID
+      operationId: DeleteProduct
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the product to delete.
-          schema:
-            type: string
+        - $ref: '#/components/parameters/ProductId'
       responses:
         '200':
-          description: Success
+          description: Product deleted successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteProductResponse'
+              example:
+                IsSuccess: true
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden
-  /products/category/{category}:
+          $ref: '#/components/responses/Forbidden'
+
+  # ── GET /api/v1/catalog/products/category/{category} ─────────────────────
+  /api/v1/catalog/products/category/{category}:
     get:
-      tags:
-        - Products
-      summary: Get Product By Category
-      description: Get a paginated list of products by category.
+      tags: [Products]
+      summary: Get Products by Category
+      description: |
+        Returns a paginated list of products whose `category` array contains
+        the specified category string (case-sensitive exact match via
+        `p.Category.Contains(query.Category)`).
+
+        **Auth:** Anonymous — no token required (no `.RequireAuthorization()`
+        or `.AllowAnonymous()` call; the endpoint inherits the default policy
+        which is anonymous in this service).
+
+        Results are not sorted.
+
+        **Validation (FluentValidation on `GetProductByCategoryQuery`):**
+        - `category` — must not be empty
+
+        **Note on response shape:** This endpoint wraps the paginated result
+        in `ProductModule` (using the `ProductModule` model from `Models/ProductModel.cs`)
+        rather than `ProductResponse`. The JSON property names are identical
+        but the wrapper field is `ProductModule` instead of `Result`.
+      operationId: GetProductsByCategory
+      security: []
       parameters:
         - name: category
           in: path
           required: true
-          description: The category to filter products by.
+          description: Category name to filter by (case-sensitive, exact match).
           schema:
             type: string
-        - name: pageIndex
-          in: query
-          description: The page index.
-          schema:
-            type: integer
-            default: 0
-        - name: pageSize
-          in: query
-          description: The page size.
-          schema:
-            type: integer
-            default: 10
+            example: "Electronics"
+        - $ref: '#/components/parameters/PageIndex'
+        - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
-          description: Success
+          description: Paginated list of products in the given category
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetProductsByCategoryResponse'
+              example:
+                ProductModule:
+                  page_index: 0
+                  page_size: 10
+                  count: 5
+                  data:
+                    - id: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+                      name: "Wireless Headphones"
+                      category: ["Electronics", "Audio"]
+                      description: "High quality wireless headphones"
+                      image_file: "headphones.jpg"
+                      price: 79.99
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/BadRequest'
+
+  # ── Health ─────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Health Check
+      description: |
+        Returns the health status of the Catalog API and its PostgreSQL
+        dependency (Marten document store).
+
+        Registered checks:
+        - `postgres` — NpgSql connection check, tagged `ready` and `liveness`
+
+        No authentication required.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service or dependency is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# ── Components ────────────────────────────────────────────────────────────────
 components:
+
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        JWT issued by IdentityServer at `https://localhost:5007`.
+
+        Required claims:
+        - `aud`: must include `catalog`
+        - `permissions`: array must contain the required policy string
+        - `role`: `admin` (write endpoints only)
+
+        Obtain a token:
+        ```bash
+        curl -X POST https://localhost:5007/connect/token \
+          -d grant_type=password \
+          -d client_id=postman-client-password \
+          -d username=BobSmith@email.com \
+          -d password=Pass123$ \
+          -d "scope=openid profile catalog"
+        ```
+
+  parameters:
+    ProductId:
+      name: id
+      in: path
+      required: true
+      description: Product ULID. Must pass `Ulid.TryParse()` validation.
+      schema:
+        type: string
+        example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+
+    PageIndex:
+      name: PageIndex
+      in: query
+      required: false
+      description: Zero-based page index. Must be >= 0. Default 0.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+        example: 0
+
+    PageSize:
+      name: PageSize
+      in: query
+      required: false
+      description: >-
+        Number of items per page. Must be between **2 and 20** (validated by
+        `GetProductsQueryValidator`). Default 10.
+      schema:
+        type: integer
+        minimum: 2
+        maximum: 20
+        default: 10
+        example: 10
+
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: |
+        Optimistic concurrency token for `PUT /products`. Must match the `ETag`
+        value from the most recent `GET /products/{id}` response.
+
+        Format: `W/"<version>"` where `<version>` is a positive integer.
+        Must match regex `^W\/"\\d+"$`.
+
+        Examples:
+        - `W/"1"` — version 1
+        - `W/"42"` — version 42
+
+        Returns `400` if missing or malformed (FluentValidation).
+        Returns `412` if the version does not match the current document revision.
+      schema:
+        type: string
+        pattern: '^W/"[0-9]+"$'
+        example: 'W/"3"'
+
+  responses:
+    BadRequest:
+      description: >-
+        Bad Request — FluentValidation failed. Check `errors` for field-level
+        details (e.g. invalid ULID, page_size out of range, missing required field).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+            title: "Bad Request"
+            status: 400
+            errors:
+              id: ["id must be a valid Ulid"]
+              price: ["Price must be greater than 0"]
+
+    Unauthorized:
+      description: Unauthorized — missing or invalid Bearer token.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7235#section-3.1"
+            title: "Unauthorized"
+            status: 401
+
+    Forbidden:
+      description: >-
+        Forbidden — token is valid but the `permissions` claim does not contain
+        the required policy string. Only the `admin` role has catalog write permissions.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            title: "Forbidden"
+            status: 403
+
+    NotFound:
+      description: Not Found — no product exists with the given ID.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+            title: "Not Found"
+            status: 404
+
+    PreconditionFailed:
+      description: |
+        Precondition Failed — the `If-Match` version does not match the current
+        `ProductDocument.Version` in Marten.
+
+        This means another client updated the product between your last `GET`
+        and this `PUT`. Fetch the product again with `GET /products/{id}` to
+        get the new ETag, merge your changes, and retry.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://tools.ietf.org/html/rfc9110#section-15.5.13"
+            title: "Precondition Failed"
+            status: 412
+            detail: "Invalid Etag 2"
+
   schemas:
-    Product:
+
+    # ── Product shapes ────────────────────────────────────────────────────────
+
+    ProductResponse:
       type: object
+      description: Product shape returned in list responses (GetProducts, GetProductsByCategory).
       properties:
         id:
           type: string
-          format: ulid
+          description: Product ULID.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
         name:
           type: string
+          example: "Wireless Headphones"
+        category:
+          type: array
+          description: One or more category strings. A product can belong to multiple categories.
+          items:
+            type: string
+          example: ["Electronics", "Audio"]
+        description:
+          type: string
+          nullable: true
+          example: "High quality wireless headphones"
+        image_file:
+          type: string
+          description: Image filename or path.
+          example: "headphones.jpg"
+        price:
+          type: number
+          format: decimal
+          nullable: true
+          example: 79.99
+
+    GetProductByIdResponse:
+      type: object
+      description: >-
+        Product shape returned by `GET /products/{id}`. Identical fields to
+        `ProductResponse` but does NOT include `version` in the JSON body —
+        the version is communicated exclusively via the `ETag` response header.
+      properties:
+        id:
+          type: string
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        name:
+          type: string
+          example: "Wireless Headphones"
         category:
           type: array
           items:
             type: string
+          example: ["Electronics", "Audio"]
         description:
           type: string
+          nullable: true
+          example: "High quality wireless headphones"
         image_file:
           type: string
+          example: "headphones.jpg"
         price:
           type: number
           format: decimal
+          nullable: true
+          example: 79.99
+
+    # ── Request bodies ────────────────────────────────────────────────────────
+
     CreateProductRequest:
       type: object
+      required: [id, name, category, image_file, price]
+      description: >-
+        Request body for `POST /products`. The client must supply the `id` as
+        a valid ULID — the server does not generate IDs.
       properties:
         id:
           type: string
-          format: ulid
+          description: Client-generated product ULID. Must pass `Ulid.TryParse()`.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
         name:
           type: string
+          description: Required. Product display name.
+          example: "Wireless Headphones"
         category:
           type: array
+          description: Required. At least one category string.
+          minItems: 1
           items:
             type: string
+          example: ["Electronics", "Audio"]
         description:
           type: string
+          nullable: true
+          description: Optional product description.
+          example: "High quality wireless headphones"
         image_file:
           type: string
+          description: Required. Image filename or path.
+          example: "headphones.jpg"
         price:
           type: number
           format: decimal
-    CreateProductResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: ulid
-    DeleteProductResponse:
-      type: object
-      properties:
-        isSuccess:
-          type: boolean
+          description: Required. Must be > 0.
+          example: 79.99
+
     UpdateProductRequest:
       type: object
+      required: [id, name, image_file]
+      description: >-
+        Request body for `PUT /products`. All fields except `id` are applied
+        as patches — only non-null/non-empty fields overwrite the existing values
+        (see handler logic in `UpdateProductsHandler`).
       properties:
         id:
           type: string
-          format: ulid
+          description: Required. ULID of the product to update.
+          example: "01ARZ3NDEKTSV4RRFFQ69G5FAV"
         name:
           type: string
+          description: Required. Length 2–150 characters.
+          minLength: 2
+          maxLength: 150
+          example: "Wireless Headphones Pro"
         category:
           type: array
+          nullable: true
+          description: Optional. Replaces entire category list if provided.
           items:
             type: string
+          example: ["Electronics", "Audio"]
         description:
           type: string
+          nullable: true
+          description: Optional. Replaces description if provided and non-empty.
+          example: "Updated high quality wireless headphones"
         image_file:
           type: string
+          description: Required if provided. Must not be empty.
+          example: "headphones-pro.jpg"
         price:
           type: number
           format: decimal
-    PaginatedItems_Product:
+          nullable: true
+          description: Optional. Must be > 0 if provided.
+          example: 99.99
+
+    # ── Response wrappers ─────────────────────────────────────────────────────
+
+    PaginatedItems:
       type: object
+      description: Pagination wrapper from `eshop.Shared.Pagination.PaginatedItems<T>`.
       properties:
-        pageIndex:
+        page_index:
           type: integer
-        pageSize:
+          example: 0
+        page_size:
           type: integer
+          example: 10
         count:
           type: integer
+          description: Total number of matching documents.
+          example: 42
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Product'
+            $ref: '#/components/schemas/ProductResponse'
+
     GetProductsResponse:
       type: object
+      description: >-
+        Top-level response for `GET /products`. The outer field is `Result`
+        (C# record constructor param name, not serialized with `JsonPropertyName`
+        so it uses the default PascalCase).
       properties:
-        result:
-          $ref: '#/components/schemas/PaginatedItems_Product'
+        Result:
+          $ref: '#/components/schemas/PaginatedItems'
+
     GetProductsByCategoryResponse:
       type: object
+      description: >-
+        Top-level response for `GET /products/category/{category}`. The outer
+        field is `ProductModule` — the C# record param name from
+        `GetProductByCategoryResponse(PaginatedItems<ProductModule> ProductModule)`.
       properties:
-        productModule:
-          $ref: '#/components/schemas/PaginatedItems_Product'
+        ProductModule:
+          $ref: '#/components/schemas/PaginatedItems'
+
+    DeleteProductResponse:
+      type: object
+      properties:
+        IsSuccess:
+          type: boolean
+          description: Always `true` when the handler completes without error.
+          example: true
+
+    # ── Health ────────────────────────────────────────────────────────────────
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [Healthy, Degraded, Unhealthy]
+          example: "Healthy"
+        results:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [Healthy, Degraded, Unhealthy]
+              description:
+                type: string
+          example:
+            postgres:
+              status: "Healthy"
+              description: "PostgreSQL (Marten) connection OK"
+
+    # ── Problem Details ───────────────────────────────────────────────────────
+
+    ProblemDetails:
+      type: object
+      description: >-
+        RFC 7807 Problem Details returned by
+        `UseProblemDetailsResponseExceptionHandler()` middleware.
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: object
+          description: Field-level validation errors (400 responses only).
+          additionalProperties:
+            type: array
+            items:
+              type: string
