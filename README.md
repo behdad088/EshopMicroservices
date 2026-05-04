@@ -41,22 +41,22 @@ The system follows a loosely coupled microservices architecture. Each service ow
 │              Client Apps                │
 └───────────────────┬─────────────────────┘
                     │ HTTP/HTTPS
-┌───────────────────▼─────────────────────┐
-│         API Gateway (YARP)              │
-│   routing · rate limiting · reverse     │
-│               proxy                     │
-└────┬──────┬──────┬──────┬──────────────┘
-     │      │      │      │
-  ┌──▼──┐ ┌─▼───┐ ┌▼────┐ ┌▼────────┐ ┌──────────┐
-  │Cat- │ │Bas- │ │Dis- │ │Order-   │ │Identity  │
-  │alog │ │ket  │◄──gRPC─►│count    │ │(OIDC)    │
-  └──┬──┘ └──┬──┘ └─────┘ └──┬──────┘ └──────────┘
-     │       │   RabbitMQ     │
-     │       └──[checkout]────┘
-  ┌──▼──┐ ┌──▼──┐ ┌─────┐ ┌──▼──────┐
-  │Post-│ │Redis│ │SQLi-│ │SQL      │
-  │greSQL│ │     │ │te   │ │Server   │
-  └─────┘ └─────┘ └─────┘ └─────────┘
+┌───────────────────▼───────────────────────────────────────┐
+│                API Gateway (YARP)                         │
+│           routing · rate limiting · reverse               │
+│                     proxy                                 │
+└────┬──────┬─────────────┬────────────┬──────────┬─────────┘
+     │      │             │            │          │
+  ┌──▼──┐ ┌─▼───┐        ┌▼────┐     ┌─▼───────┐┌─▼───────┐ ┌──────────┐
+  │Cat- │ │Bas- │        │Dis- │     │ Order-  ││ Order-  │ │Identity  │
+  │alog │ │ket  │◄────────gRPC─────► │ command ││ query   │ │(OIDC)    │
+  └──┬──┘ └──┬──┘        └─────┘     └───┬─────┘└───┬─────┘ └─────┬────┘
+     │       │             RabbitMQ      │          │             │ 
+     │       │────────────[checkout]─────┘──────────│─────────────│
+  ┌──▼───┐┌──▼──────┐ ┌─────┐ ┌─────┐ ┌──▼──────┐┌──▼──────┐┌─────▼───┐
+  │Post- ││Post-    │─│Redis│ │SQLi-│ │Post-    ││Post-    ││Post-    │ 
+  │greSQL││greSQL   │ │     │ │te   │ │greSQL   ││greSQL   ││greSQL   │
+  └──────┘└─────────┘ └─────┘ └─────┘ └─────────┘└─────────┘└─────────┘
 
            Docker Compose (all containers)
 ```
