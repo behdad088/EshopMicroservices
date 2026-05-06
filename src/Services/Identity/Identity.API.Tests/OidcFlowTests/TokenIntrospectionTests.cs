@@ -1,9 +1,6 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.OidcFlowTests;
 
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class TokenIntrospectionTests(IdentityApiSpecification specification)
 {
     private readonly HttpClient _client = specification._factory!.CreateClient();

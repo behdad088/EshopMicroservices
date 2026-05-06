@@ -4,7 +4,6 @@ using Identity.API.Models;
 using Identity.API.Services;
 using Microsoft.AspNetCore.Identity;
 using NSubstitute;
-using Shouldly;
 
 namespace Identity.API.Tests.UnitTests;
 

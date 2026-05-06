@@ -1,10 +1,6 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.SecurityTests;
 
-
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class RateLimitingTests
 {
     private readonly IdentityApiSpecification _specification;

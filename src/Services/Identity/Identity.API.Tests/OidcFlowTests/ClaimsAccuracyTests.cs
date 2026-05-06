@@ -1,13 +1,10 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.OidcFlowTests;
 
 /// <summary>
 /// Verifies that role-based permissions embedded in access tokens match the
 /// policy definitions in Config.RolePolicyDefinitions.
 /// </summary>
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class ClaimsAccuracyTests(IdentityApiSpecification specification)
 {
     private readonly HttpClient _client = specification._factory!.CreateClient();

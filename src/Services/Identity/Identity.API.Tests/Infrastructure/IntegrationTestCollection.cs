@@ -1,4 +1,7 @@
 namespace Identity.API.Tests.Infrastructure;
 
-[CollectionDefinition("Integration")]
-public class IntegrationTestCollection : ICollectionFixture<IdentityApiSpecification>;
+[CollectionDefinition(Name)]
+public class IntegrationTestCollection : ICollectionFixture<IdentityApiSpecification>
+{
+    public const string Name = "Integration";
+}

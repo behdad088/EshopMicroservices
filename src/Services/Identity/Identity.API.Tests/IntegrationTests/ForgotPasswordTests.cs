@@ -1,9 +1,6 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.IntegrationTests;
 
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class ForgotPasswordTests(IdentityApiSpecification specification)
 {
     private readonly HttpClient _client = specification.CreateClientAndBindSpy();
