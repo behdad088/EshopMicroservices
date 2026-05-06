@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Models;
-using Shouldly;
 
 namespace Identity.API.Tests.UnitTests;
 

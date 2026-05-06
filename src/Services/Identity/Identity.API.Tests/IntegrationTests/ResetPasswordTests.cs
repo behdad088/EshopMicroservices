@@ -1,11 +1,6 @@
-using Identity.API.Data;
-using Identity.API.Tests.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Shouldly;
-
 namespace Identity.API.Tests.IntegrationTests;
 
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class ResetPasswordTests(IdentityApiSpecification specification)
 {
     private readonly HttpClient _client = specification.CreateClientAndBindSpy();

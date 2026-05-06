@@ -1,13 +1,10 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.SecurityTests;
 
 /// <summary>
 /// Verifies that security response headers are present on pages decorated with [SecurityHeaders].
 /// Login is the primary target because it uses the attribute.
 /// </summary>
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class SecurityHeadersTests(IdentityApiSpecification specification)
 {
     private readonly HttpClient _client = specification.CreateClientAndBindSpy();

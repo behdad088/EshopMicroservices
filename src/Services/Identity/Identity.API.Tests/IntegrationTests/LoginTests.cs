@@ -1,9 +1,6 @@
-using Identity.API.Tests.Infrastructure;
-using Shouldly;
-
 namespace Identity.API.Tests.IntegrationTests;
 
-[Collection("Integration")]
+[Collection(IntegrationTestCollection.Name)]
 public class LoginTests(IdentityApiSpecification specification)
 {
     // Uses a separate non-redirect-following client so we can inspect status codes before redirect
