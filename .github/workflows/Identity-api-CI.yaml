@@ -23,6 +23,8 @@ env:
   SERVICE: Identity.api
   IMAGE: Identity.api
   ProjectPath: src/Services/Identity/Identity.API
+  ProjectTestPath: src/Services/Identity/Identity.API.Tests
+
 jobs:
 
   build:
@@ -36,6 +38,7 @@ jobs:
         service: ${{ env.SERVICE }}
         image_name: ${{ env.IMAGE }}
         project_path: ${{ env.ProjectPath }}
+        test_path: ${{ env.ProjectTestPath }}
         registry_username: ${{ vars.REGISTRYUSERNAME }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
