@@ -14,7 +14,7 @@ public class VerificationCode
     public required string UserId { get; set; }
     
     [Required]
-    [MaxLength(10)]
+    [MaxLength(64)]
     public required string Code { get; set; }
 
     [MaxLength(500)]

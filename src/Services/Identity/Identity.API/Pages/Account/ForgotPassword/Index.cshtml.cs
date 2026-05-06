@@ -3,9 +3,11 @@ using Identity.API.Services.EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Identity.API.Pages.Account.ForgotPassword;
 
+[EnableRateLimiting("forgot-password")]
 public class Index : PageModel
 {
     private readonly IVerificationEmailService _verificationEmailService;

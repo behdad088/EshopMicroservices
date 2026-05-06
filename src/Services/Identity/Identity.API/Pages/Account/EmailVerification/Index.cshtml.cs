@@ -33,8 +33,9 @@ public class Index : PageModel
         if (string.IsNullOrEmpty(code))
             return new JsonResult(new { success = false, message = "Code is missing." });
 
+        var hashedCode = VerificationCodeHasher.Hash(code);
         var verificationCode = await _dbContext.VerificationCodes
-            .FirstOrDefaultAsync(x => x.Code == code)
+            .FirstOrDefaultAsync(x => x.Code == hashedCode)
             .ConfigureAwait(false);
 
         if (verificationCode == null)

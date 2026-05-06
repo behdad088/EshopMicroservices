@@ -9,12 +9,15 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Identity.API.Pages.Account.Login;
 
 [SecurityHeaders]
 [AllowAnonymous]
+[EnableRateLimiting("login")]
 public class Index : PageModel
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -221,6 +224,7 @@ public class Index : PageModel
         string errorMessage,
         string? clientId)
     {
+        
         await _events.RaiseAsync(new UserLoginFailureEvent(username, error,
             clientId: clientId));
         Telemetry.Metrics.UserLoginFailure(clientId, IdentityServerConstants.LocalIdentityProvider,
@@ -234,6 +238,13 @@ public class Index : PageModel
         string? email = null,
         string? emailVerificationMessage = null)
     {
+
+        var modelStateErrors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+        foreach (var modelStateValue in modelStateErrors)
+        {
+            ModelState.AddModelError(string.Empty, modelStateValue);
+        }
+        
         Input = new InputModel
         {
             ReturnUrl = returnUrl

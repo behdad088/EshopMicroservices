@@ -35,8 +35,9 @@ public class Index : PageModel
             return Page();
         }
         
+        var hashedCode = VerificationCodeHasher.Hash(code);
         var verificationCode = await _dbContext.VerificationCodes
-            .FirstOrDefaultAsync(x => x.Code == code)
+            .FirstOrDefaultAsync(x => x.Code == hashedCode)
             .ConfigureAwait(false);
 
         var errorMessage = AssertVerificationCode(verificationCode, code);
@@ -72,7 +73,7 @@ public class Index : PageModel
 
         if (verificationCode.IsExpired)
         {
-            return "This code has already been activated.";
+            return "This code has expired. Please request a new password reset.";
         }
         
         return string.Empty;
@@ -106,8 +107,9 @@ public class Index : PageModel
                 invalidCode: false);
             return Page();
         }
+        var hashedCode = VerificationCodeHasher.Hash(Input.Code!);
         var verificationCode = await _dbContext.VerificationCodes
-            .FirstOrDefaultAsync(x => x.Code == Input.Code)
+            .FirstOrDefaultAsync(x => x.Code == hashedCode)
             .ConfigureAwait(false);
         
         if (verificationCode == null)
