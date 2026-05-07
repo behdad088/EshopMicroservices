@@ -49,12 +49,13 @@ jobs:
           # --cache + max-cache-age make repeated runs cheap and avoid hammering
           # remote servers. 429 (rate-limited) is treated as success since GitHub
           # itself issues 429s to anonymous traffic.
+          # mailto: links are skipped by default in current lychee; pass
+          # --include-mail to opt in (we don't).
           args: >-
             --no-progress
             --cache
             --max-cache-age 7d
             --accept 200,206,429
-            --exclude-mail
             --exclude-path './**/bin/**'
             --exclude-path './**/obj/**'
             './**/*.md'
