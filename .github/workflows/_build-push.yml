@@ -43,9 +43,8 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  security-events: write
-  checks: write          # dorny/test-reporter creates check runs
+  pull-requests: write     # PR comment with image tags
+  security-events: write   # Trivy SARIF upload to code scanning
 
 jobs:
   build-test-push:
@@ -76,6 +75,10 @@ jobs:
       - name: Build service project
         run: dotnet build "${{ inputs.project_path }}" --no-restore --configuration Release
 
+      # The GitHubActions logger writes failed assertions as annotations
+      # directly on this job's run, so failures appear inline on the PR diff
+      # at the right file/line. The TRX file is still produced and uploaded
+      # as an artifact for offline introspection.
       - name: Restore & test (with coverage)
         if: inputs.test_path != ''
         run: |
@@ -83,17 +86,9 @@ jobs:
           dotnet test "${{ inputs.test_path }}" \
             --configuration Release \
             --logger "trx;LogFileName=test-results.trx" \
+            --logger "GitHubActions" \
             --collect:"XPlat Code Coverage" \
             --results-directory ./TestResults
-
-      - name: Publish test report
-        if: inputs.test_path != '' && (success() || failure())
-        uses: dorny/test-reporter@v1
-        with:
-          name: ${{ inputs.service }} tests
-          path: TestResults/**/test-results.trx
-          reporter: dotnet-trx
-          fail-on-error: false
 
       - name: Upload coverage to Codecov
         if: inputs.test_path != ''
