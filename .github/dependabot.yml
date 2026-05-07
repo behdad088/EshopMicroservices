@@ -1,0 +1,149 @@
+# Dependabot configuration for the eShop microservices repo.
+# Keeps NuGet packages, Docker base images and GitHub Actions up to date.
+
+version: 2
+
+updates:
+  # GitHub Actions used by workflows under .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      docker-actions:
+        patterns:
+          - "docker/*"
+      github-actions:
+        patterns:
+          - "actions/*"
+          - "github/codeql-action"
+
+  # NuGet — one entry per service so PRs are scoped & reviewable.
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Basket"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:basket"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Catalog"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:catalog"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Discount"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:discount"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Identity"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:identity"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Order.Command"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:order-command"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Order.Query"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:order-query"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/ApiGateways"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "service:api-gateways"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  - package-ecosystem: "nuget"
+    directory: "/src/Services/Shared"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "nuget", "shared"]
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+
+  # Docker base images for each service Dockerfile.
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Basket/Basket.API"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Catalog/Catalog.API"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Discount/Discount.Grpc"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Identity/Identity.API"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Order.Command/Order.Command.API"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Order.Query/Order.Query.API"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/Order.Query/Order.Query.EventProcessor"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "docker"
+    directory: "/src/Services/ApiGateways"
+    schedule: { interval: "weekly" }
+    labels: ["dependencies", "docker"]
