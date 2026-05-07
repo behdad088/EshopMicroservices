@@ -45,6 +45,7 @@ permissions:
   contents: read
   pull-requests: write
   security-events: write
+  checks: write          # dorny/test-reporter creates check runs
 
 jobs:
   build-test-push:
