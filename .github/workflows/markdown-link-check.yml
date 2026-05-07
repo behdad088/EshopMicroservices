@@ -49,15 +49,20 @@ jobs:
           # --cache + max-cache-age make repeated runs cheap and avoid hammering
           # remote servers. 429 (rate-limited) is treated as success since GitHub
           # itself issues 429s to anonymous traffic.
-          # mailto: links are skipped by default in current lychee; pass
-          # --include-mail to opt in (we don't).
+          # - mailto: links are skipped by default in current lychee.
+          # - --exclude-loopback skips localhost / 127.0.0.1 / 0.0.0.0 / ::1
+          #   so the README's "Available services" table doesn't fail CI.
+          # - wwwroot/lib/ is third-party vendored content (Bootstrap, jQuery)
+          #   whose own READMEs link to their author homepages — not ours to fix.
           args: >-
             --no-progress
             --cache
             --max-cache-age 7d
             --accept 200,206,429
+            --exclude-loopback
             --exclude-path './**/bin/**'
             --exclude-path './**/obj/**'
+            --exclude-path './**/wwwroot/lib/**'
             './**/*.md'
           fail: ${{ github.event_name == 'pull_request' }}
           output: ./lychee-report.md
