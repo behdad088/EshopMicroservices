@@ -29,6 +29,7 @@ permissions:
   contents: read
   pull-requests: write     # PR comment with image tags (in _build-push.yml)
   security-events: write   # Trivy SARIF upload (in _build-push.yml)
+  checks: write            # dorny/test-reporter (in _build-push.yml)
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
