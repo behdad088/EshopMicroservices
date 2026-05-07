@@ -1,3 +1,4 @@
+VALIDATE_EDITORCONFIG = false
 root = true
 
 [*]
