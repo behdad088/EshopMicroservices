@@ -75,10 +75,11 @@ jobs:
       - name: Build service project
         run: dotnet build "${{ inputs.project_path }}" --no-restore --configuration Release
 
-      # The GitHubActions logger writes failed assertions as annotations
-      # directly on this job's run, so failures appear inline on the PR diff
-      # at the right file/line. The TRX file is still produced and uploaded
-      # as an artifact for offline introspection.
+      # Tests run with the TRX logger only. Failures appear in the workflow
+      # log; the .trx file is uploaded as an artifact below for offline
+      # introspection. Inline PR annotations require the GitHubActionsTestLogger
+      # NuGet package on each test project — see commit history if you want
+      # to add that.
       - name: Restore & test (with coverage)
         if: inputs.test_path != ''
         run: |
@@ -86,7 +87,6 @@ jobs:
           dotnet test "${{ inputs.test_path }}" \
             --configuration Release \
             --logger "trx;LogFileName=test-results.trx" \
-            --logger "GitHubActions" \
             --collect:"XPlat Code Coverage" \
             --results-directory ./TestResults
 
