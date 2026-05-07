@@ -18,6 +18,7 @@
         <PackageReference Include="AutoFixture.Xunit2"/>
         <PackageReference Include="Testcontainers" />
         <PackageReference Include="WebMotions.Fake.Authentication.JwtBearer" />
+        <PackageReference Include="GitHubActionsTestLogger" />
     </ItemGroup>
 
     <ItemGroup>
