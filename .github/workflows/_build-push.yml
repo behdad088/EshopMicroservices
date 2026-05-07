@@ -174,8 +174,12 @@ jobs:
           REF=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
           echo "ref=${REF}" >> "$GITHUB_OUTPUT"
 
+      # trivy-action does not publish patch tags reliably; their README
+      # recommends @master. For stricter supply-chain hygiene, replace
+      # @master with a specific commit SHA from
+      # https://github.com/aquasecurity/trivy-action/commits/master
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@master
         if: always()
         with:
           image-ref: ${{ steps.img.outputs.ref }}
