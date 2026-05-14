@@ -28,13 +28,13 @@ builder.SetupLogging("Order Command Service", environment, loggerConfigurations.
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHealthChecks(databaseConfigurations.SqlDatabase);
+builder.Services.AddHealthChecks(databaseConfigurations.PostgresDatabase);
 
 builder.Services.AddScoped<IUser, CurrentUser>();
 builder.Services.AddHttpContextAccessor();
 builder.Services
     .AddApplicationServices(rabbitMqConfigurations)
-    .AddInfrastructureServices(databaseConfigurations.SqlDatabase);
+    .AddInfrastructureServices(databaseConfigurations.PostgresDatabase);
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 builder.Services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
@@ -62,10 +62,10 @@ var routeGroupBuilder = app.MapGroup("/api/v1/")
 
 app.MapEndpoints(routeGroupBuilder);
 
-app.UseProblemDetailsResponseExceptionHandler(); 
+app.UseProblemDetailsResponseExceptionHandler();
 
 try
-{ 
+{
     await app.RunAsync();
 }
 catch (Exception e)
@@ -83,6 +83,6 @@ namespace Order.Command.API
 {
     public class Program
     {
-        
+
     }
 }

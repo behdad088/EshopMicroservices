@@ -17,6 +17,9 @@
         <None Include=".dockerignore"/>
     </ItemGroup>
     <ItemGroup>
-      <Content Include=".env" />
+        <Content Include=".env"/>
+        <Content Include="docker-compose.e2e.yml">
+            <DependentUpon>docker-compose.yml</DependentUpon>
+        </Content>
     </ItemGroup>
 </Project>

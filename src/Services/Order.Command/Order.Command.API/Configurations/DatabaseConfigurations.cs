@@ -6,5 +6,5 @@ internal sealed record DatabaseConfigurations
 {
     [ConfigurationKeyName("ConnectionStrings:Database")]
     [Required]
-    public required string SqlDatabase { get; init; }
+    public required string PostgresDatabase { get; init; }
 }

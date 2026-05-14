@@ -1,5 +1,5 @@
-using eshop.Shared;
 using eshop.Shared.Configurations;
+using eshop.Shared.HealthChecks;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
@@ -17,6 +17,7 @@ try
     const string serviceName = "eshop.identity.api";
     builder.Services.AddOpenTelemetryOtl(serviceName);
     builder.SetupLogging("Identity Service", environment, loggerConfigurations.ElasticSearch);
+    builder.Services.AddHealthChecks(builder.Configuration);
 
     var app = builder
         .ConfigureServices()
@@ -28,6 +29,7 @@ try
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
     });
     app.UseTraceIdentifierHeader();
+    app.MapDefaultHealthChecks();
     app.Run();
 }
 catch (Exception ex) when (ex is not HostAbortedException)
@@ -40,4 +42,6 @@ finally
     Log.CloseAndFlush();
 }
 
-public partial class Program { }
+public partial class Program
+{
+}

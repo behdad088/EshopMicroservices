@@ -21,9 +21,9 @@ on:
         type: string
         default: ''
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -225,6 +225,89 @@ jobs:
       image_tag_suffix: ${{ github.event.inputs.image_tag_suffix }}
     secrets: inherit
 
+  e2e:
+    name: E2E — shopping journey
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-e2e-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-e2e-
+            ${{ runner.os }}-nuget-
+
+      - name: Restore E2E test project
+        run: dotnet restore src/Services/E2ETests/E2ETests.csproj
+
+      - name: Build E2E test project
+        run: dotnet build src/Services/E2ETests/E2ETests.csproj --no-restore --configuration Release
+
+      - name: Install Playwright runtime
+        run: pwsh src/Services/E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Start services
+        working-directory: src
+        run: docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
+
+      - name: Wait for services to be healthy
+        working-directory: src
+        run: bash scripts/wait-for-services.sh
+
+      - name: Run E2E tests
+        run: |
+          dotnet test src/Services/E2ETests/E2ETests.csproj \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=e2e-results.trx" \
+            --logger GitHubActions \
+            --results-directory ./TestResults
+
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: E2E tests
+          path: TestResults/**/e2e-results.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: TestResults/
+          retention-days: 7
+
+      - name: Collect Docker logs on failure
+        if: failure()
+        working-directory: src
+        run: docker compose -f docker-compose.yml -f docker-compose.e2e.yml logs --no-color > ../docker-logs.txt 2>&1
+
+      - name: Upload Docker logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: docker-logs.txt
+          retention-days: 3
+
+      - name: Tear down services
+        if: always()
+        working-directory: src
+        run: docker compose -f docker-compose.yml -f docker-compose.e2e.yml down -v
+
   # Aggregate gate so branch protection only needs to require one check.
   ci-success:
     name: CI success
@@ -240,6 +323,7 @@ jobs:
       - order-query-api
       - order-query-eventprocessor
       - api-gateways
+      - e2e
     if: always()
     steps:
       - name: Verify all required jobs succeeded or were skipped
