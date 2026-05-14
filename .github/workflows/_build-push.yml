@@ -46,6 +46,7 @@ permissions:
   pull-requests: write     # PR comment with image tags
   security-events: write   # Trivy SARIF upload to code scanning
   checks: write            # dorny/test-reporter creates check runs
+  packages: write          # push images to ghcr.io (GitHub Packages)
 
 jobs:
   build-test-push:
@@ -125,11 +126,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # GHCR login uses the workflow's built-in token — no secret to manage.
+      # Pushing the same image to multiple registries is free with buildx.
+      - name: Login to GHCR
+        if: inputs.push_image
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.REGISTRYUSERNAME }}/${{ inputs.image_name }}
+          # Listing two images here makes metadata-action emit tags for both
+          # registries; build-push-action will then push the same image to
+          # docker.io and ghcr.io in one operation.
+          images: |
+            ${{ vars.REGISTRYUSERNAME }}/${{ inputs.image_name }}
+            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
           flavor: |
             latest=false
             suffix=${{ inputs.image_tag_suffix }},onlatest=true
