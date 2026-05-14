@@ -54,9 +54,9 @@ public class ShoppingJourneyTests(E2EFixture fixture) : IClassFixture<E2EFixture
                 var body = await resp.JsonAsync();
 
                 return body?.GetProperty("data")
-                           .GetProperty("data")
-                           .EnumerateArray()
-                           .ToList();
+                    .GetProperty("data")
+                    .EnumerateArray()
+                    .ToList();
             },
             predicate: items => items is { Count: > 0 },
             timeoutSeconds: 30,
