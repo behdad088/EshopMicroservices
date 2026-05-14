@@ -30,6 +30,7 @@ permissions:
   pull-requests: write     # PR comment with image tags (in _build-push.yml)
   security-events: write   # Trivy SARIF upload (in _build-push.yml)
   checks: write            # dorny/test-reporter (in _build-push.yml)
+  packages: write          # push to ghcr.io (in _build-push.yml)
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -150,7 +151,7 @@ jobs:
     uses: ./.github/workflows/_build-push.yml
     with:
       service: identity-api
-      image_name: Identity.api
+      image_name: identity.api
       project_path: src/Services/Identity/Identity.API
       test_path: src/Services/Identity/Identity.API.Tests
       push_image: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
@@ -184,7 +185,7 @@ jobs:
     uses: ./.github/workflows/_build-push.yml
     with:
       service: order-query-api
-      image_name: order-query-API
+      image_name: order-query-api
       project_path: src/Services/Order.Query/Order.Query.API
       test_path: src/Services/Order.Query/Order.Query.API.IntegrationTests
       push_image: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
@@ -201,7 +202,7 @@ jobs:
     uses: ./.github/workflows/_build-push.yml
     with:
       service: order-query-eventprocessor
-      image_name: order-query-eventProcessor
+      image_name: order-query-eventprocessor
       project_path: src/Services/Order.Query/Order.Query.EventProcessor
       test_path: src/Services/Order.Query/Order.Query.EventProcessor.IntegrationTests
       push_image: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
