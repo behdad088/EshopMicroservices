@@ -1,11 +1,13 @@
 using eshop.Shared;
 using eshop.Shared.Configurations;
 using eshop.Shared.Exceptions.Handler;
+using eshop.Shared.HealthChecks;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
 using Order.Query.API.Configurations;
 using Order.Query.PostgresConfig;
+using Order.Query.Api.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,7 @@ builder.SetupLogging("Order Query Service", environment, loggerConfigurations.El
 // builder.Services.AddOpenApi();
 builder.Services.AddFastEndpoints();
 builder.Services.AddPostgresDb(connectionString.PostgresDb);
+builder.Services.AddHealthChecks(builder.Configuration);
 
 builder.Services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
 builder.AddDefaultAuthentication(Policies.ConfigureAuthorization);
@@ -40,6 +43,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseTraceIdentifierHeader();
+app.MapDefaultHealthChecks();
 app.UseHttpsRedirection();
 app.UseProblemDetailsResponseExceptionHandler();
 
@@ -53,7 +57,7 @@ app.UseFastEndpoints(c =>
 });
 
 try
-{ 
+{
     await app.RunAsync();
 }
 catch (Exception e)

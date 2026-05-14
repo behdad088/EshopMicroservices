@@ -10,7 +10,7 @@ public static class HealthChecksExtension
         string configurationString)
     {
         services.AddDefaultHealthChecks()
-            .AddSqlServer(new PostgresHealthCheckOptions()
+            .AddPostgres(new PostgresHealthCheckOptions()
                 {
                     ConnectionString = configurationString
                 },
@@ -20,10 +20,10 @@ public static class HealthChecksExtension
         return services;
     }
 
-    private static IHealthChecksBuilder AddSqlServer(
+    private static IHealthChecksBuilder AddPostgres(
         this IHealthChecksBuilder builder,
         PostgresHealthCheckOptions options,
-        string name = "sqlserver",
+        string name = "postgres",
         HealthStatus? failureStatus = default,
         IEnumerable<string>? tags = default,
         TimeSpan? timeout = default)

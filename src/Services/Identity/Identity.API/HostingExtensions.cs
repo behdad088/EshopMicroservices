@@ -49,12 +49,12 @@ internal static class HostingExtensions
             });
         });
         builder.Services.AddMailTrapServicesApiClient(builder.Configuration);
-        
+
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDB")));
 
         builder.Services.AddMigration<ApplicationDbContext, UsersSeed>();
-        
+
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -66,6 +66,10 @@ internal static class HostingExtensions
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
+
+                var issuerUri = builder.Configuration["IdentityServer:IssuerUri"];
+                if (!string.IsNullOrEmpty(issuerUri))
+                    options.IssuerUri = issuerUri;
             })
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
@@ -83,7 +87,7 @@ internal static class HostingExtensions
 
         builder.Services.AddTransient<IProfileService, ProfileService>();
         builder.Services.AddTransient<IVerificationEmailService, VerificationEmailService>();
-        
+
         builder.Services.AddAuthentication()
             .AddGoogle(options =>
             {

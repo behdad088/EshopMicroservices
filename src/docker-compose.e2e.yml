@@ -1,0 +1,279 @@
+version: '3.4'
+
+# E2E override: identity.api runs HTTPS (self-signed dev cert), other services HTTP, no observability stack.
+# Use with: docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
+
+services:
+
+  # Setup Databases
+
+  catalogDb:
+    container_name: catalogDb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=CatalogDb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  basketDb:
+    container_name: basketDb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=BasketDb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5433:5432"
+
+  identityDb:
+    container_name: identityDb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=IdentityDb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5434:5432"
+
+  order.query.db:
+    container_name: order.query.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=OrderQueryDb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5435:5432"
+
+  order.command.db:
+    container_name: order.command.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=OrderCommandDb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5436:5432"
+
+  distributedCache:
+    container_name: distributedCache
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    hostname: rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Setup Services
+
+  identity.api:
+    container_name: identity.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=certpassword
+      - ConnectionStrings__IdentityDB=Host=identityDb;Port=5432;Database=IdentityDb;User Id=postgres;Password=postgres
+      - service_url=https://identity.api:8081
+      - IdentityServer__IssuerUri=https://identity.api:8081
+      - EmailService__base_url=https://send.api.mailtrap.io
+      - EmailService__sender=noreply@example.com
+      - EmailService__authentication_key=unused-in-e2e
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      identityDb:
+        condition: service_healthy
+    ports:
+      - "7000:8080"
+      - "7063:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfk https://localhost:8081/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  catalog.api:
+    container_name: catalog.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Server=catalogDb;Port=5432;Database=CatalogDb;User Id=postgres;Password=postgres
+      - Identity__Url=https://identity.api:8081
+      - Identity__Audience=catalog
+    depends_on:
+      catalogDb:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
+    ports:
+      - "6000:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  basket.api:
+    container_name: basket.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Server=basketDb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres
+      - ConnectionStrings__Redis=distributedCache:6379
+      - Grpc__Discount=http://discount.grpc:8080
+      - OrderCommandClient__BaseUrl=http://order.command.api:8080
+      - Identity__Url=https://identity.api:8081
+      - Identity__Audience=basket
+    depends_on:
+      basketDb:
+        condition: service_healthy
+      distributedCache:
+        condition: service_healthy
+      discount.grpc:
+        condition: service_started
+      identity.api:
+        condition: service_started
+    ports:
+      - "6001:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  discount.grpc:
+    container_name: discount.grpc
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Data Source=discountDb
+    ports:
+      - "6002:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  order.command.api:
+    container_name: order.command.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Server=order.command.db;Database=OrderCommandDb;User Id=postgres;Password=postgres;
+      - RabbitMQ__URI=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+      - Identity__Url=https://identity.api:8081
+      - Identity__Audience=orders_command
+    depends_on:
+      order.command.db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
+    ports:
+      - "6003:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  order.query.eventprocessor:
+    container_name: order.query.eventprocessor
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - RabbitMQ__URI=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+      - ConnectionStrings__Database=Host=order.query.db;Port=5432;Database=OrderQueryDb;User Id=postgres;Password=postgres
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Name=order_created_event_queue
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Dlq=order_created_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderCreatedEvent__Exchange=order_created_event_exchange
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Name=order_updated_event_queue
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Dlq=order_updated_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderUpdatedEvent__Exchange=order_updated_event_exchange
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Name=order_deleted_event_queue
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Dlq=order_deleted_event_queue_dlq
+      - QueueSettings__OrderViewQueues__OrderDeletedEvent__Exchange=order_deleted_event_exchange
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      order.query.db:
+        condition: service_healthy
+    ports:
+      - "6004:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  order.query.api:
+    container_name: order.query.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Host=order.query.db;Port=5432;Database=OrderQueryDb;User Id=postgres;Password=postgres
+      - Identity__Url=https://identity.api:8081
+      - Identity__Audience=orders_query
+    depends_on:
+      order.query.db:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
+    ports:
+      - "6005:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/hc || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s

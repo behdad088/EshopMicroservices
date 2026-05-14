@@ -1,7 +1,8 @@
 using eshop.Shared.Configurations;
 using eshop.Shared.HealthChecks;
+using Order.Query.API.Configurations;
 
-namespace Basket.API.Common;
+namespace Order.Query.Api.Health;
 
 public static class HealthChecksExtension
 {
@@ -12,8 +13,7 @@ public static class HealthChecksExtension
         var databaseConfiguration = configuration.TryGetValidatedOptions<DatabaseConfigurations>();
 
         services.AddHealthChecks()
-            .AddNpgSql(databaseConfiguration.PostgresDb, name: "postgres", tags: ["ready", "liveness"])
-            .AddRedis(databaseConfiguration.Redis, "redis", tags: ["ready", "liveness"]);
+            .AddNpgSql(databaseConfiguration.PostgresDb, name: "postgres", tags: ["ready", "liveness"]);
 
         return services;
     }
