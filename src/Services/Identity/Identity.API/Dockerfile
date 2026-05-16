@@ -6,7 +6,8 @@ ARG APP_UID=1654
 ARG APP_USER=appuser
 
 # Create non-root user/group only if not exists
-RUN apt-get update && apt-get install -y passwd && \
+RUN apt-get update && apt-get install -y --no-install-recommends passwd curl && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -p /app/keys && \
     getent group ${APP_UID} || groupadd -g ${APP_UID} appgroup && \
     id -u ${APP_UID} || useradd -u ${APP_UID} -g ${APP_UID} -M ${APP_USER} && \

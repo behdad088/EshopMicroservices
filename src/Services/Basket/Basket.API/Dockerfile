@@ -1,4 +1,6 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
+USER root
+RUN apk add --no-cache curl
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
