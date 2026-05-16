@@ -75,10 +75,9 @@ The system follows a loosely coupled microservices architecture. Each service ow
 
 **Synchronous (gRPC):** The Basket service calls the Discount service directly over gRPC to fetch real-time coupon data during cart operations. The response is needed immediately before proceeding.
 
-**Asynchronous (RabbitMQ):** Here’s a clearer and more polished version:
-
-Asynchronous (RabbitMQ):
+**Asynchronous (RabbitMQ):**
 When a basket is checked out, an HTTP request is sent to the Order Command service. The service persists the new order and publishes an OrderCreatedEvent to RabbitMQ. The Order Query service subscribes to this event and updates its read-optimized view of orders accordingly. This architecture decouples the command and query services, allowing them to scale independently. The trade-off is eventual consistency between the write model (Order Command) and the read model (Order Query).
+
 ---
 
 ## Microservices Reference
