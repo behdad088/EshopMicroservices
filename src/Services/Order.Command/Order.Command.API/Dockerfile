@@ -2,8 +2,8 @@
 USER root
 WORKDIR /app
 
-# Install ICU libraries and set the necessary environment variable
-RUN apk add --no-cache icu-libs
+# Install ICU libraries and curl (for the Docker healthcheck)
+RUN apk add --no-cache icu-libs curl
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 USER $APP_UID
 

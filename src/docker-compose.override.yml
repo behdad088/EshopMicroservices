@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   catalogDb:
     container_name: catalogDb
@@ -8,11 +6,16 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=CatalogDb
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5432:5432"
     volumes:
       - postgres_catalog_db:/var/lib/postgresql/data/
-    
+
   basketDb:
     container_name: basketDb
     environment:
@@ -20,11 +23,16 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=BasketDb
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5433:5432"
     volumes:
       - postgres_basket_db:/var/lib/postgresql/data/
-  
+
   identityDb:
     container_name: identityDb
     environment:
@@ -32,11 +40,16 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=IdentityDb
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5434:5432"
     volumes:
-      - identity_catalog_db:/var/lib/postgresql/data/
-  
+      - postgres_identity_db:/var/lib/postgresql/data/
+
   order.query.db:
     container_name: order.query.db
     environment:
@@ -44,27 +57,43 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=OrderQueryDb
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5435:5432"
     volumes:
       - postgres_order_query_db:/var/lib/postgresql/data/
-      
+
   distributedCache:
     container_name: distributedCache
     restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     ports:
       - "6379:6379"
-  
+
   rabbitmq:
     container_name: rabbitmq
     restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     hostname: rabbitmq
-    
+
   order.command.db:
     container_name: order.command.db
     environment:
@@ -72,13 +101,25 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=OrderCommandDb
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5436:5432"
     volumes:
       - postgres_order_command_db:/var/lib/postgresql/data/
-  
+
   catalog.api:
     container_name: catalog.api
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || curl -sf http://localhost:8080/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -87,25 +128,34 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/catalog.pfx
       - ConnectionStrings__Database=Server=catalogdb;Port=5432;Database=CatalogDb;User Id=postgres;Password=postgres
       - Logger__elasticsearch=http://elasticsearch:9200
-      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Url=https://localhost:7063 # identity api url in docker
       - Identity__Audience=catalog
       - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
       - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      - catalogDb
-      - elasticsearch
+      catalogDb:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
     ports:
       - "6000:8080"
       - "6060:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-  
+
   basket.api:
     container_name: basket.api
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || curl -sf http://localhost:8080/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -117,27 +167,38 @@ services:
       - Grpc__Discount=http://discount.grpc:8080
       - OrderCommandClient__BaseUrl=http://order.command.api:8080
       - Logger__elasticsearch=http://elasticsearch:9200
-      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Url=https://localhost:7063 # identity api url in docker
       - Identity__Audience=basket
       - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
       - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      - basketDb
-      - distributedCache
-      - discount.grpc
-      - elasticsearch
+      basketDb:
+        condition: service_healthy
+      distributedCache:
+        condition: service_healthy
+      discount.grpc:
+        condition: service_started
+      identity.api:
+        condition: service_started
     ports:
       - "6001:8080"
       - "6061:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
 
   discount.grpc:
     container_name: discount.grpc
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "grpc_health_probe", "-addr=localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -156,12 +217,19 @@ services:
       - "6002:8080"
       - "6062:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-  
+
   order.command.api:
     container_name: order.command.api
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || curl -sf http://localhost:8080/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -172,7 +240,7 @@ services:
       - RabbitMQ__URI=rabbitmq
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest
-      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Url=https://localhost:7063 # identity api url in docker
       - Identity__Audience=orders_command
       - Logger__elasticsearch=http://elasticsearch:9200
       - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger
@@ -180,19 +248,29 @@ services:
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      - order.command.db
-      - elasticsearch
-      - rabbitmq
+      order.command.db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
     ports:
       - "6003:8080"
       - "6063:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-  
+
   identity.api:
     container_name: identity.api
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     env_file:
       - .env
     environment:
@@ -211,16 +289,26 @@ services:
       - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      identityDb:
+        condition: service_healthy
     ports:
       - "7000:8080"
       - "7063:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-  
+
   order.query.eventprocessor:
     container_name: order.query.eventprocessor
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || curl -sf http://localhost:8080/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -229,7 +317,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/order-query-event-processor.pfx
       - RabbitMQ__URI=rabbitmq
       - RabbitMQ__Username=guest
-      - RabbitMQ__Password=guest 
+      - RabbitMQ__Password=guest
       - ConnectionStrings__Database=Host=order.query.db;Port=5432;Database=OrderQueryDb;User Id=postgres;Password=postgres
       - QueueSettings__OrderViewQueues__OrderCreatedEvent__Name=order_created_event_queue
       - QueueSettings__OrderViewQueues__OrderCreatedEvent__Dlq=order_created_event_queue_dlq
@@ -246,19 +334,27 @@ services:
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      - rabbitmq
-      - order.query.db
-      - elasticsearch
+      rabbitmq:
+          condition: service_healthy
+      order.query.db:
+          condition: service_healthy
     ports:
       - "6004:8080"
       - "7064:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-  
+
   order.query.api:
     container_name: order.query.api
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sfk https://localhost:8081/hc || curl -sf http://localhost:8080/hc || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -271,21 +367,24 @@ services:
       - OTEL_EXPORTER_JAEGER_AGENT_PORT=6831
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - Identity__Url=https://localhost:7063 # identity api url in docker 
+      - Identity__Url=https://localhost:7063 # identity api url in docker
       - Identity__Audience=orders_query
     depends_on:
-      - order.query.db
-      - elasticsearch
+      order.query.db:
+        condition: service_healthy
+      identity.api:
+        condition: service_started
     ports:
       - "6005:8080"
       - "7065:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-        
+
   api.gateway:
     container_name: api.gateway
+    restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
@@ -305,28 +404,42 @@ services:
       - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
-      - catalog.api
-      - basket.api
-      - discount.grpc
-      - order.command.api
-      - order.query.api
-      - identity.api
-      - elasticsearch
+      catalog.api:
+        condition: service_healthy
+      basket.api:
+        condition: service_healthy
+      discount.grpc:
+        condition: service_healthy
+      order.command.api:
+        condition: service_healthy
+      order.query.api:
+        condition: service_healthy
+      identity.api:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "6006:8080"
       - "7066:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
       - ./certificates:/app/certificates
-    
+
   elasticsearch:
     container_name: elasticsearch
+    restart: unless-stopped
     environment:
       - xpack.monitoring.enabled=true
       - xpack.watcher.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -E '\"status\":\"(green|yellow)\"' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     ports:
       - "9200:9200"
     volumes:
@@ -334,15 +447,18 @@ services:
 
   kibana:
     container_name: kibana
+    restart: unless-stopped
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "5601:5601"
-  
+
   otel-collector:
     container_name: otel-collector
+    restart: unless-stopped
     command: --config /etc/otelcol/otel-collector-config.yml
     volumes:
       - ./otel/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml
@@ -355,6 +471,7 @@ services:
 
   jaeger:
     container_name: jaeger
+    restart: unless-stopped
     command: --query.ui-config=/etc/jaeger/jaeger-ui.json --collector.otlp.enabled=true --prometheus.server-url=http://prometheus:9090 --prometheus.query.support-spanmetrics-connector=true
     environment:
       - METRICS_STORAGE_TYPE=prometheus
@@ -367,6 +484,7 @@ services:
 
   prometheus:
     container_name: prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
@@ -374,6 +492,7 @@ services:
 
   loki:
     container_name: loki
+    restart: unless-stopped
     command: -config.file=/mnt/config/loki-config.yml
     volumes:
       - ./otel/loki.yml:/mnt/config/loki-config.yml

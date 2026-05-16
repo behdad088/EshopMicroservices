@@ -1,12 +1,13 @@
 using Discount.Grpc.Configurations.ConfigurationOptions;
 using Discount.Grpc.Data;
 using Discount.Grpc.Services;
-using eshop.Shared;
 using eshop.Shared.Configurations;
+using eshop.Shared.HealthChecks;
 using eshop.Shared.Logger;
 using eshop.Shared.Middlewares;
 using eshop.Shared.OpenTelemetry;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,11 @@ builder.Services.AddGrpc();
 builder.Services.AddDbContext<DiscountContext>(options =>
     options.UseSqlite(databaseConfigurations.SqliteDb));
 
+// Standardized gRPC health-checking protocol (grpc.health.v1.Health).
+// Probed by grpc_health_probe from the Docker healthcheck.
+builder.Services.AddGrpcHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy());
+
 builder.Services.MigrateDatabase();
 var app = builder.Build();
 app.UseSerilogRequestLogging(options =>
@@ -32,6 +38,9 @@ app.UseSerilogRequestLogging(options =>
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 });
 app.UseTraceIdentifierHeader();
+app.MapDefaultHealthChecks();
+app.MapGrpcHealthChecksService();
+
 // Configure the HTTP request pipeline.
 app.MapGrpcService<DiscountService>();
 app.MapGet("/",
@@ -39,7 +48,7 @@ app.MapGet("/",
         "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 try
-{ 
+{
     await app.RunAsync();
 }
 catch (Exception e)
