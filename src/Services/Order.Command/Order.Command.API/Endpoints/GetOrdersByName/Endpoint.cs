@@ -7,7 +7,7 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/orders", HandleAsync);
+        Get("/orders");
         Name("GetOrdersByName");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
@@ -19,12 +19,12 @@ public class Endpoint : EndpointBase<Request, Response>
         Policies(Authorization.Policies.CanGetListOfOrdersByOrderName);
     }
 
-    public override async Task<IResult> HandleAsync(Request request)
+    protected override async Task<IResult> HandleAsync(Request request, EndpointContext ctx)
     {
         using var _ = LogContext.PushProperty(LogProperties.CustomerName, request.CustomerName);
-        
+
         var query = MapToQuery(request);
-        var result = await SendAsync(query).ConfigureAwait(false);
+        var result = await ctx.SendAsync(query).ConfigureAwait(false);
         var response = MapToResponse(result);
         return Results.Ok(response);
     }

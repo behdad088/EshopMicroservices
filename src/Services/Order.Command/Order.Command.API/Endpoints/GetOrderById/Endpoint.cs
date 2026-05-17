@@ -6,7 +6,7 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Get("/customers/{customer_id}/orders/{id}", HandleAsync);
+        Get("/customers/{customer_id}/orders/{id}");
         Name("GetOrdersById");
         Produces();
         ProducesProblem(StatusCodes.Status400BadRequest);
@@ -18,20 +18,20 @@ public class Endpoint : EndpointBase<Request, Response>
         Policies();
     }
 
-    public override async Task<IResult> HandleAsync(Request request)
+    protected override async Task<IResult> HandleAsync(Request request, EndpointContext ctx)
     {
         using var _ = LogContext.PushProperty(LogProperties.OrderId, request.Id);
         using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
-        
-        var isAuthorize = await AuthorizationService.CanGetOrderByIdAsync(
-            Context, request.CustomerId).ConfigureAwait(false);
-        
+
+        var isAuthorize = await ctx.Authorization.CanGetOrderByIdAsync(
+            ctx.HttpContext, request.CustomerId).ConfigureAwait(false);
+
         if (!isAuthorize)
             return Results.Forbid();
-        
+
         var query = MapToQuery(request);
-        var result = await SendAsync(query).ConfigureAwait(false);
-        Context.Response.Headers.ETag = $"W/\"{result.Order.Version}\"";
+        var result = await ctx.SendAsync(query).ConfigureAwait(false);
+        ctx.HttpContext.Response.Headers.ETag = $"W/\"{result.Order.Version}\"";
 
         var response = MapToResponse(result);
         return Results.Ok(response);

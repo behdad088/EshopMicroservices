@@ -6,7 +6,7 @@ public class Endpoint : EndpointBase<Request, Response>
 {
     public override void MapEndpoint()
     {
-        Post("/customers/{customer_id}/orders/{order_id}", HandleAsync);
+        Post("/customers/{customer_id}/orders/{order_id}");
         Name("CreateOrder");
         Produces(StatusCodes.Status201Created);
         ProducesProblem(StatusCodes.Status400BadRequest);
@@ -18,22 +18,22 @@ public class Endpoint : EndpointBase<Request, Response>
         Policies();
     }
 
-    public override async Task<IResult> HandleAsync(Request request)
+    protected override async Task<IResult> HandleAsync(Request request, EndpointContext ctx)
     {
         using var _ = LogContext.PushProperty(LogProperties.OrderId, request.Id);
         using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
-        
-        var isAuthorize = await AuthorizationService.CanCreateOrderAsync(
-            Context, request.CustomerId).ConfigureAwait(false);
-        
+
+        var isAuthorize = await ctx.Authorization.CanCreateOrderAsync(
+            ctx.HttpContext, request.CustomerId).ConfigureAwait(false);
+
         if (!isAuthorize)
             return Results.Forbid();
-        
+
         var command = ToCommand(request);
         if (command is null)
             return Results.BadRequest("Null request");
 
-        var result = await SendAsync(command).ConfigureAwait(false);
+        var result = await ctx.SendAsync(command).ConfigureAwait(false);
 
         switch (result)
         {

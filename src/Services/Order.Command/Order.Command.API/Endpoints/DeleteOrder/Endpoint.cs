@@ -7,7 +7,7 @@ public class Endpoint : EndpointBase<Request>
 {
     public override void MapEndpoint()
     {
-        Delete("/customers/{customer_id}/orders/{order_id}", HandleAsync);
+        Delete("/customers/{customer_id}/orders/{order_id}");
         Name("DeleteOrder");
         Produces(StatusCodes.Status204NoContent);
         ProducesProblem(StatusCodes.Status400BadRequest);
@@ -20,21 +20,21 @@ public class Endpoint : EndpointBase<Request>
         Policies();
     }
 
-    public override async Task<IResult> HandleAsync(Request request)
+    protected override async Task<IResult> HandleAsync(Request request, EndpointContext ctx)
     {
         using var _ = LogContext.PushProperty(LogProperties.OrderId, request.OrderId);
         using var __ = LogContext.PushProperty(LogProperties.CustomerId, request.CustomerId);
-        
-        var isAuthorize = await AuthorizationService.CanDeleteOrderAsync(
-            Context, request.CustomerId).ConfigureAwait(false);
-        
+
+        var isAuthorize = await ctx.Authorization.CanDeleteOrderAsync(
+            ctx.HttpContext, request.CustomerId).ConfigureAwait(false);
+
         if (!isAuthorize)
             return Results.Forbid();
-        
-        var eTag = Context.Request.Headers.IfMatch;
+
+        var eTag = ctx.HttpContext.Request.Headers.IfMatch;
         var command = MapToCommand(request, eTag);
-        
-        var result = await SendAsync(command).ConfigureAwait(false);
+
+        var result = await ctx.SendAsync(command).ConfigureAwait(false);
 
         return result switch
         {

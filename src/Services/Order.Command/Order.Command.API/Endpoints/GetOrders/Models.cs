@@ -5,15 +5,15 @@ namespace Order.Command.API.Endpoints.GetOrders;
 
 public record Request
 {
-    [property: FromQuery(Name = "page_size")]
+    [FromQuery(Name = "page_size")]
     public int PageSize { get; set; } = 10;
 
-    [property: FromQuery(Name = "page_index")]
+    [FromQuery(Name = "page_index")]
     public int PageIndex { get; set; } = 0;
 }
 
 public record Response(
-    [property: JsonPropertyName("orders")] 
+    [property: JsonPropertyName("orders")]
     PaginatedItems<ModuleOrder> Orders);
 
 public record ModuleOrder(
