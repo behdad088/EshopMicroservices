@@ -94,6 +94,26 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     hostname: rabbitmq
 
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - mailpit_data:/data
+    healthcheck:
+      test: [ "CMD", "/mailpit", "readyz" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
   order.command.db:
     container_name: order.command.db
     environment:
@@ -280,8 +300,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certificates/identity.pfx
       - ConnectionStrings__IdentityDB=Host=identityDb;Port=5432;Database=IdentityDb;User Id=postgres;Password=postgres
-      - EmailService__base_url=https://send.api.mailtrap.io
-      - EmailService__sender=hello@behdad.dev
+      - EmailService__base_url=mailpit
+      - EmailService__sender=no-reply@eshop.dev
       - EmailService__authentication_key # your mailtrap authentication key, I added mine to .env file
       - service_url=https://localhost:7063 # identity api url in docker
       - Logger__elasticsearch=http://elasticsearch:9200
@@ -335,9 +355,9 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     depends_on:
       rabbitmq:
-          condition: service_healthy
+        condition: service_healthy
       order.query.db:
-          condition: service_healthy
+        condition: service_healthy
     ports:
       - "6004:8080"
       - "7064:8081"
