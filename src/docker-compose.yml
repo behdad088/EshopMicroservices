@@ -19,6 +19,11 @@ services:
     networks:
       - data
 
+  mailpit:
+    image: axllent/mailpit:latest
+    networks:
+      - data
+
   distributedCache:
     image: redis:alpine
     networks:
@@ -157,3 +162,4 @@ volumes:
   postgres_identity_db:
   rabbitmq_data:
   elasticsearch-data:
+  mailpit_data:

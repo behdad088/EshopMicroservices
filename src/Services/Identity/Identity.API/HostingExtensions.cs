@@ -86,7 +86,7 @@ internal static class HostingExtensions
             identityServerBuilder.AddDeveloperSigningCredential();
 
         builder.Services.AddTransient<IProfileService, ProfileService>();
-        builder.Services.AddTransient<IVerificationEmailService, VerificationEmailService>();
+        builder.Services.AddTransient<IVerificationEmailService, MailKitService>();
 
         builder.Services.AddAuthentication()
             .AddGoogle(options =>

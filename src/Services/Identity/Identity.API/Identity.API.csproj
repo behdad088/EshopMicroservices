@@ -8,17 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
-        <PackageReference Include="Microsoft.Build.Framework" />
-        <PackageReference Include="Refit" />
-        <PackageReference Include="Refit.HttpClientFactory" />
-        <PackageReference Include="Serilog.AspNetCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+        <PackageReference Include="Duende.IdentityServer.AspNetIdentity"/>
+        <PackageReference Include="MailKit"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google"/>
+        <PackageReference Include="Microsoft.Build.Framework"/>
+        <PackageReference Include="Refit"/>
+        <PackageReference Include="Refit.HttpClientFactory"/>
+        <PackageReference Include="Serilog.AspNetCore"/>
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -28,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Data\Migrations\" />
+        <Folder Include="Data\Migrations\"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -38,6 +39,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.csproj"/>
     </ItemGroup>
 </Project>
