@@ -10,7 +10,7 @@ public static class EndpointExtensions
     {
         var serviceDescriptors = assembly.DefinedTypes
             .Where(type => type is { IsAbstract: false, IsInterface: false } && type.IsAssignableTo(typeof(IEndpoint)))
-            .Select(type => ServiceDescriptor.Transient(typeof(IEndpoint), type))
+            .Select(type => ServiceDescriptor.Singleton(typeof(IEndpoint), type))
             .ToArray();
 
         services.TryAddEnumerable(serviceDescriptors);

@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,233 +7,204 @@ namespace Order.Command.API.Endpoints;
 
 public interface IEndpoint
 {
+    void Configure(IEndpointRouteBuilder routes);
     void MapEndpoint();
-
-    void Configure(IEndpointRouteBuilder app);
 }
 
 /// <summary>
-///     Only use this base class when the endpoint does not return any dto
+///     Per-request context handed to <see cref="EndpointBase{TRequest,TResponse}.HandleAsync"/>.
+///     Replaces the instance-level state that the previous version stored on the endpoint object,
+///     which was unsafe under concurrent requests because endpoint instances are shared across requests.
 /// </summary>
-/// <typeparam name="TRequest">Request dto</typeparam>
-public abstract class EndpointBase<TRequest> : EndpointBase<TRequest, object?> where TRequest : notnull, new();
+public sealed record EndpointContext(
+    HttpContext HttpContext,
+    IAuthorizationService Authorization,
+    ISender Sender,
+    CancellationToken CancellationToken)
+{
+    /// <summary>Dispatch a MediatR request using this request's cancellation token.</summary>
+    public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request)
+        => Sender.Send(request, CancellationToken);
+}
 
 /// <summary>
-///     use this base class for defining endpoints that use both request and response dtos.
+///     Base for endpoints that don't return a response body (typically 204).
 /// </summary>
-/// <typeparam name="TRequest">Request dto</typeparam>
-/// <typeparam name="TResponse">Response dto</typeparam>
-public abstract class EndpointBase<TRequest, TResponse> : IEndpoint where TRequest : notnull, new()
-{
-    private IEndpointRouteBuilder _endpointRouteBuilder = default!;
-    private RouteHandlerBuilder _routeHandlerBuilder = default!;
-    private ISender _sender = default!;
-    protected HttpContext Context { get; set; } = default!;
-    protected CancellationToken CancellationToken { get; set; }
-    protected IAuthorizationService AuthorizationService { get; set; } = default!;
+public abstract class EndpointBase<TRequest> : EndpointBase<TRequest, object?>
+    where TRequest : notnull, new();
 
-    private static JsonSerializerOptions JsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+/// <summary>
+///     Base for endpoints with a request and a typed response body.
+///
+///     Subclasses override <see cref="MapEndpoint"/> (declaring the route + metadata)
+///     and <see cref="HandleAsync"/> (the per-request logic).
+///
+///     Binding:
+///     <list type="bullet">
+///         <item><description>POST/PUT/PATCH: body is bound by the framework via <c>[FromBody]</c> (uses the configured JSON pipeline).</description></item>
+///         <item><description>GET/DELETE: no body is read. The Request DTO's <c>[FromRoute]</c> and <c>[FromQuery]</c> properties are populated from <c>HttpContext.Request.RouteValues</c> / <c>HttpContext.Request.Query</c>.</description></item>
+///         <item><description>For body verbs, any <c>[FromRoute]</c> / <c>[FromQuery]</c> properties on the Request DTO are also populated after body deserialization.</description></item>
+///     </list>
+///     Route/query introspection runs once per closed generic type (cached).
+/// </summary>
+public abstract class EndpointBase<TRequest, TResponse> : IEndpoint
+    where TRequest : notnull, new()
+{
+    private IEndpointRouteBuilder _routes = default!;
+    private RouteHandlerBuilder _builder = default!;
+
+    public void Configure(IEndpointRouteBuilder routes) => _routes = routes;
 
     /// <summary>
-    ///     Map the endpoint with a route options : <see cref="Post" />, <see cref="Get" />, <see cref="Delete" />,
-    ///     <see cref="Put" />, <see cref="Patch" />
-    ///     Allowed metadata to add to an endpoint : <see cref="Name" />, <see cref="Produces" />,
-    ///     <see cref="ProducesProblem" />, <see cref="Summary" />,
-    ///     <see cref="Description" />, <see cref="Tags" />
-    ///     Following
+    ///     Declare the route, verb, and OpenAPI metadata. Use the helpers
+    ///     (<see cref="Post"/>, <see cref="Get"/>, <see cref="Put"/>, <see cref="Delete"/>, <see cref="Patch"/>),
+    ///     then optionally chain <see cref="Name"/>, <see cref="Produces"/>, <see cref="ProducesProblem"/>,
+    ///     <see cref="Summary"/>, <see cref="Description"/>, <see cref="Tags"/>, <see cref="Policies"/>,
+    ///     <see cref="AllowAnonymous"/>.
     /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
-    public virtual void MapEndpoint()
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void MapEndpoint();
 
-    public void Configure(IEndpointRouteBuilder app)
-    {
-        _endpointRouteBuilder = app;
-    }
+    /// <summary>
+    ///     Handle a single request. Use <paramref name="ctx"/> to reach the HttpContext, the
+    ///     authorization service, MediatR sender, and the request's cancellation token. Do NOT
+    ///     stash these on the instance — endpoint instances are shared across concurrent requests.
+    /// </summary>
+    protected abstract Task<IResult> HandleAsync(TRequest request, EndpointContext ctx);
 
-    public virtual Task<IResult> HandleAsync(TRequest request)
-    {
-        throw new NotImplementedException();
-    }
+    protected RouteHandlerBuilder Post(string pattern)
+        => _builder = _routes.MapPost(pattern, HandleWithBodyAsync);
 
-    public virtual IResult Handle(TRequest request)
-    {
-        throw new NotImplementedException();
-    }
+    protected RouteHandlerBuilder Put(string pattern)
+        => _builder = _routes.MapPut(pattern, HandleWithBodyAsync);
 
-    protected void Post(string pattern, Func<TRequest, Task<IResult>> handler)
-    {
-        _routeHandlerBuilder = _endpointRouteBuilder.MapPost(pattern, (
-            HttpContext context,
-            IAuthorizationService authorizationService,
-            CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
-        _routeHandlerBuilder.WithRequestTimeout(TimeSpan.FromSeconds(10));
-    }
+    protected RouteHandlerBuilder Patch(string pattern)
+        => _builder = _routes.MapPatch(pattern, HandleWithBodyAsync);
 
-    protected void Get(string pattern, Func<TRequest, Task<IResult>> handler)
-    {
-        _routeHandlerBuilder = _endpointRouteBuilder.MapGet(pattern, (
-            HttpContext context,
-            IAuthorizationService authorizationService,
-            CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
-    }
+    protected RouteHandlerBuilder Get(string pattern)
+        => _builder = _routes.MapGet(pattern, HandleNoBodyAsync);
 
-    protected void Delete(string pattern, Func<TRequest, Task<IResult>> handler)
-    {
-        _routeHandlerBuilder = _endpointRouteBuilder.MapDelete(pattern, (
-            HttpContext context,
-            IAuthorizationService authorizationService,
-            CancellationToken ct,
-            [AsParameters] TRequest request,
-            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
-    }
+    protected RouteHandlerBuilder Delete(string pattern)
+        => _builder = _routes.MapDelete(pattern, HandleNoBodyAsync);
 
-    protected void Put(string pattern, Func<TRequest, Task<IResult>> handler)
-    {
-        _routeHandlerBuilder = _endpointRouteBuilder.MapPut(pattern, (
-            HttpContext context,
-            IAuthorizationService authorizationService,
-            CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
-    }
-
-    protected void Patch(string pattern, Func<TRequest, Task<IResult>> handler)
-    {
-        _routeHandlerBuilder = _endpointRouteBuilder.MapPatch(pattern, (
-            HttpContext context,
-            IAuthorizationService authorizationService,
-            CancellationToken ct,
-            ISender sender) => DelegateHandlerAsync(context, authorizationService, handler, sender, ct));
-    }
-
-    private async Task<IResult> DelegateHandlerAsync(
-        HttpContext context,
-        IAuthorizationService authorizationService,
-        Func<TRequest, Task<IResult>> handler,
+    private Task<IResult> HandleNoBodyAsync(
+        HttpContext http,
+        IAuthorizationService auth,
         ISender sender,
         CancellationToken ct)
     {
-        Context = context;
-        AuthorizationService = authorizationService;
-        CancellationToken = ct;
-        _sender = sender;
-
-        var request = await BindRequestAsync(context).ConfigureAwait(false);
-        return await handler(request).ConfigureAwait(false);
+        var request = new TRequest();
+        ApplyRouteAndQuery(request, http);
+        return HandleAsync(request, new EndpointContext(http, auth, sender, ct));
     }
 
-    protected async Task<T> SendAsync<T>(IRequest<T> request)
+    private async Task<IResult> HandleWithBodyAsync(
+        [FromBody] TRequest? body,
+        HttpContext http,
+        IAuthorizationService auth,
+        ISender sender,
+        CancellationToken ct)
     {
-        return await _sender.Send(request, CancellationToken).ConfigureAwait(false);
+        var request = body ?? new TRequest();
+        ApplyRouteAndQuery(request, http);
+        return await HandleAsync(request, new EndpointContext(http, auth, sender, ct));
     }
 
-    private static async Task<TRequest> BindRequestAsync(HttpContext context)
-    {
-        var properties = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        var request = await BindRequestBody(context);
-        BindQueryAndRoute(properties, context, request);
-        return request;
-    }
+    private sealed record BindableProperty(PropertyInfo Property, string? RouteName, string? QueryName);
 
-    private static void BindQueryAndRoute(PropertyInfo[] properties, HttpContext context, TRequest request)
+    private static readonly Lazy<BindableProperty[]> BindableProperties = new(() =>
+        typeof(TRequest)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite)
+            .Select(p =>
+            {
+                var route = p.GetCustomAttribute<FromRouteAttribute>();
+                var query = p.GetCustomAttribute<FromQueryAttribute>();
+                return new BindableProperty(
+                    p,
+                    route is not null ? (route.Name ?? p.Name) : null,
+                    query is not null ? (query.Name ?? p.Name) : null);
+            })
+            .Where(b => b.RouteName is not null || b.QueryName is not null)
+            .ToArray());
+
+    private static void ApplyRouteAndQuery(TRequest request, HttpContext http)
     {
-        foreach (var property in properties)
+        foreach (var info in BindableProperties.Value)
         {
-            var queryName = GetAttributeName<FromQueryAttribute>(property);
-            var routeName = GetAttributeName<FromRouteAttribute>(property);
+            if (info.RouteName is not null
+                && http.Request.RouteValues.TryGetValue(info.RouteName, out var routeRaw)
+                && routeRaw is not null)
+            {
+                var converted = ConvertValue(routeRaw, info.Property.PropertyType);
+                if (converted is not null) info.Property.SetValue(request, converted);
+                continue;
+            }
 
-            var queryValue = context.Request.Query[queryName ?? property.Name];
-            var routeValue = context.Request.RouteValues[routeName ?? property.Name];
-
-            if (!string.IsNullOrEmpty(queryValue))
-                property.SetValue(request, Convert.ChangeType(queryValue.ToString(), property.PropertyType));
-            else if (routeValue != null)
-                property.SetValue(request, Convert.ChangeType(routeValue.ToString(), property.PropertyType));
+            if (info.QueryName is not null
+                && http.Request.Query.TryGetValue(info.QueryName, out var queryRaw)
+                && queryRaw.Count > 0
+                && !string.IsNullOrEmpty(queryRaw[0]))
+            {
+                var converted = ConvertValue(queryRaw[0]!, info.Property.PropertyType);
+                if (converted is not null) info.Property.SetValue(request, converted);
+            }
         }
     }
 
-    private static async Task<TRequest> BindRequestBody(HttpContext context)
+    private static object? ConvertValue(object raw, Type target)
     {
-        if (!context.Request.HasJsonContentType() 
-            || !(context.Request.ContentLength > 0)
-            && !context.Request.Body.CanRead) return new TRequest();
-
-        context.Request.EnableBuffering(); // Allow the stream to be read multiple times
-        context.Request.Body.Position = 0; // Ensure we're at the start of the stream
-
-        using var reader = new StreamReader(context.Request.Body);
-        var jsonBody = await reader.ReadToEndAsync();
-        context.Request.Body.Position = 0; // Reset stream position after reading
-
-        if (string.IsNullOrWhiteSpace(jsonBody))
-            return new TRequest();
+        if (target == typeof(string)) return raw.ToString();
+        var underlying = Nullable.GetUnderlyingType(target) ?? target;
+        if (underlying == typeof(Guid) && Guid.TryParse(raw.ToString(), out var g)) return g;
+        if (underlying == typeof(Ulid) && Ulid.TryParse(raw.ToString(), out var u)) return u;
 
         try
         {
-            var bodyData = JsonSerializer.Deserialize<TRequest>(jsonBody, JsonSerializerOptions);
-            return bodyData ?? new TRequest();
+            return Convert.ChangeType(raw, underlying);
         }
-        catch (JsonException ex)
+        catch (FormatException e)
         {
-            Console.WriteLine($"JSON Deserialization error: {ex.Message}");
-            throw;
+            Log.Error(e, "Failed to convert value {Raw} to type {Target}", raw, target);
+            return null;
+        }
+        catch (InvalidCastException e)
+        {
+            Log.Error(e, "Failed to convert value {Raw} to type {Target}", raw, target);
+            return null;
+        }
+        catch (OverflowException e)
+        {
+            Log.Error(e, "Failed to convert value {Raw} to type {Target}", raw, target);
+            return null;
         }
     }
 
-    private static string? GetAttributeName<TAttribute>(PropertyInfo property) where TAttribute : Attribute
-    {
-        var attribute = property.GetCustomAttribute<TAttribute>();
-        return attribute switch
-        {
-            FromQueryAttribute fromQuery => fromQuery.Name,
-            FromRouteAttribute fromRoute => fromRoute.Name,
-            JsonPropertyNameAttribute jsonProperty => jsonProperty.Name,
-            _ => null
-        };
-    }
+    protected RouteHandlerBuilder Name(string name)
+        => _builder.WithName(name);
 
-    protected void Name(string name)
-    {
-        _routeHandlerBuilder.WithName(name);
-    }
-
-    protected void Produces(
+    protected RouteHandlerBuilder Produces(
         int statusCode = StatusCodes.Status200OK,
         string? contentType = null,
         params string[] additionalContentTypes)
-    {
-        _routeHandlerBuilder.Produces<TResponse>(statusCode, contentType, additionalContentTypes);
-    }
+        => _builder.Produces<TResponse>(statusCode, contentType, additionalContentTypes);
 
-    protected void ProducesProblem(int statusCode, string? contentType = null)
-    {
-        _routeHandlerBuilder.ProducesProblem(statusCode, contentType);
-    }
+    protected RouteHandlerBuilder ProducesProblem(int statusCode, string? contentType = null)
+        => _builder.ProducesProblem(statusCode, contentType);
 
-    protected void Summary(string summary)
-    {
-        _routeHandlerBuilder.WithSummary(summary);
-    }
+    protected RouteHandlerBuilder Summary(string summary)
+        => _builder.WithSummary(summary);
 
-    protected void Description(string description)
-    {
-        _routeHandlerBuilder.WithDescription(description);
-    }
+    protected RouteHandlerBuilder Description(string description)
+        => _builder.WithDescription(description);
 
-    protected void Tags(params string[] tags)
-    {
-        _routeHandlerBuilder.WithTags(tags);
-    }
+    protected RouteHandlerBuilder Tags(params string[] tags)
+        => _builder.WithTags(tags);
 
-    protected void Policies(params string[] policyNames)
-    {
-        if (policyNames.Length == 0)
-            _routeHandlerBuilder.RequireAuthorization();
-        else
-            _routeHandlerBuilder.RequireAuthorization(policyNames);
-    }
+    protected RouteHandlerBuilder Policies(params string[] policyNames)
+        => policyNames.Length == 0
+            ? _builder.RequireAuthorization()
+            : _builder.RequireAuthorization(policyNames);
+
+    protected RouteHandlerBuilder AllowAnonymous()
+        => _builder.AllowAnonymous();
 }
