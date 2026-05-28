@@ -43,10 +43,11 @@ public record GetOrdersByOrderNameResult(
         int PaymentMethod);
 }
 
-public class GetOrdersByCustomerHandler(IDocumentSession session) : 
+public class GetOrdersByNameHandler(IDocumentSession session) :
     ICommandHandler<GetOrdersByOrderNameQuery, PaginatedItems<GetOrdersByOrderNameResult>>
 {
-    private readonly ILogger _logger = Log.ForContext<GetOrdersByCustomerHandler>();
+    private readonly ILogger _logger = Log.ForContext<GetOrdersByNameHandler>();
+
     public async Task<PaginatedItems<GetOrdersByOrderNameResult>> ExecuteAsync(
         GetOrdersByOrderNameQuery command,
         CancellationToken ct)
@@ -54,24 +55,24 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
         _logger.Information("Get orders by name");
         var pageSize = command.PageSize;
         var pageIndex = command.PageIndex;
-        
-        var totalCount = await session.Query<OrderView>()
-            .Where(x => x.OrderName == command.OrderName && x.DeletedDate == null)
-            .LongCountAsync(ct).ConfigureAwait(false);
 
         var dbResult = await session.Query<OrderView>()
-            .Where(x => x.OrderName == command.OrderName && x.DeletedDate == null)
-            .OrderBy(x => x.OrderName)
+            .Stats(out var stats)
+            .Where(x => x.DeletedDate == null)
+            .Where(x => x.OrderName!.PlainTextSearch(command.OrderName))
+            .OrderBy(x => x.Id)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+        var totalCount = stats.TotalResults;
+
         var result = dbResult.Select(MapResult).ToArray();
         _logger.Information("Successfully retrieved orders by name");
-        return new  PaginatedItems<GetOrdersByOrderNameResult>(pageIndex, pageSize, totalCount, result);
+        return new PaginatedItems<GetOrdersByOrderNameResult>(pageIndex, pageSize, totalCount, result);
     }
-    
+
     private static GetOrdersByOrderNameResult MapResult(OrderView order)
     {
         return new GetOrdersByOrderNameResult(
@@ -82,9 +83,9 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
             Status: order.OrderStatus!,
-            OrderItems: order.OrderItems.Select(x => 
-                new  GetOrdersByOrderNameResult.OrderItem(
-                    x.ProductId, 
+            OrderItems: order.OrderItems.Select(x =>
+                new GetOrdersByOrderNameResult.OrderItem(
+                    x.ProductId,
                     x.Quantity,
                     x.Price)).ToArray().AsReadOnly()
         );

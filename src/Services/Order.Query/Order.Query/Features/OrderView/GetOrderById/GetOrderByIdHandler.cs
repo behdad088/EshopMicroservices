@@ -53,12 +53,14 @@ public record GetOrderByIdResult(
 public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<GetOrderByIdQuery, Result>
 {
     private readonly ILogger _logger = Log.ForContext<GetOrderByIdHandler>();
+
     public async Task<Result> ExecuteAsync(GetOrderByIdQuery command, CancellationToken ct)
     {
         _logger.Information("Get orders by id.");
         var result = await session
             .Query<OrderView>()
-            .FirstOrDefaultAsync(x => x.Id == command.OrderId && x.CustomerId == command.CustomerId,
+            .FirstOrDefaultAsync(
+                x => x.Id == command.OrderId && x.CustomerId == command.CustomerId && x.DeletedDate == null,
                 token: ct)
             .ConfigureAwait(false);
 
@@ -67,9 +69,9 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
             _logger.Information("Order not found.");
             return new Result.NotFound();
         }
-        
+
         _logger.Information("Successfully retrieved orders by id.");
-        
+
         return new Result.Success(MapResult(result));
     }
 
@@ -83,13 +85,13 @@ public class GetOrderByIdHandler(IDocumentSession session) : ICommandHandler<Get
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
             Status: order.OrderStatus!,
-            Version:  order.Version,
-            OrderItems: order.OrderItems.Select(x => 
-                new  GetOrderByIdResult.OrderItem(
-                    x.ProductId, 
+            Version: order.Version,
+            OrderItems: order.OrderItems.Select(x =>
+                new GetOrderByIdResult.OrderItem(
+                    x.ProductId,
                     x.Quantity,
                     x.Price)).ToArray().AsReadOnly()
-            );
+        );
     }
 
     private static GetOrderByIdResult.Address MapAddress(OrderView.Address address)

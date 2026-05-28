@@ -52,23 +52,23 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
         _logger.Information("Get all orders");
         var pageSize = command.PageSize;
         var pageIndex = command.PageIndex;
-        
-        var totalCount = await session.Query<OrderView>()
+
+        var dbResult = await session.Query<OrderView>()
+            .Stats(out var stats)
             .Where(x => x.DeletedDate == null)
-            .LongCountAsync(ct).ConfigureAwait(false);
-        
-        var dbResult = await session.Query<OrderView>().Where(x => x.DeletedDate == null)
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+        var totalCount = stats.TotalResults;
+
         var result = dbResult.Select(MapResult).ToArray();
         _logger.Information("Successfully retrieved all orders.");
         return new  PaginatedItems<GetOrdersResult>(pageIndex, pageSize, totalCount, result);
     }
-    
+
     private static GetOrdersResult MapResult(OrderView order)
     {
         return new GetOrdersResult(
@@ -79,9 +79,9 @@ public class GetOrdersHandler(IDocumentSession session) : ICommandHandler<GetOrd
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
             Status: order.OrderStatus!,
-            OrderItems: order.OrderItems.Select(x => 
+            OrderItems: order.OrderItems.Select(x =>
                 new  GetOrdersResult.OrderItem(
-                    x.ProductId, 
+                    x.ProductId,
                     x.Quantity,
                     x.Price)).ToArray().AsReadOnly()
         );

@@ -3,8 +3,7 @@ using System.Text.Json.Serialization;
 namespace Order.Query.Events;
 
 public record OrderCreatedEvent(
-    [property: JsonPropertyName("id")]
-    string Id,
+    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("created_by")]
     string? CreatedBy,
     [property: JsonPropertyName("last_modified")]
@@ -31,20 +30,18 @@ public record OrderCreatedEvent(
     public override string StreamId { get; } = Id;
 
     [property: JsonPropertyName("event_type")]
-    public override string EventType => null!;
+    public override string EventType { get; set; } = null!;
 
     [property: JsonPropertyName("created_at")]
     public override string CreatedAt { get; set; } = null!;
 
     public record OrderItem(
-        [property: JsonPropertyName("id")]
-        string Id,
+        [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("product_id")]
         string ProductId,
         [property: JsonPropertyName("quantity")]
         int? Quantity,
-        [property: JsonPropertyName("price")] 
-        decimal? Price
+        [property: JsonPropertyName("price")] decimal? Price
     );
 
     public record Address(
@@ -58,8 +55,7 @@ public record OrderCreatedEvent(
         string AddressLine,
         [property: JsonPropertyName("country")]
         string Country,
-        [property: JsonPropertyName("state")]
-        string State,
+        [property: JsonPropertyName("state")] string State,
         [property: JsonPropertyName("zip_code")]
         string ZipCode);
 
@@ -70,8 +66,7 @@ public record OrderCreatedEvent(
         string CardNumber,
         [property: JsonPropertyName("expiration")]
         string Expiration,
-        [property: JsonPropertyName("cvv")] 
-        string Cvv,
-        [property: JsonPropertyName("Payment_method")]
+        [property: JsonPropertyName("cvv")] string Cvv,
+        [property: JsonPropertyName("payment_method")]
         int? PaymentMethod);
 }

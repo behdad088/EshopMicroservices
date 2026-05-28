@@ -8,18 +8,19 @@ public class OrderCreatedEventValidator : AbstractValidator<OrderCreatedEvent>
 {
     public OrderCreatedEventValidator()
     {
+        RuleFor(x => x.Version).GreaterThanOrEqualTo(1);
         RuleFor(x => x.Id).MustBeValidUlid();
         RuleFor(x => x.OrderName).NotEmpty().WithMessage("Name is required.");
         RuleFor(x => x.CustomerId).MustBeValidGuid();
         RuleFor(x => x.OrderItems).NotEmpty().WithMessage("OrderItems should not be empty.");
-
+        RuleFor(x => x.EventType).Equal("order_created_event");
         RuleForEach(x => x.OrderItems).SetValidator(new OrderItemValidator());
         RuleFor(x => x.BillingAddress).NotNull().SetValidator(new AddressValidator());
         RuleFor(x => x.ShippingAddress).NotNull().SetValidator(new AddressValidator());
         RuleFor(x => x.PaymentMethod).NotNull().SetValidator(new PaymentValidator());
         RuleFor(x => x).SetValidator(new TotalPriceValidator());
     }
-    
+
     private class TotalPriceValidator : AbstractValidator<OrderCreatedEvent>
     {
         public TotalPriceValidator()
@@ -38,7 +39,7 @@ public class OrderCreatedEventValidator : AbstractValidator<OrderCreatedEvent>
                     $"Total price {totalPrice} does not match total price {totalPriceFromProductItems} from products");
         }
     }
-    
+
     private class AddressValidator : AbstractValidator<OrderCreatedEvent.Address>
     {
         public AddressValidator()
