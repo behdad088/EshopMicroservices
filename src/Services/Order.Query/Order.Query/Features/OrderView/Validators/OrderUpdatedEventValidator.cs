@@ -12,20 +12,21 @@ public class OrderUpdatedEventValidator : AbstractValidator<OrderUpdatedEvent>
         RuleFor(x => x.OrderName).NotEmpty().WithMessage("Name is required.");
         RuleFor(x => x.OrderItems).NotEmpty().WithMessage("OrderItems should not be empty.");
         RuleFor(x => x.Version).GreaterThanOrEqualTo(1);
+        RuleFor(x => x.EventType).Equal("order_updated_event");
 
         RuleFor(x => x.OrderStatus).NotEmpty().Must(value =>
             value is
                 OrderStatus.Cancelled or
                 OrderStatus.Completed or
                 OrderStatus.Pending).WithMessage("Invalid order status.");
-        
+
         RuleForEach(x => x.OrderItems).SetValidator(new OrderItemValidator());
         RuleFor(x => x.BillingAddress).NotNull().SetValidator(new AddressValidator());
         RuleFor(x => x.ShippingAddress).NotNull().SetValidator(new AddressValidator());
         RuleFor(x => x.PaymentMethod).NotNull().SetValidator(new PaymentValidator());
         RuleFor(x => x).SetValidator(new TotalPriceValidator());
     }
-    
+
     private class TotalPriceValidator : AbstractValidator<OrderUpdatedEvent>
     {
         public TotalPriceValidator()
@@ -44,7 +45,7 @@ public class OrderUpdatedEventValidator : AbstractValidator<OrderUpdatedEvent>
                     $"Total price {totalPrice} does not match total price {totalPriceFromProductItems} from products");
         }
     }
-    
+
     private class AddressValidator : AbstractValidator<OrderUpdatedEvent.Address>
     {
         public AddressValidator()
@@ -74,7 +75,7 @@ public class OrderUpdatedEventValidator : AbstractValidator<OrderUpdatedEvent>
             RuleFor(x => x.Quantity).NotNull().GreaterThan(0);
         }
     }
-    
+
     private class PaymentValidator : AbstractValidator<OrderUpdatedEvent.Payment>
     {
         public PaymentValidator()

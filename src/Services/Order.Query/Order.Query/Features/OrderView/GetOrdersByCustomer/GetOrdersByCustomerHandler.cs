@@ -43,7 +43,7 @@ public record GetOrdersByCustomerResult(
         int PaymentMethod);
 }
 
-public class GetOrdersByCustomerHandler(IDocumentSession session) : 
+public class GetOrdersByCustomerHandler(IDocumentSession session) :
     ICommandHandler<GetOrdersByCustomerQuery, PaginatedItems<GetOrdersByCustomerResult>>
 {
     private readonly ILogger _logger = Log.ForContext<GetOrdersByCustomerHandler>();
@@ -54,12 +54,9 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
         _logger.Information("Get order by Customer Id.");
         var pageSize = command.PageSize;
         var pageIndex = command.PageIndex;
-        
-        var totalCount = await session.Query<OrderView>()
-            .Where(x => x.CustomerId == command.CustomerId && x.DeletedDate == null)
-            .LongCountAsync(ct).ConfigureAwait(false);
 
         var dbResult = await session.Query<OrderView>()
+            .Stats(out var stats)
             .Where(x => x.CustomerId == command.CustomerId && x.DeletedDate == null)
             .OrderBy(x => x.OrderName)
             .Skip(pageSize * pageIndex)
@@ -67,11 +64,13 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+        var totalCount = stats.TotalResults;
+
         var result = dbResult.Select(MapResult).ToArray();
         _logger.Information("Successfully retrieved orders by Customer Id.");
         return new  PaginatedItems<GetOrdersByCustomerResult>(pageIndex, pageSize, totalCount, result);
     }
-    
+
     private static GetOrdersByCustomerResult MapResult(OrderView order)
     {
         return new GetOrdersByCustomerResult(
@@ -82,9 +81,9 @@ public class GetOrdersByCustomerHandler(IDocumentSession session) :
             BillingAddress: MapAddress(order.BillingAddress),
             PaymentDetails: MapPayment(order.PaymentMethod),
             Status: order.OrderStatus!,
-            OrderItems: order.OrderItems.Select(x => 
+            OrderItems: order.OrderItems.Select(x =>
                 new  GetOrdersByCustomerResult.OrderItem(
-                    x.ProductId, 
+                    x.ProductId,
                     x.Quantity,
                     x.Price)).ToArray().AsReadOnly()
         );

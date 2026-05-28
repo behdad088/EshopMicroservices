@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Mime;
 using AutoFixture;
 using Order.Query.Events;
@@ -32,12 +33,15 @@ public class OrderCreatedEventCustomization : ICustomization
             .With(r => r.Expiration, "12/2026")
             .With(r => r.PaymentMethod, 0)
         );
-        
+
         fixture.Customize<OrderCreatedEvent>(x => x
             .With(r => r.Id, Ulid.NewUlid().ToString())
             .With(r => r.CreatedBy, Guid.NewGuid().ToString())
             .With(r => r.LastModified, DateTimeOffset.UtcNow)
+            .With(r => r.CreatedAt,
+                DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture))
             .With(r => r.CustomerId, Guid.NewGuid().ToString())
+            .With(r => r.EventType, "order_created_event")
             .With(r => r.OrderName, "Test Order Name")
             .With(r => r.OrderStatus, "pending")
             .With(r => r.BillingAddress, fixture.Create<OrderCreatedEvent.Address>())
@@ -47,7 +51,7 @@ public class OrderCreatedEventCustomization : ICustomization
             .With(r => r.TotalPrice, 100)
             .With(r => r.Version, 1)
         );
-        
+
         fixture.Customize<CloudEvent<OrderCreatedEvent>>(c => c
             .With(e => e.Id, Ulid.NewUlid().ToString())
             .With(e => e.Type, "test.eshop.order-command.order-created")

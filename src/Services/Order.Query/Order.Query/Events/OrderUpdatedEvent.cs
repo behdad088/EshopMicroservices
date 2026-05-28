@@ -3,8 +3,7 @@ using System.Text.Json.Serialization;
 namespace Order.Query.Events;
 
 public record OrderUpdatedEvent(
-    [property: JsonPropertyName("id")] 
-    string Id,
+    [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("last_modified")]
     DateTimeOffset? LastModified,
     [property: JsonPropertyName("order_name")]
@@ -28,20 +27,18 @@ public record OrderUpdatedEvent(
     public override string StreamId { get; } = Id;
 
     [property: JsonPropertyName("event_type")]
-    public override string EventType => null!;
+    public override string EventType { get; set; } = null!;
 
     [property: JsonPropertyName("created_at")]
     public override string CreatedAt { get; set; } = null!;
 
     public record OrderItem(
-        [property: JsonPropertyName("id")] 
-        string Id,
+        [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("product_id")]
         string ProductId,
         [property: JsonPropertyName("quantity")]
         int? Quantity,
-        [property: JsonPropertyName("price")] 
-        decimal? Price
+        [property: JsonPropertyName("price")] decimal? Price
     );
 
     public record Address(
@@ -67,6 +64,6 @@ public record OrderUpdatedEvent(
         [property: JsonPropertyName("expiration")]
         string Expiration,
         [property: JsonPropertyName("cvv")] string Cvv,
-        [property: JsonPropertyName("Payment_method")]
+        [property: JsonPropertyName("payment_method")]
         int? PaymentMethod);
 }

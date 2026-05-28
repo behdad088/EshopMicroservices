@@ -12,9 +12,10 @@ public class OrderDeletedEventCustomization : ICustomization
             .With(r => r.OrderId, Ulid.NewUlid().ToString())
             .With(r => r.DeletedDate, DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
             .With(r => r.CreatedAt, DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
+            .With(r => r.EventType, "order_deleted_event")
             .With(r => r.Version, 1)
         );
-            
+
         fixture.Customize<CloudEvent<OrderDeletedEvent>>(c => c
             .With(e => e.Id, Ulid.NewUlid().ToString())
             .With(e => e.Type, "test.eshop.order-command.order-deleted")

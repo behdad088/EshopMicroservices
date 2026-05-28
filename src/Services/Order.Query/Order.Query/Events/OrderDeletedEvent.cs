@@ -11,9 +11,9 @@ public record OrderDeletedEvent(
     int? Version) : Event
 {
     public override string StreamId { get; } = OrderId;
-    
+
     [property: JsonPropertyName("event_type")]
-    public override string EventType => null!;
+    public override string EventType { get; set; } = null!;
 
     [property: JsonPropertyName("created_at")]
     public override string CreatedAt { get; set; } = null!;

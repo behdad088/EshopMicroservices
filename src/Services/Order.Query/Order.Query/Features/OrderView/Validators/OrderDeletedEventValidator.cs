@@ -10,8 +10,9 @@ public class OrderDeletedEventValidator : AbstractValidator<OrderDeletedEvent>
     {
         RuleFor(x => x.OrderId)
             .MustBeValidUlid();
-        
+
         RuleFor(x => x.DeletedDate).MustBeValidTimestamp();
         RuleFor(x => x.Version).GreaterThanOrEqualTo(1);
+        RuleFor(x => x.EventType).Equal("order_deleted_event");
     }
 }

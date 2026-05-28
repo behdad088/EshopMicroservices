@@ -32,12 +32,13 @@ public class OrderUpdatedEventCustomization : ICustomization
             .With(r => r.Expiration, "12/2026")
             .With(r => r.PaymentMethod, 0)
         );
-        
+
         fixture.Customize<OrderUpdatedEvent>(x => x
             .With(r => r.Id, Ulid.NewUlid().ToString())
             .With(r => r.LastModified, DateTimeOffset.UtcNow)
             .With(r => r.OrderName, "Test Order Name")
             .With(r => r.OrderStatus, "pending")
+            .With(r => r.EventType, "order_updated_event")
             .With(r => r.BillingAddress, fixture.Create<OrderUpdatedEvent.Address>())
             .With(r => r.ShippingAddress, fixture.Create<OrderUpdatedEvent.Address>())
             .With(r => r.OrderItems, [fixture.Create<OrderUpdatedEvent.OrderItem>()])
@@ -45,7 +46,7 @@ public class OrderUpdatedEventCustomization : ICustomization
             .With(r => r.TotalPrice, 100)
             .With(r => r.Version, 1)
         );
-        
+
         fixture.Customize<CloudEvent<OrderUpdatedEvent>>(c => c
             .With(e => e.Id, Ulid.NewUlid().ToString())
             .With(e => e.Type, "test.eshop.order-command.order-updated")
