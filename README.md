@@ -17,6 +17,7 @@
 - [Design Patterns](#design-patterns)
 - [Observability](#observability)
 - [Project Structure](#project-structure)
+- [Running E2E Test](#running-e2e-test)
 
 ---
 
@@ -292,6 +293,47 @@ docker-compose.override.yml         # Local port mappings and dev config
 
 ---
 
+## Running E2E Test
+
+This application uses Playwright for end-to-end (E2E) testing. Playwright is a browser automation framework that enables reliable testing across modern web browsers such as Chromium, Firefox, and WebKit.
+
+E2E tests simulate real user interactions with the application to verify that core features and workflows function correctly in a production-like environment.
+
+you can run the E2E tests with the following command:
+
+1. Build the test project
+   ```bash
+    dotnet build src/Services/E2ETests/E2ETests.csproj
+   ```
+2. Install Playwright browsers (one-time)
+   ```bash
+   pwsh src/Services/E2ETests/bin/Debug/net10.0/playwright.ps1 install chromium
+   ```
+   NOTE: If you don't have PowerShell: brew install powershell
+
+
+3. Start the stack
+   ```bash
+   cd src                                                                                                                                     
+   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
+    ```
+4. Wait for services to be ready (optional — alternatively just wait ~60s)
+    ```bash
+   bash scripts/wait-for-services.sh
+    ```
+5. Run the tests
+    ```bash
+   dotnet test src/Services/E2ETests/E2ETests.csproj
+    ```
+6. Tear down when done                                                                        
+
+    ```bash
+    cd src
+    docker compose -f docker-compose.yml -f docker-compose.e2e.yml down -v
+    ```
+    The -v flag removes volumes so the next run starts with a clean database state. Omit it if you want to keep the data between runs.
+
+---
 ## License
 
 MIT License © 2024 [Behdad Kardgar](https://github.com/behdad088)
