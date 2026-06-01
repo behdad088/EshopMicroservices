@@ -5,7 +5,7 @@ namespace Order.Command.API.Endpoints.GetOrdersByName;
 
 public record Request
 {
-    [property: FromQuery(Name = "customer_name")] 
+    [property: FromQuery(Name = "customer_name")]
     public string? CustomerName { get; set; }
 
     [property: FromQuery(Name = "page_size")]
@@ -24,7 +24,7 @@ public record ModuleOrder(
     string CustomerId,
     [property: JsonPropertyName("order_name")]
     string OrderName,
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     ModuleAddress ShippingAddress,
     [property: JsonPropertyName("billing_address")]
     ModuleAddress BillingAddress,

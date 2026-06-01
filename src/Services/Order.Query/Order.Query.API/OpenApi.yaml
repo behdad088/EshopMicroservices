@@ -469,11 +469,9 @@ components:
     Address:
       type: object
       description: >-
-        Address shape used in `GetOrderById` response. Note: `first_name` and
-        `last_name` are the JSON property names for this endpoint only. All
-        other order list endpoints use `firstname` / `lastname` (no underscore)
-        — this discrepancy exists in the source code (`GetOrderById/Models.cs`
-        vs `GetOrders/Models.cs`).
+        Address shape used in `GetOrderById` response. Uses `first_name` /
+        `last_name` (with underscore). List endpoints use `firstname` /
+        `lastname` (no underscore) — see `AddressList`.
       properties:
         first_name:
           type: string
@@ -530,6 +528,9 @@ components:
 
     Payment:
       type: object
+      description: >-
+        Used in list responses. Note: `GetOrderById` uses `expiration_date`
+        instead of `expiration` for the payment expiry field.
       properties:
         card_name:
           type: string
@@ -539,10 +540,6 @@ components:
           example: "XXXXXXXXXXXX1881"
         expiration:
           type: string
-          description: >-
-            JSON property name is `expiration` in list responses but
-            `expiration_date` in the `GetOrderById` response — source code
-            discrepancy in `GetOrderById/Models.cs`.
           example: "12/24"
         cvv:
           type: string
@@ -625,10 +622,8 @@ components:
     OrderInList:
       type: object
       description: >-
-        Order shape used inside paginated list responses. Uses `shipping_Address`
-        (capital A) as the JSON property name — this is a source-code quirk in
-        `GetOrders/Models.cs`, `GetOrdersByCustomer/Models.cs`, and
-        `GetOrdersByName/Models.cs`.
+        Order shape used inside paginated list responses. Mapped from `OrderView`
+        by `GetOrders`, `GetOrdersByCustomer`, and `GetOrdersByName` endpoints.
       properties:
         id:
           type: string
@@ -640,11 +635,8 @@ components:
         order_name:
           type: string
           example: "Alice's Order #1"
-        shipping_Address:
+        shipping_address:
           $ref: '#/components/schemas/AddressList'
-          description: >-
-            Note: capital `A` in `shipping_Address` — this matches the
-            `JsonPropertyName("shipping_Address")` attribute in the source models.
         billing_address:
           $ref: '#/components/schemas/AddressList'
         payment:

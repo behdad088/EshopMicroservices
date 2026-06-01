@@ -98,7 +98,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetProductsResponse'
               example:
-                Result:
+                result:
                   page_index: 0
                   page_size: 10
                   count: 42
@@ -305,7 +305,7 @@ paths:
         The handler calls `session.Delete<ProductDocument>(id)` — this is a
         hard delete with no soft-delete or audit trail.
 
-        Always returns `200 OK` with `{ "IsSuccess": true }` if the command
+        Always returns `200 OK` with `{ "isSuccess": true }` if the command
         executes without error. Does **not** return 404 if the product does not
         exist — Marten's `Delete` is a no-op for non-existent documents.
 
@@ -322,7 +322,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeleteProductResponse'
               example:
-                IsSuccess: true
+                isSuccess: true
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -373,7 +373,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetProductsByCategoryResponse'
               example:
-                ProductModule:
+                productModule:
                   page_index: 0
                   page_size: 10
                   count: 5
@@ -388,7 +388,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
   # ── Health ─────────────────────────────────────────────────────────────────
-  /health:
+  /hc:
     get:
       tags: [Health]
       summary: Health Check
@@ -398,8 +398,11 @@ paths:
 
         Registered checks:
         - `postgres` — NpgSql connection check, tagged `ready` and `liveness`
+        - `self` — application self check
 
         No authentication required.
+
+        Note: The endpoint is mounted at `/hc` (short for "health check").
       security: []
       responses:
         '200':
@@ -410,6 +413,33 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
         '503':
           description: Service or dependency is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /liveness:
+    get:
+      tags: [Health]
+      summary: Liveness Check
+      description: |
+        Returns the liveness status of the Catalog API (whether the application
+        process is running). Returns only the `self` health check result.
+
+        No authentication required.
+
+        Use this endpoint for Kubernetes probes or container orchestration systems
+        that need to distinguish between "service is alive" vs "all dependencies healthy."
+      security: []
+      responses:
+        '200':
+          description: Application is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Application is down
           content:
             application/json:
               schema:
@@ -738,27 +768,28 @@ components:
     GetProductsResponse:
       type: object
       description: >-
-        Top-level response for `GET /products`. The outer field is `Result`
-        (C# record constructor param name, not serialized with `JsonPropertyName`
-        so it uses the default PascalCase).
+        Top-level response for `GET /products`. The outer field is `result`
+        (C# record constructor param name `Result`, serialized as camelCase
+        by ASP.NET Core minimal API default `JsonNamingPolicy.CamelCase`).
       properties:
-        Result:
+        result:
           $ref: '#/components/schemas/PaginatedItems'
 
     GetProductsByCategoryResponse:
       type: object
       description: >-
         Top-level response for `GET /products/category/{category}`. The outer
-        field is `ProductModule` — the C# record param name from
-        `GetProductByCategoryResponse(PaginatedItems<ProductModule> ProductModule)`.
+        field is `productModule` — the C# record param name `ProductModule`
+        serialized as camelCase by ASP.NET Core minimal API default
+        `JsonNamingPolicy.CamelCase`.
       properties:
-        ProductModule:
+        productModule:
           $ref: '#/components/schemas/PaginatedItems'
 
     DeleteProductResponse:
       type: object
       properties:
-        IsSuccess:
+        isSuccess:
           type: boolean
           description: Always `true` when the handler completes without error.
           example: true
