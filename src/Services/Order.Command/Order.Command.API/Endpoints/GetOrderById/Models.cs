@@ -14,7 +14,7 @@ public record Response(
     string? CustomerId,
     [property: JsonPropertyName("order_name")]
     string OrderName,
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     ModuleAddress ShippingAddress,
     [property: JsonPropertyName("billing_address")]
     ModuleAddress BillingAddress,
@@ -29,7 +29,7 @@ public record ModuleOrderItem(
     string? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")] 
+    [property: JsonPropertyName("price")]
     decimal? Price);
 
 public record ModuleAddress(

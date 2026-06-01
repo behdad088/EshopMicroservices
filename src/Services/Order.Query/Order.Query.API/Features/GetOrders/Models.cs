@@ -8,11 +8,9 @@ public record Request(
     [property: BindFrom("page_index")]
     int PageIndex = 0
     );
-    
-    
-    
+
 public record Response(
-    [property: JsonPropertyName("data")] 
+    [property: JsonPropertyName("data")]
     PaginatedItems<Order> Orders);
 
 public record Order(
@@ -21,7 +19,7 @@ public record Order(
     string CustomerId,
     [property: JsonPropertyName("order_name")]
     string OrderName,
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     Address ShippingAddress,
     [property: JsonPropertyName("billing_address")]
     Address BillingAddress,

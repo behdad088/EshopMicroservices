@@ -21,6 +21,28 @@ info:
     ## Registered Clients
     - **postman-client** — Implicit grant, redirect to `https://oauth.pstmn.io/v1/browser-callback`
 
+    ## Email Service
+
+    Email verification and password reset emails are sent via **MailKit** over
+    SMTP to a **Mailpit** server (local development mail catcher).
+
+    | Config key | Value (dev) | Purpose |
+    |---|---|---|
+    | `EmailService.base_url` | `localhost` | Mailpit SMTP host |
+    | `EmailService.sender` | `hello@behdad.dev` | From address |
+    | SMTP port | `1025` | Mailpit default SMTP port |
+
+    Mailpit web UI (view caught emails): `http://localhost:8025`
+
+    **Verification link format:**
+    `{service_url}/account/email-verification?code={code}[&returnUrl=...]`
+
+    **Reset password link format:**
+    `{service_url}/account/reset-password?code={code}[&returnUrl=...]`
+
+    where `service_url` is configured via `appsettings.json > service_url`
+    (default: `http://localhost:5000`).
+
 servers:
   - url: https://localhost:5007
     description: Local development server
@@ -493,8 +515,8 @@ paths:
         Handles email address confirmation. Accepts `userId` and `code` (token) as
         query parameters, then calls `UserManager.ConfirmEmailAsync`.
 
-        The `VerificationEmailService` sends confirmation emails via the Mailtrap
-        API (`EmailService` settings in `appsettings.json`).
+        The `MailKitService` sends confirmation emails via **MailKit** over SMTP
+        to **Mailpit** (`EmailService` settings in `appsettings.json`).
       parameters:
         - name: userId
           in: query

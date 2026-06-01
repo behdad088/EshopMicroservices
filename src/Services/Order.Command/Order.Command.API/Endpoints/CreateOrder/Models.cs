@@ -6,14 +6,14 @@ public record Request
 {
     [FromRoute(Name = "order_id")]
     public string? Id { get; set; }
-    
+
     [FromRoute(Name = "customer_id")]
     public string? CustomerId { get; set; }
 
     [property: JsonPropertyName("order_name")]
     public string? OrderName { get; set; }
 
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     public ModuleAddress? ShippingAddress { get; set; }
 
     [property: JsonPropertyName("billing_address")]
@@ -48,7 +48,7 @@ public record Request
         string? CardNumber,
         [property: JsonPropertyName("expiration")]
         string? Expiration,
-        [property: JsonPropertyName("cvv")] 
+        [property: JsonPropertyName("cvv")]
         string? Cvv,
         [property: JsonPropertyName("payment_method")]
         int? PaymentMethod);

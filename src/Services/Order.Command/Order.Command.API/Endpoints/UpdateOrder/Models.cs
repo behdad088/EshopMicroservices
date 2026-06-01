@@ -6,14 +6,14 @@ public record Request
 {
     [FromRoute(Name = "order_id")]
     public string? Id { get; set; }
-    
+
     [FromRoute(Name = "customer_id")]
     public string? CustomerId { get; set; }
 
     [property: JsonPropertyName("order_name")]
     public string? OrderName { get; set; }
 
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     public ModuleAddress? ShippingAddress { get; set; }
 
     [property: JsonPropertyName("billing_address")]
@@ -22,7 +22,7 @@ public record Request
     [property: JsonPropertyName("payment")]
     public ModulePayment? Payment { get; set; }
 
-    [property: JsonPropertyName("status")] 
+    [property: JsonPropertyName("status")]
     public string? Status { get; set; }
 
     [property: JsonPropertyName("order_items")]
@@ -40,7 +40,7 @@ public record ModuleAddress(
     string? AddressLine,
     [property: JsonPropertyName("country")]
     string? Country,
-    [property: JsonPropertyName("state")] 
+    [property: JsonPropertyName("state")]
     string? State,
     [property: JsonPropertyName("zip_code")]
     string? ZipCode);
@@ -62,7 +62,7 @@ public record ModuleOrderItem(
     string? ProductId,
     [property: JsonPropertyName("quantity")]
     int? Quantity,
-    [property: JsonPropertyName("price")] 
+    [property: JsonPropertyName("price")]
     decimal? Price);
 
 public record Response(

@@ -23,7 +23,7 @@ public record ModuleOrder(
     string CustomerId,
     [property: JsonPropertyName("order_name")]
     string OrderName,
-    [property: JsonPropertyName("shipping_Address")]
+    [property: JsonPropertyName("shipping_address")]
     ModuleAddress ShippingAddress,
     [property: JsonPropertyName("billing_address")]
     ModuleAddress BillingAddress,
@@ -65,3 +65,4 @@ public record ModulePayment(
     [property: JsonPropertyName("cvv")] string Cvv,
     [property: JsonPropertyName("payment_method")]
     int PaymentMethod);
+
