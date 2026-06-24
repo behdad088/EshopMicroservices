@@ -4,6 +4,10 @@
 
 **MIT License © 2026 Behdad Kardgar**
 
+[![CI](https://github.com/behdad088/EshopMicroservices/actions/workflows/ci.yml/badge.svg)](https://github.com/behdad088/EshopMicroservices/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/behdad088/EshopMicroservices/actions/workflows/codeql.yml/badge.svg)](https://github.com/behdad088/EshopMicroservices/actions/workflows/codeql.yml)
+[![Markdown link check](https://github.com/behdad088/EshopMicroservices/actions/workflows/markdown-link-check.yml/badge.svg)](https://github.com/behdad088/EshopMicroservices/actions/workflows/markdown-link-check.yml)
+[![.github/workflows/linter.yml](https://github.com/behdad088/EshopMicroservices/actions/workflows/linter.yml/badge.svg)](https://github.com/behdad088/EshopMicroservices/actions/workflows/linter.yml)
 ---
 
 ## Table of Contents
@@ -413,28 +417,28 @@ E2E tests simulate real user interactions with the application to verify that co
 you can run the E2E tests with the following command:
 
 1. Build the test project
-   ```bash
+    ```bash
     dotnet build src/Services/E2ETests/E2ETests.csproj
-   ```
+    ```
 2. Install Playwright browsers (one-time)
-   ```bash
-   pwsh src/Services/E2ETests/bin/Debug/net10.0/playwright.ps1 install chromium
-   ```
-   NOTE: If you don't have PowerShell: brew install powershell
+    ```bash
+    pwsh src/Services/E2ETests/bin/Debug/net10.0/playwright.ps1 install chromium
+    ```
+    NOTE: If you don't have PowerShell: brew install powershell
 
 
 3. Start the stack
-   ```bash
-   cd src                                                                                                                                     
-   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
+    ```bash
+    cd src                                                                                                                                     
+    docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
     ```
 4. Wait for services to be ready (or just alternatively just wait ~60s) 
     ```bash
-   bash scripts/wait-for-services.sh
+    bash scripts/wait-for-services.sh
     ```
 5. Run the tests
     ```bash
-   dotnet test src/Services/E2ETests/E2ETests.csproj
+    dotnet test src/Services/E2ETests/E2ETests.csproj
     ```
 6. Tear down when done                                                                        
 
