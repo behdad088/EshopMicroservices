@@ -1,0 +1,12 @@
+# Production overlay — placeholder only. Implement when targeting a cloud cluster.
+# This overlay should patch:
+#   - storageClassName: pd-ssd (GKE) / gp3 (EKS) / managed-premium (AKS)
+#   - replicas: 2+ for microservices
+#   - resource limits: larger CPU/memory allocations
+#   - image tags: pinned SHAs instead of :latest
+#   - TLS: cert-manager ClusterIssuer (Let's Encrypt or internal CA)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base

@@ -2,7 +2,7 @@
 set -e
 
 CERT_DIR="$(cd "$(dirname "$0")" && pwd)"
-K8S_CERT_DIR="$(cd "$CERT_DIR/../k8s/00-core/certs" 2>/dev/null && pwd)"
+K8S_CERT_DIR="$(cd "$CERT_DIR/../../k8s/base/00-core/certs" 2>/dev/null && pwd || true)"
 CA_PASSWORD="dev"
 CERT_PASSWORD="dev"
 DAYS_VALID=365
@@ -77,9 +77,11 @@ EOF
   # Clean up intermediate files
   rm -f "$CERT_DIR/${SERVICE_NAME}.csr" "$CERT_DIR/${SERVICE_NAME}.cnf"
 
-  # Copy PFX to k8s certs directory
+  # Copy PFX, CRT, and KEY to k8s certs directory
   if [ -d "$K8S_CERT_DIR" ]; then
     cp "$CERT_DIR/${SERVICE_NAME}.pfx" "$K8S_CERT_DIR/${SERVICE_NAME}.pfx"
+    cp "$CERT_DIR/${SERVICE_NAME}.crt" "$K8S_CERT_DIR/${SERVICE_NAME}.crt"
+    cp "$CERT_DIR/${SERVICE_NAME}.key" "$K8S_CERT_DIR/${SERVICE_NAME}.key"
     echo "    -> copied to k8s certs"
   fi
 
@@ -97,6 +99,7 @@ generate_service_cert "order-command-api"           "DNS:order.command.api,DNS:o
 generate_service_cert "order-query-event-api"       "DNS:order.query.api,DNS:order-query-api,DNS:order-query-api.${NS},DNS:order-query-api.${NS}.svc.cluster.local,DNS:localhost"
 generate_service_cert "order-query-event-processor" "DNS:order.query.eventprocessor,DNS:order-query-eventprocessor,DNS:order-query-eventprocessor.${NS},DNS:order-query-eventprocessor.${NS}.svc.cluster.local,DNS:localhost"
 generate_service_cert "api-gateway"                "DNS:api.gateway,DNS:api-gateway,DNS:api-gateway.${NS},DNS:api-gateway.${NS}.svc.cluster.local,DNS:localhost"
+generate_service_cert "eshop-local"               "DNS:*.eshop.local,DNS:eshop.local"
 
 # Copy CA cert to k8s certs directory
 if [ -d "$K8S_CERT_DIR" ]; then

@@ -1,0 +1,12 @@
+# Storage class is already set to 'standard' in base manifests, which works for minikube/kind/Docker Desktop.
+# This file is a placeholder. For production overlay, patch storageClassName here:
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: <service>-db
+# spec:
+#   volumeClaimTemplates:
+#     - metadata:
+#         name: data
+#       spec:
+#         storageClassName: pd-ssd  # GKE example

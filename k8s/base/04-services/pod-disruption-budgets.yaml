@@ -1,0 +1,175 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-catalog-api
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: catalog-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-basket-api
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: basket-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-discount-grpc
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: discount-grpc
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-identity-api
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: identity-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-order-command-api
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: order-command-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-order-query-api
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: order-query-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-order-query-eventprocessor
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: order-query-eventprocessor
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-api-gateway
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-catalog-db
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: catalog-db
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-basket-db
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: basket-db
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-identity-db
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: identity-db
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-order-command-db
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: order-command-db
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-order-query-db
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: order-query-db
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-redis
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: redis
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-rabbitmq
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-elasticsearch
+  namespace: eshop-microservices
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: elasticsearch

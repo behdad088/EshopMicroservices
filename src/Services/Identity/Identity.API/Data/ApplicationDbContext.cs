@@ -1,16 +1,18 @@
 using Identity.API.Models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.API.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     public DbSet<VerificationCode> VerificationCodes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -20,8 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(x => x.EmailVerifications)
             .HasForeignKey(cc => cc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        base.OnModelCreating(
-            builder);
+
+        base.OnModelCreating(builder);
     }
 }

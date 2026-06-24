@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using Duende.IdentityServer;
+using Microsoft.AspNetCore.DataProtection;
 using Duende.IdentityServer.Services;
 using Identity.API.ApiClients.Mailtrap;
 using Identity.API.Data;
@@ -52,6 +53,10 @@ internal static class HostingExtensions
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDB")));
+
+        builder.Services.AddDataProtection()
+            .SetApplicationName("identity-api")
+            .PersistKeysToDbContext<ApplicationDbContext>();
 
         builder.Services.AddMigration<ApplicationDbContext, UsersSeed>();
 

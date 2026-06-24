@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eshop-microservices
+
+resources:
+  - catalog-db/statefulset.yaml
+  - catalog-db/service.yaml
+  - basket-db/statefulset.yaml
+  - basket-db/service.yaml
+  - identity-db/statefulset.yaml
+  - identity-db/service.yaml
+  - order-command-db/statefulset.yaml
+  - order-command-db/service.yaml
+  - order-query-db/statefulset.yaml
+  - order-query-db/service.yaml
+  - redis/statefulset.yaml
+  - redis/service.yaml
+  - rabbitmq/statefulset.yaml
+  - rabbitmq/service.yaml

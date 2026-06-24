@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  - path: patches/resource-limits-patch.yaml
+    target:
+      kind: StatefulSet
+      name: elasticsearch
+  - patch: |-
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: local-path
+    target:
+      kind: StatefulSet
+  - patch: |-
+      - op: replace
+        path: /spec/storageClassName
+        value: local-path
+    target:
+      kind: PersistentVolumeClaim
+
+images:
+  - name: catalog.api
+    newName: catalog.api
+    newTag: latest
+  - name: basket.api
+    newName: basket.api
+    newTag: latest
+  - name: discount.grpc
+    newName: discount.grpc
+    newTag: latest
+  - name: identity.api
+    newName: identity.api
+    newTag: latest
+  - name: order.command.api
+    newName: order.command.api
+    newTag: latest
+  - name: order.query.api
+    newName: order.query.api
+    newTag: latest
+  - name: order.query.eventprocessor
+    newName: order.query.eventprocessor
+    newTag: latest
+  - name: api.gateway
+    newName: api.gateway
+    newTag: latest
