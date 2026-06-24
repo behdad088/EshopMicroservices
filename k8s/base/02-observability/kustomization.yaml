@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eshop-microservices
+
+resources:
+  - elasticsearch/statefulset.yaml
+  - elasticsearch/service.yaml
+  - kibana/deployment.yaml
+  - kibana/service.yaml
+  - otel-collector/deployment.yaml
+  - otel-collector/service.yaml
+  - jaeger/deployment.yaml
+  - jaeger/service.yaml
+  - prometheus/pvc.yaml
+  - prometheus/deployment.yaml
+  - prometheus/service.yaml
+  - loki/pvc.yaml
+  - loki/deployment.yaml
+  - loki/service.yaml
+  - grafana/provisioning-cm.yaml
+  - grafana/deployment.yaml
+  - grafana/service.yaml

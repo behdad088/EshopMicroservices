@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-query-eventprocessor-cm
+  namespace: eshop-microservices
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_HTTP_PORTS: "8080"
+  ASPNETCORE_HTTPS_PORTS: "8081"
+  ASPNETCORE_Kestrel__Certificates__Default__Path: "/app/certificates/order-query-event-processor.pfx"
+  RabbitMQ__URI: "rabbitmq"
+  QueueSettings__OrderViewQueues__OrderCreatedEvent__Name: "order_created_event_queue"
+  QueueSettings__OrderViewQueues__OrderCreatedEvent__Dlq: "order_created_event_queue_dlq"
+  QueueSettings__OrderViewQueues__OrderCreatedEvent__Exchange: "order_created_event_exchange"
+  QueueSettings__OrderViewQueues__OrderUpdatedEvent__Name: "order_updated_event_queue"
+  QueueSettings__OrderViewQueues__OrderUpdatedEvent__Dlq: "order_updated_event_queue_dlq"
+  QueueSettings__OrderViewQueues__OrderUpdatedEvent__Exchange: "order_updated_event_exchange"
+  QueueSettings__OrderViewQueues__OrderDeletedEvent__Name: "order_deleted_event_queue"
+  QueueSettings__OrderViewQueues__OrderDeletedEvent__Dlq: "order_deleted_event_queue_dlq"
+  QueueSettings__OrderViewQueues__OrderDeletedEvent__Exchange: "order_deleted_event_exchange"
+  Logger__elasticsearch: "http://elasticsearch:9200"
+  OTEL_EXPORTER_JAEGER_AGENT_HOST: "jaeger"
+  OTEL_EXPORTER_JAEGER_AGENT_PORT: "6831"
+  OTEL_EXPORTER_JAEGER_ENDPOINT: "http://jaeger:14268/api/traces"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"

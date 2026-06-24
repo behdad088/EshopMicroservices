@@ -14,6 +14,7 @@
 - [Technology Stack](#technology-stack)
 - [Data Architecture](#data-architecture)
 - [Running the Application](#running-the-application)
+- [Kubernetes Deployment](#kubernetes-deployment)
 - [Design Patterns](#design-patterns)
 - [Observability](#observability)
 - [Project Structure](#project-structure)
@@ -37,38 +38,15 @@ EshopMicroservices is a hands-on reference implementation that shows how to buil
 
 The system follows a loosely coupled microservices architecture. Each service owns its data, exposes its own API, and communicates with other services either synchronously via gRPC or asynchronously via a shared message bus (RabbitMQ).
 
-```
-                  ┌─────────────────────────────────────────┐
-                  │              Client Apps                │
-                  └───────────────────┬─────────────────────┘
-                                      │ HTTP/HTTPS
-  ┌───────────────────────────────────▼───────────────────────────────────────────┐
-  │                                API Gateway (YARP)                             │
-  │                           routing · rate limiting · reverse                   │
-  │                                     proxy                                     │
-  └────┬──────────┬──────────────────┬───────────────┬──────────┬────────────┬────┘
-       │          │                  │               │          │            │
-  ┌────▼────┐ ┌───▼───┐          ┌───▼─────┐    ┌────▼────┐┌────▼─────┐ ┌────▼──────┐
-  │Catalog  │ │Basket │          │Discount │    │ Order-  ││ Order-   │ │ Identity  │
-  │         │ │       │◄─────────────gRPC  │    │ command ││ query    │ │  (OIDC)   │
-  └────┬────┘ └──┬────┘          └──────┬──┘    └───┬─────┘└─────┬────┘ └──────┬────┘
-       │         │             RabbitMQ │           │            │             │ 
-       │         │────────────[checkout]│───────────│────────────│             │
-  ┌────▼───┐┌────▼──────┐ ┌─────┐ ┌─────▼──┐    ┌───▼───────┐┌───▼───────┐┌────▼──────┐
-  │Post-   ││PostgreSQL │─│Redis│ │SQLite  │    │PostgreSQL ││PostgreSQL ││PostgreSQL │ 
-  │greSQL  ││           │ └─────┘ └────────┘    │           ││           ││           │
-  └────────┘└───────────┘                       └───────────┘└───────────┘└───────────┘
-
-           Docker Compose (all containers)
-```
+![System Architecture](Diagram.png)
 
 ### Architectural Layers
 
 | Layer | Components |
 |---|---|
-| API Gateway | YARP reverse proxy — single entry point |
+| API Gateway | YARP reverse proxy; single entry point |
 | Microservices | Catalog, Basket, Discount, Ordering, Identity |
-| Messaging | RabbitMQ + MassTransit — async pub/sub |
+| Messaging | RabbitMQ + MassTransit; async pub/sub |
 | Data | Dedicated data store per service |
 | Infrastructure | Docker Compose orchestration |
 
@@ -86,7 +64,7 @@ When a basket is checked out, an HTTP request is sent to the Order Command servi
 ### Catalog Service
 Manages the product catalogue. Read-heavy and optimised for query throughput.
 
-- **Pattern:** Vertical Slice Architecture — each feature lives in its own folder with its own command/query, handler, and validator
+- **Pattern:** Vertical Slice Architecture; each feature lives in its own folder with its own command/query, handler, and validator
 - **CQRS:** Commands (writes) and queries (reads) are separated using MediatR
 - **Database:** Marten document database over PostgreSQL for flexible product schemas
 - **Validation:** FluentValidation pipeline behaviour validates all incoming requests
@@ -106,7 +84,7 @@ Simple coupon management service, consumed exclusively via gRPC.
 - **No public HTTP API:** Only accessible via gRPC from internal services
 
 ### Ordering Command Service
-The most complex service — demonstrates full Domain-Driven Design and Clean Architecture.
+The most complex service; demonstrates full Domain-Driven Design and Clean Architecture.
 
 - **Domain layer:** `Order` aggregate root, `OrderItem` entities, `Address` and `Money` value objects
 - **Application layer:** CQRS handlers via MediatR; domain events raised and handled in-process and publishes events to RabbitMQ
@@ -133,7 +111,7 @@ Handles authentication and authorisation across the system.
 Single entry point for all client requests.
 
 - Built on **YARP** (Yet Another Reverse Proxy) by Microsoft
-- Routing configured in `appsettings.json` — no code changes needed for new routes
+- Routing configured in `appsettings.json`; no code changes needed for new routes
 - Handles rate limiting and can aggregate responses from multiple upstream services
 
 ---
@@ -216,6 +194,139 @@ This builds all images and starts every service, database, RabbitMQ, and the obs
 
 ---
 
+## Kubernetes Deployment
+
+The project ships with a production-grade Kubernetes configuration under `k8s/`, managed with **Kustomize** (built into `kubectl`). It targets local clusters (minikube / kind / Docker Desktop) via the `overlays/local` overlay and is structured so a `production` overlay can be added later without touching the base.
+
+### Prerequisites
+
+- `kubectl` 1.27+ (includes Kustomize)
+- A local cluster: Docker Desktop with Kubernetes enabled
+- `openssl` (for certificate generation)
+
+### Quick Start
+
+#### Docker Desktop (recommended on macOS / Windows)
+
+Enable Kubernetes in **Docker Desktop → Settings → Kubernetes → Enable Kubernetes**, then:
+
+```bash
+# ── First time only ────────────────────────────────────────────────────────────
+
+# 1. Install the nginx Ingress controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.5/deploy/static/provider/cloud/deploy.yaml
+
+# 2. Build service images
+cd src && docker compose build && cd ..
+
+# 3. Generate TLS certificates (valid 365 days; re-run only if they expire)
+mkdir -p k8s/base/00-core/certs
+cd src/certificates && bash generate-certs.sh && cd ../..
+
+# 4. Deploy the full stack
+bash k8s/scripts/apply.sh local
+
+# 5. Add /etc/hosts entries
+#    The ingress IP is stable across eshop redeployments.
+#    Only redo this if you fully reset the cluster on your local machine
+#    since that assigns a new LoadBalancer IP.
+bash k8s/scripts/hosts-setup.sh | sudo tee -a /etc/hosts
+
+##
+# If postman or curl cant connect to the https try to run the following command in ca.crt folder
+
+## Mac machine
+sudo security add-trusted-cert -d -r trustRoot \
+-k /Library/Keychains/System.keychain \
+ca.crt
+
+## Windows machine
+Import-Certificate `
+    -FilePath "C:\path\to\ca.crt" `
+    -CertStoreLocation Cert:\LocalMachine\Root
+# ── Day-to-day ─────────────────────────────────────────────────────────────────
+
+# After changing code, rebuild the affected image(s) then re-deploy:
+cd src && docker compose build && cd ..
+bash k8s/scripts/apply.sh local
+
+# To tear down:
+# Remove (keeps PVC data intact for next deploy)
+bash k8s/scripts/teardown.sh local
+
+# Remove + wipe all data
+bash k8s/scripts/teardown.sh local --wipe-data
+```
+
+You can check the deployments with this command 
+
+```bash
+k9s -n eshop-microservices
+```
+
+### Accessing the Services
+
+Once deployed, all services are reachable via nginx Ingress on `*.eshop.local`:
+
+| Host | Service |
+|---|---|
+| `https://api.eshop.local` | API Gateway (entry point for all API calls) |
+| `https://identity.eshop.local` | Identity / OIDC server |
+| `https://grafana.eshop.local` | Grafana dashboards (Prometheus + Loki + Jaeger pre-provisioned) |
+| `https://kibana.eshop.local` | Kibana (Elasticsearch log viewer) |
+| `https://jaeger.eshop.local` | Jaeger distributed tracing UI |
+| `https://prometheus.eshop.local` | Prometheus metrics |
+| `https://mailpit.eshop.local` | Mailpit email testing UI |
+| `https://rabbitmq.eshop.local` | RabbitMQ management UI (guest / guest) |
+
+### Directory Layout
+
+```
+k8s/
+├── base/
+│   ├── 00-core/          # Namespace, RBAC, Secrets, ConfigMaps, certs/
+│   ├── 01-databases/     # PostgreSQL ×5, Redis, RabbitMQ (StatefulSets + PVCs)
+│   ├── 02-observability/ # Elasticsearch, Kibana, OTEL Collector, Jaeger,
+│   │                     # Prometheus, Loki, Grafana
+│   ├── 03-mail/          # Mailpit
+│   ├── 04-services/      # 8 microservice Deployments, NetworkPolicies,
+│   │                     # PodDisruptionBudgets, HPAs
+│   └── 05-ingress/       # nginx Ingress rules
+└── overlays/
+    ├── local/            # Lighter Elasticsearch limits for dev machines
+    └── production/       # Placeholder; patch storage class, replicas, image tags here
+```
+
+### Certificate Management
+
+Every service uses its own TLS certificate signed by an internal CA. The `generate-certs.sh` script already knows about the k8s certs directory; running it populates both `src/certificates/` and `k8s/base/00-core/certs/` automatically.
+
+```bash
+# Regenerate certs (e.g. after they expire or you add a service)
+mkdir -p k8s/base/00-core/certs
+cd src/certificates && ./generate-certs.sh && cd ../..
+
+# Push the new certs into the cluster
+bash k8s/scripts/create-cert-secrets.sh
+```
+
+Cert files (`.pfx`, `.crt`, `.key`) are gitignored and never committed.
+
+### Production-Grade Features
+
+| Feature | Detail |
+|---|---|
+| **RBAC** | One `ServiceAccount` per service; least-privilege `Role` scoped to the namespace |
+| **NetworkPolicy** | Default deny-all; explicit allow rules between each producer and consumer |
+| **PodDisruptionBudget** | `minAvailable: 1` on all stateful services and the API Gateway |
+| **HorizontalPodAutoscaler** | CPU-based autoscaling on catalog, basket, order-command, order-query, and api-gateway |
+| **Init containers** | Each microservice waits for its database to be ready before starting |
+| **Rolling updates** | `maxSurge: 1, maxUnavailable: 0`; zero-downtime deploys |
+| **Grafana provisioning** | Prometheus, Loki, and Jaeger datasources provisioned automatically via ConfigMap; no manual setup |
+| **Secrets** | All credentials (DB passwords, RabbitMQ, cert PFX password) in Kubernetes Secrets; non-sensitive config in ConfigMaps |
+
+---
+
 ## Design Patterns
 
 ### CQRS (Command Query Responsibility Segregation)
@@ -225,21 +336,21 @@ Commands (writes) and queries (reads) are handled by separate classes using Medi
 Applied in the Ordering service. `Order` is an aggregate root that enforces business invariants. `OrderItem` is an entity within the aggregate. `Address` and `Money` are value objects with no identity.
 
 ### Vertical Slice Architecture
-Applied in the Catalog service. Each feature is a self-contained slice — endpoint, command/query, handler, and validator live together in one folder. No horizontal layering by type.
+Applied in the Catalog service. Each feature is a self-contained slice; endpoint, command/query, handler, and validator live together in one folder. No horizontal layering by type.
 
 ### Outbox Pattern & At-Least-Once Delivery
 
-In a distributed system, publishing a message to a broker and saving data to a database are two separate operations — and either one can fail independently. Without a safety mechanism, this creates a window where your database is updated but the message is never sent (or vice versa), leaving the system in an inconsistent state.
+In a distributed system, publishing a message to a broker and saving data to a database are two separate operations; and either one can fail independently. Without a safety mechanism, this creates a window where your database is updated but the message is never sent (or vice versa), leaving the system in an inconsistent state.
 
-The **Outbox pattern** solves this by treating message publishing as part of the same database transaction as the business operation. Instead of publishing directly to RabbitMQ, the service first writes the message to an `Outbox` table in its own database within the same transaction. A background process then reads from the Outbox and reliably forwards messages to the broker. If publishing fails, the background process retries — the message stays in the Outbox until delivery is confirmed.
+The **Outbox pattern** solves this by treating message publishing as part of the same database transaction as the business operation. Instead of publishing directly to RabbitMQ, the service first writes the message to an `Outbox` table in its own database within the same transaction. A background process then reads from the Outbox and reliably forwards messages to the broker. If publishing fails, the background process retries; the message stays in the Outbox until delivery is confirmed.
 
-**At-least-once delivery** is the guarantee that a message will be delivered a minimum of one time, but may be delivered more than once in failure scenarios (e.g. the consumer crashes after processing but before acknowledging the message). This is a deliberate trade-off — guaranteeing exactly-once delivery across a distributed system is extremely expensive, whereas at-least-once is achievable with straightforward retries.
+**At-least-once delivery** is the guarantee that a message will be delivered a minimum of one time, but may be delivered more than once in failure scenarios (e.g. the consumer crashes after processing but before acknowledging the message). This is a deliberate trade-off; guaranteeing exactly-once delivery across a distributed system is extremely expensive, whereas at-least-once is achievable with straightforward retries.
 
 In EshopMicroservices this is implemented via **MassTransit**, which provides:
 
 - **Retry policies:** Failed message deliveries are automatically retried with configurable backoff intervals before being considered dead
 - **Dead-letter queue (DLQ):** Messages that exhaust all retries are moved to a DLQ in RabbitMQ for manual inspection and replay, ensuring no message is silently lost
-- **Idempotent consumers:** Because a message may arrive more than once, all consumers are written to be idempotent — processing the same `BasketCheckout` event twice produces the same result as processing it once (typically by checking whether an order with that ID already exists before creating a new one)
+- **Idempotent consumers:** Because a message may arrive more than once, all consumers are written to be idempotent; processing the same `BasketCheckout` event twice produces the same result as processing it once (typically by checking whether an order with that ID already exists before creating a new one)
 
 **Benefits of this approach:**
 
@@ -317,7 +428,7 @@ you can run the E2E tests with the following command:
    cd src                                                                                                                                     
    docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --build -d
     ```
-4. Wait for services to be ready (optional — alternatively just wait ~60s)
+4. Wait for services to be ready (or just alternatively just wait ~60s) 
     ```bash
    bash scripts/wait-for-services.sh
     ```

@@ -1,0 +1,197 @@
+# api-gateway — HTTPS backend
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-api-gateway
+  namespace: eshop-microservices
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: api.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8081
+---
+# identity-api — HTTPS backend
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-identity-api
+  namespace: eshop-microservices
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - identity.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: identity.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: identity-api
+                port:
+                  number: 8081
+---
+# mailpit UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-mailpit
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - mailpit.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: mailpit.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailpit
+                port:
+                  number: 8025
+---
+# kibana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-kibana
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - kibana.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: kibana.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana
+                port:
+                  number: 5601
+---
+# jaeger UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-jaeger
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - jaeger.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: jaeger.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaeger
+                port:
+                  number: 16686
+---
+# grafana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-grafana
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - grafana.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: grafana.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+---
+# prometheus
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-prometheus
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - prometheus.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: prometheus.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus
+                port:
+                  number: 9090
+---
+# rabbitmq management UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-rabbitmq
+  namespace: eshop-microservices
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - rabbitmq.eshop.local
+      secretName: ingress-tls
+  rules:
+    - host: rabbitmq.eshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  number: 15672

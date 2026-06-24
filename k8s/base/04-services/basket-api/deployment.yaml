@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basket-api
+  namespace: eshop-microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basket-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: basket-api
+    spec:
+      serviceAccountName: sa-basket-api
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z basket-db 5432; do echo waiting for basket-db; sleep 2; done']
+        - name: wait-for-redis
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z redis 6379; do echo waiting for redis; sleep 2; done']
+      containers:
+        - name: basket-api
+          image: basket.api:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: basket-api-cm
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: basket-db-secret
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: basket-db-secret
+                  key: POSTGRES_PASSWORD
+            - name: ConnectionStrings__Database
+              value: "Server=basket-db;Port=5432;Database=BasketDb;User Id=$(DB_USER);Password=$(DB_PASSWORD)"
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+              valueFrom:
+                secretKeyRef:
+                  name: cert-password
+                  key: CERT_PASSWORD
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8081
+              name: https
+          livenessProbe:
+            httpGet:
+              path: /hc
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /hc
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certificates
+              readOnly: true
+      volumes:
+        - name: certs
+          projected:
+            sources:
+              - secret:
+                  name: cert-basket-api
+              - configMap:
+                  name: cert-ca

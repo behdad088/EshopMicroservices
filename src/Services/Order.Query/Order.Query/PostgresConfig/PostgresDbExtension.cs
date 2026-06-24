@@ -26,7 +26,8 @@ public static class PostgresDbExtension
                 .Index(x => x.EventType)
                 .Index(x => x.CreatedAt)
                 .UniqueIndex(x => x.Id);
-        }).UseLightweightSessions();
+        }).UseLightweightSessions()
+          .ApplyAllDatabaseChangesOnStartup();
         return services;
     }
 }

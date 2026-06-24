@@ -1,0 +1,9 @@
+# All StatefulSets are already set to replicas: 1 in base manifests, suitable for local dev.
+# This file is a placeholder. For production overlay, patch replicas here to 2+ with proper HA.
+# For now, local single-replica is the correct configuration.
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: <service>-db
+# spec:
+#   replicas: 2  # production example

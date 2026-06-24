@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-query-api-cm
+  namespace: eshop-microservices
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_HTTP_PORTS: "8080"
+  ASPNETCORE_HTTPS_PORTS: "8081"
+  ASPNETCORE_Kestrel__Certificates__Default__Path: "/app/certificates/order-query-event-api.pfx"
+  Logger__elasticsearch: "http://elasticsearch:9200"
+  Identity__Url: "https://identity.eshop.local"
+  Identity__Audience: "orders_query"
+  OTEL_EXPORTER_JAEGER_AGENT_HOST: "jaeger"
+  OTEL_EXPORTER_JAEGER_AGENT_PORT: "6831"
+  OTEL_EXPORTER_JAEGER_ENDPOINT: "http://jaeger:14268/api/traces"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"

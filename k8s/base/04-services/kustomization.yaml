@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eshop-microservices
+
+resources:
+  - catalog-api/deployment.yaml
+  - catalog-api/service.yaml
+  - catalog-api/hpa.yaml
+  - basket-api/deployment.yaml
+  - basket-api/service.yaml
+  - basket-api/hpa.yaml
+  - discount-grpc/deployment.yaml
+  - discount-grpc/service.yaml
+  - identity-api/deployment.yaml
+  - identity-api/service.yaml
+  - identity-api/hpa.yaml
+  - order-command-api/deployment.yaml
+  - order-command-api/service.yaml
+  - order-command-api/hpa.yaml
+  - order-query-api/deployment.yaml
+  - order-query-api/service.yaml
+  - order-query-api/hpa.yaml
+  - order-query-eventprocessor/deployment.yaml
+  - order-query-eventprocessor/service.yaml
+  - api-gateway/deployment.yaml
+  - api-gateway/service.yaml
+  - api-gateway/hpa.yaml
+  - network-policies.yaml
+  - pod-disruption-budgets.yaml

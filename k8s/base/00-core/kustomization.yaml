@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eshop-microservices
+
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - secrets/db-secrets.yaml
+  - secrets/rabbitmq-secret.yaml
+  - secrets/identity-secret.yaml
+  - secrets/cert-password-secret.yaml
+  - configmaps/otel-collector-config-cm.yaml
+  - configmaps/prometheus-config-cm.yaml
+  - configmaps/loki-config-cm.yaml
+  - configmaps/jaeger-ui-cm.yaml
+  - configmaps/catalog-api-cm.yaml
+  - configmaps/basket-api-cm.yaml
+  - configmaps/discount-grpc-cm.yaml
+  - configmaps/identity-api-cm.yaml
+  - configmaps/order-command-api-cm.yaml
+  - configmaps/order-query-api-cm.yaml
+  - configmaps/order-query-eventprocessor-cm.yaml
+  - configmaps/api-gateway-cm.yaml

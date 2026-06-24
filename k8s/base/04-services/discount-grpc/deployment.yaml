@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-grpc
+  namespace: eshop-microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discount-grpc
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: discount-grpc
+    spec:
+      serviceAccountName: sa-discount-grpc
+      containers:
+        - name: discount-grpc
+          image: discount.grpc:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: discount-grpc-cm
+          env:
+            - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+              valueFrom:
+                secretKeyRef:
+                  name: cert-password
+                  key: CERT_PASSWORD
+          ports:
+            - containerPort: 8080
+              name: grpc
+            - containerPort: 8081
+              name: https
+          livenessProbe:
+            grpc:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            grpc:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certificates
+              readOnly: true
+            - name: sqlite-data
+              mountPath: /app/data
+      volumes:
+        - name: certs
+          projected:
+            sources:
+              - secret:
+                  name: cert-discount-grpc
+              - configMap:
+                  name: cert-ca
+        - name: sqlite-data
+          emptyDir: {}
