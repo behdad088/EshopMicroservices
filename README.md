@@ -187,11 +187,13 @@ This builds all images and starts every service, database, RabbitMQ, and the obs
 
 | Service | URL |
 |---|---|
-| API Gateway | http://localhost:6064 |
-| Catalog API | http://localhost:6000 |
-| Basket API | http://localhost:6001 |
-| Discount gRPC | http://localhost:6002 |
-| Ordering API | http://localhost:6003 |
+| Catalog API | https://localhost:5050;http://localhost:5000 |
+| Basket API | https://localhost:5051;http://localhost:5001 |
+| Discount gRPC | https://localhost:5052;http://localhost:5002 |
+| Ordering Command API | https://localhost:5053;http://localhost:5003 |
+| Ordering Query API | https://localhost:5054;http://localhost:5004 |
+| API Gateway | https://localhost:5055;http://localhost:5005 |
+| Identity API | https://localhost:5007 |
 | RabbitMQ Management UI | http://localhost:15672 (guest / guest) |
 | Jaeger (distributed tracing) | http://localhost:16686 |
 | Prometheus | http://localhost:9090 |
