@@ -46,7 +46,7 @@ public sealed class EventConsumer<TView, TEvent> (
 
         _logger.Information("Processing event: {message}", @event);
 
-        messageSpan?.SetTag(AttributeMessagingMessageId, @event.StreamId);
+        messageSpan?.SetTag("messaging.message.id", @event.StreamId);
         messageSpan?.SetTag($"{PrefixMessaging}.is_retry", context.GetRetryAttempt() > 0);
 
         await AssertEvent(@event, messageSpan, cancellationTokenToken);

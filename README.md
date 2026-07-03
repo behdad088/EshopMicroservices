@@ -92,7 +92,7 @@ The most complex service; demonstrates full Domain-Driven Design and Clean Archi
 
 - **Domain layer:** `Order` aggregate root, `OrderItem` entities, `Address` and `Money` value objects
 - **Application layer:** CQRS handlers via MediatR; domain events raised and handled in-process and publishes events to RabbitMQ
-- **Infrastructure layer:** EF Core with SQL Server; repository pattern abstracts persistence
+- **Infrastructure layer:** EF Core with PostgreSQL; repository pattern abstracts persistence
 - **Clean Architecture:** Dependency direction always flows inward (domain has zero dependencies)
 
 ### Ordering Query Service
@@ -127,7 +127,7 @@ Single entry point for all client requests.
 | Web framework | ASP.NET Core 10 Minimal APIs               | HTTP API layer for all services |
 | API Gateway | YARP                                       | Reverse proxy with JSON-based routing config |
 | CQRS / Mediator | MediatR                                    | In-process command and query dispatching |
-| ORM (Ordering) | Entity Framework Core 8                    | SQL Server access with migrations |
+| ORM (Ordering) | Entity Framework Core 8                    | PostgreSQL access with migrations |
 | DB Driver (Discount) | Dapper                                     | Micro-ORM for lightweight SQLite queries |
 | Document DB | Marten + PostgreSQL                        | Schema-flexible document storage for catalogue |
 | Cache | Redis (StackExchange.Redis)                | Distributed cache for basket data |
@@ -136,7 +136,6 @@ Single entry point for all client requests.
 | gRPC | Grpc.AspNetCore + Grpc.Net.Client          | Synchronous inter-service calls with Protobuf |
 | Authentication | Duende IdentityServer                      | OpenID Connect / OAuth 2.0 token server |
 | Validation | FluentValidation                           | Declarative request validation pipeline behaviour |
-| API organisation | Carter                                     | Minimal API module pattern |
 | Containerisation | Docker + Docker Compose                    | All services and databases run as containers |
 | Observability | OpenTelemetry, Jaeger, Grafana, Prometheus | Tracing, metrics, and dashboards |
 | Health checks | ASP.NET Core Health Checks                 | Liveness and readiness probes |
@@ -152,7 +151,7 @@ EshopMicroservices follows the **Database-per-Service** pattern. No service shar
 | Catalog | PostgreSQL (Marten) | Document-oriented; products modelled as JSON |
 | Basket | Redis | In-memory key-value; ideal for transient cart state |
 | Discount | SQLite (Dapper) | Embedded relational; simple coupon table, self-contained |
-| Ordering | SQL Server (EF Core) | Full ACID guarantees; relational order model with migrations |
+| Ordering | PostgreSQL (EF Core) | Full ACID guarantees; relational order model with migrations |
 
 ### Event-Driven Synchronisation
 
