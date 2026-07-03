@@ -89,7 +89,7 @@ jobs:
 
       - name: Publish test report
         if: inputs.test_path != '' && (success() || failure())
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: ${{ inputs.service }} tests
           path: TestResults/**/test-results.trx
