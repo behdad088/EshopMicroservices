@@ -55,15 +55,15 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ inputs.service }}-${{ hashFiles('**/*.csproj', '**/*.props', '**/packages.lock.json') }}
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload test results artifact
         if: inputs.test_path != '' && (success() || failure())
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ inputs.service }}
           path: TestResults/
@@ -208,7 +208,7 @@ jobs:
 
       - name: Upload Trivy SARIF to code scanning
         if: always() && hashFiles('trivy.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy.sarif
           category: trivy-${{ inputs.service }}
@@ -218,7 +218,7 @@ jobs:
       # from the run page and used to reproduce the failure locally.
       - name: Upload service build output on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-output-${{ inputs.service }}
           path: |
@@ -229,7 +229,7 @@ jobs:
 
       - name: Upload test build output on failure
         if: failure() && inputs.test_path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-build-output-${{ inputs.service }}
           path: |
